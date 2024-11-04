@@ -37,7 +37,7 @@ body {
 /* Profile section */
 .profile-section {
     display: grid;
-    grid-template-columns: minmax(300px, 1fr) minmax(400px, 2fr);
+    grid-template-columns: 400px 1fr;  /* Fixed first column width */
     gap: 60px;
     margin-top: 40px;
     align-items: start;
@@ -51,7 +51,6 @@ body {
     width: 100%;
     max-width: 400px;
     height: auto;
-    border-radius: 50%;
     display: block;
 }
 
@@ -60,61 +59,8 @@ body {
     line-height: 1.7;
 }
 
-/* Links */
-a {
-    color: #0056b3;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-/* Quick links */
-.quick-links {
-    margin-top: 20px;
-}
-
-.quick-links a {
-    margin-right: 20px;
-}
-
-/* Research section */
-.research-section {
-    margin-top: 60px;
-}
-
-.research-section h2 {
-    font-size: 1.8em;
-    margin-bottom: 30px;
-    font-weight: normal;
-}
-
-/* Responsive design */
-@media (max-width: 1200px) {
-    .content {
-        padding: 40px 80px;
-    }
-    
-    .profile-section {
-        grid-template-columns: 1fr;
-        gap: 30px;
-    }
-    
-    .profile-photo {
-        margin: 0 auto;
-    }
-    
-    .profile-text {
-        text-align: center;
-    }
-}
-
+/* Only switch to single column on very small screens */
 @media (max-width: 800px) {
-    .content {
-        padding: 30px 40px;
-    }
-    
     .profile-section {
         grid-template-columns: 1fr;
         gap: 30px;
