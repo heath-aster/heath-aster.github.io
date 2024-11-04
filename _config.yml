@@ -1,0 +1,18 @@
+# Site Author
+author:
+  name             : "Henry H. Zhang"
+  avatar           : "assets/photo.jpg"
+  bio              : "PhD Candidate in Economics at MIT"
+  location         : "Cambridge, MA"
+  employer         : "MIT"
+  googlescholar    : # optional
+  email            : "hhz@mit.edu"
+  uri              : "https://economics.mit.edu/people/phd-students/henry-zhang"
+  cv               : "assets/CV.pdf"
+
+# Site Settings
+title                    : "Henry H. Zhang"
+title_separator          : "-"
+name                     : "Henry H. Zhang"
+description              : "Academic website for Henry H. Zhang"
+repository               : "yourusername/yourusername.github.io"
