@@ -13,7 +13,8 @@ I conduct research in finance, macroeconomics, and environmental economics. I am
 # Research
 
 ## Job Market Paper: Firm-Level and Aggregate Effects of Cheaper Liquidity: Evidence from Factoring
-*with Victor Orestes and Thiago Silva*
+*with Victor Orestes and Thiago Silva* 
+<span style="margin-left: 50px;"></span>
 [PDF](files/JMP.pdf)
 
 **Abstract:** We show that firms experience large increases in sales and purchases after receiving cheaper liquidity. We focus on factoring, defined as the supplier-initiated sale of receivables. In Brazil, receivables funds (FIDCs) securitize receivables for institutional investors. By assembling a novel transaction-level dataset of factoring with other credit operations for all registered firms and FIDCs, we construct a shift-share instrument for factoring financing supply based on FIDC flows. We then use a novel combination of electronic payments, trade credit, and employer-employee matched data to estimate the impacts. A flow-induced increase in receivables demand reduces firms' factoring interest rate. In response, firms demand more permanent labor and less temporary labor. In our model, these effects arise from factoring's purpose of reducing cash inflow volatility, helping firms match inflows to outflows, which firms otherwise achieve at an efficiency cost through substitution across labor types. Using our model, we estimate that an aggregate decrease in the economy-wide factoring spread by 1 percentage point leads to 0.3 to 0.5 percentage point increases in aggregate output and wages.
