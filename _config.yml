@@ -12,20 +12,31 @@ defaults:
     values:
       layout: single
       author_profile: true
+      classes: wide  # This makes content use full width
 
 # Site Settings
-title: "Henry H. Zhang"
-description: "PhD Candidate in Economics at MIT"
-url: "https://henryhzhang.com"  
-baseurl: ""  # leave this empty for GitHub Pages
+locale                   : "en-US"
+title                    : "Henry H. Zhang"
+description              : "PhD Candidate in Economics at MIT"
+url                      : "https://henryhzhang.com"
+baseurl                  : ""
+repository               : "yourgithubusername/yourgithubusername.github.io"
 
 # Site Author
 author:
-  name: "Henry H. Zhang"
-  avatar: "images/photo.jpg"  
-  bio: "PhD Candidate in Economics at MIT"
-  location: "Cambridge, MA"
-  employer: "MIT"
-  email: "hhz@mit.edu"
-  uri: "https://economics.mit.edu/people/phd-students/henry-zhang"
-  cv: "/files/CV.pdf"
+  name                   : "Henry H. Zhang"
+  avatar                 : "images/photo.jpg"
+  bio                    : "PhD Candidate in Economics at MIT"
+  location               : "Cambridge, MA"
+  employer               : "MIT"
+  email                  : "hhz@mit.edu"
+  uri                    : "https://economics.mit.edu/people/phd-students/henry-zhang"
+  cv                     : "/files/CV.pdf"
+
+# Analytics
+analytics:
+  provider               : false
+
+# Footer
+footer:
+  links: []  # Removes social media links in footer
