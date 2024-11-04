@@ -30,7 +30,7 @@ repository               : "heath-aster/heath-aster.github.io"
 # Site Author
 author:
   name                   : "Henry H. Zhang"
-  avatar                 : "images/photo.jpg"
+  avatar                 : "/images/photo.jpg"
   bio                    : "PhD Candidate in Economics at MIT"
   location               : "Cambridge, MA"
   employer               : "MIT"
