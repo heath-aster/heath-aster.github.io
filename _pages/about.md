@@ -14,7 +14,7 @@ I conduct research in finance, macroeconomics, and environmental economics. I am
 
 ## Job Market Paper: Firm-Level and Aggregate Effects of Cheaper Liquidity: Evidence from Factoring
 *with Victor Orestes and Thiago Silva* 
-&nbsp;&nbsp;
+&nbsp;
 [PDF](files/JMP.pdf)
 
 **Abstract:** We show that firms experience large increases in sales and purchases after receiving cheaper liquidity. We focus on factoring, defined as the supplier-initiated sale of receivables. In Brazil, receivables funds (FIDCs) securitize receivables for institutional investors. By assembling a novel transaction-level dataset of factoring with other credit operations for all registered firms and FIDCs, we construct a shift-share instrument for factoring financing supply based on FIDC flows. We then use a novel combination of electronic payments, trade credit, and employer-employee matched data to estimate the impacts. A flow-induced increase in receivables demand reduces firms' factoring interest rate. In response, firms demand more permanent labor and less temporary labor. In our model, these effects arise from factoring's purpose of reducing cash inflow volatility, helping firms match inflows to outflows, which firms otherwise achieve at an efficiency cost through substitution across labor types. Using our model, we estimate that an aggregate decrease in the economy-wide factoring spread by 1 percentage point leads to 0.3 to 0.5 percentage point increases in aggregate output and wages.
@@ -27,7 +27,7 @@ I conduct research in finance, macroeconomics, and environmental economics. I am
 
 ## Aggregate Impacts of Command-and-Control Environmental Policy: Evidence from Court-Ordered Mining Bans in India
 *with Ananya Kotia and Utkarsh Saxena*
-&nbsp;&nbsp;
+&nbsp;
 Draft coming soon
 
 **Abstract:** We estimate the aggregate impacts of court-ordered iron ore mining bans in India and consider the counterfactual welfare gains from an alternative policy to the ban. The local sectoral ban is a command-and-control (CAC) policy that is commonly applied to natural resource settings, usually when the regulator has a signal of widespread non-compliance. The Supreme Court of India imposed bans on iron ore mining and outbound iron ore trade in two states in response to reports that mines operated under fake environmental permits and underpaid mining royalties. Using firm-level industrial survey data, mine-level output data, and bilateral mine-to-firm auction data, we decompose the bans' effects into trade, production networks, and local labor demand channels. Our results indicate persistent declines in employment, capital stock, and borrowing by iron-consuming plants, despite the temporary duration of the ban. These findings highlight the economic spillovers caused by CAC policies, especially in industries that are upstream in the supply chain.
