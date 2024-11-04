@@ -7,12 +7,13 @@ body {
     background: #fff;
 }
 
-/* Main container */
+/* Main container with proper margins */
 .content {
-    max-width: 900px;
-    margin: 1 auto;
-    padding: 60px 160px;
+    max-width: 800px;  /* Reduced from 900px */
+    margin: 0 auto;    /* Fixed the '1' to '0' */
+    padding: 60px 200px;  /* Increased side padding for more margin */
 }
+
 
 /* Header styling */
 header {
