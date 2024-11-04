@@ -1,18 +1,30 @@
-# Site Author
-author:
-  name             : "Henry H. Zhang"
-  avatar           : "assets/photo.jpg"
-  bio              : "PhD Candidate in Economics at MIT"
-  location         : "Cambridge, MA"
-  employer         : "MIT"
-  googlescholar    : # optional
-  email            : "hhz@mit.edu"
-  uri              : "https://economics.mit.edu/people/phd-students/henry-zhang"
-  cv               : "assets/CV.pdf"
+# Reading Files
+include:
+  - .htaccess
+  - _pages
+
+# Defaults
+defaults:
+  # _pages
+  - scope:
+      path: ""
+      type: pages
+    values:
+      layout: single
+      author_profile: true
 
 # Site Settings
-title                    : "Henry H. Zhang"
-title_separator          : "-"
-name                     : "Henry H. Zhang"
-description              : "Academic website for Henry H. Zhang"
-repository               : "yourusername/yourusername.github.io"
+title: "Henry H. Zhang"
+description: "PhD Candidate in Economics at MIT"
+url: "https://henryhzhang.com"  # change this to your domain
+baseurl: ""  # leave this empty for GitHub Pages
+
+# Site Author
+author:
+  name: "Henry H. Zhang"
+  avatar: "assets/photo.jpg"  # make sure this path matches where you put your photo
+  bio: "PhD Candidate in Economics at MIT"
+  location: "Cambridge, MA"
+  employer: "MIT"
+  email: "hhz@mit.edu"
+  uri: "https://economics.mit.edu/people/phd-students/henry-zhang"
