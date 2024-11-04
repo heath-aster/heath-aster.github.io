@@ -6,7 +6,7 @@ author_profile: true
 redirect_from: 
   - /about/
   - /about.html
-classes:wide
+classes: wide
 ---
 
 I conduct research in finance, macroeconomics, and environmental economics. I am on the academic job market for positions beginning in Fall 2025. You can find more information about me on my [MIT website](https://economics.mit.edu/people/phd-students/henry-zhang)
