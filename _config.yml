@@ -22,7 +22,7 @@ baseurl: ""  # leave this empty for GitHub Pages
 # Site Author
 author:
   name: "Henry H. Zhang"
-  avatar: "files/photo.jpg"  
+  avatar: "images/photo.jpg"  
   bio: "PhD Candidate in Economics at MIT"
   location: "Cambridge, MA"
   employer: "MIT"
