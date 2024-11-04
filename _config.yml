@@ -12,7 +12,6 @@ defaults:
     values:
       layout: single
       author_profile: true
-      classes: wide  # This makes content use full width
 
 # Site Settings
 locale                   : "en-US"
