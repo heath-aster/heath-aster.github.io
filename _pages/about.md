@@ -21,7 +21,9 @@ I conduct research in finance, macroeconomics, and environmental economics. I am
 
 ## Volatility and Under-Insurance in Economies with Limited Pledgeability: Evidence from the Frost Shock
 *with Victor Orestes and Thiago Silva*
-<!--[PDF](files/Frost_Shock.pdf){: .btn--research}-->
+&nbsp;
+Draft coming soon, pending disclosure
+<!--[PDF](files/Frost_Shock.pdf)-->
 
 **Abstract:** We use transaction-level data on payments, credit, and insurance to examine how Brazilian farmers responded to the severe frost of July 2021, a shock that affected coffee, a perennial crop whose plants are a major component of farm value. The frost shock reduced both output and the pledgeable value of farmers' collateral. We find that insured farmers increased investment in the years following the shock, while uninsured farmers reduced investment and borrowing. We show how this pattern is consistent with models of imperfect pledgeability of a firm's collateral, where constrained firms neither insure (ex-ante) nor fully recover from a shock (ex-post). Limited commitment endogenously generates under-insurance through the combination of upfront payment of the insurance premium with the tightening of borrowing constraints post-shock due to the decrease in total collateral. We discuss two equilibrium implications of this mechanism: the inefficacy of emergency credit lines in targeting liquidity constrained firms and the amplification of output volatility from the rising risk of extreme weather shocks.
 
