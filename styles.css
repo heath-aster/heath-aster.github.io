@@ -11,40 +11,33 @@ body {
 .content {
     max-width: 900px;
     margin: 0 auto;
-    padding: 60px 40px;
+    padding: 60px 160px;
 }
 
 /* Header styling */
-.header-section {
-    text-align: center;
-    margin-bottom: 50px;
+header {
+    margin-bottom: 40px;
 }
 
-.header-section h1 {
+header h1 {
     font-size: 2.4em;
     margin: 0;
     font-weight: normal;
-    color: #000;
 }
 
-.header-section h2 {
-    font-size: 1.3em;
+header p {
+    font-size: 1.2em;
     margin: 8px 0 0 0;
-    font-weight: normal;
-    color: #333;
+    color: #555;
 }
 
 /* Profile section */
 .profile-section {
     display: grid;
-    grid-template-columns: 400px 1fr;  /* Fixed first column width */
+    grid-template-columns: 400px 1fr;
     gap: 60px;
-    margin-top: 40px;
+    margin: 40px 0;
     align-items: start;
-}
-
-.profile-photo-container {
-    width: 100%;
 }
 
 .profile-photo {
@@ -59,8 +52,56 @@ body {
     line-height: 1.7;
 }
 
-/* Only switch to single column on very small screens */
+/* Links */
+a {
+    color: #2962ff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Research section */
+.research-section {
+    margin-top: 60px;
+}
+
+.research-section h2 {
+    font-size: 1.8em;
+    margin-bottom: 30px;
+    font-weight: normal;
+}
+
+.paper {
+    margin-bottom: 40px;
+}
+
+.paper h3 {
+    font-size: 1.3em;
+    margin: 0 0 10px 0;
+    font-weight: normal;
+}
+
+/* Footer */
+footer {
+    margin-top: 60px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .content {
+        padding: 40px 100px;  /* Still generous but slightly reduced margins */
+    }
+}
+
 @media (max-width: 800px) {
+    .content {
+        padding: 30px 40px;  /* Reduced margins for mobile */
+    }
+    
     .profile-section {
         grid-template-columns: 1fr;
         gap: 30px;
@@ -68,6 +109,7 @@ body {
     
     .profile-photo {
         margin: 0 auto;
+        max-width: 300px;
     }
     
     .profile-text {
