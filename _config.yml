@@ -16,13 +16,13 @@ defaults:
 # Site Settings
 title: "Henry H. Zhang"
 description: "PhD Candidate in Economics at MIT"
-url: "https://henryhzhang.com"  # change this to your domain
+url: "https://henryhzhang.com"  
 baseurl: ""  # leave this empty for GitHub Pages
 
 # Site Author
 author:
   name: "Henry H. Zhang"
-  avatar: "assets/photo.jpg"  # make sure this path matches where you put your photo
+  avatar: "files/photo.jpg"  
   bio: "PhD Candidate in Economics at MIT"
   location: "Cambridge, MA"
   employer: "MIT"
