@@ -91,9 +91,28 @@ a:hover {
 }
 
 /* Responsive design */
+@media (max-width: 1200px) {
+    .content {
+        padding: 40px 80px;
+    }
+    
+    .profile-section {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .profile-photo {
+        margin: 0 auto;
+    }
+    
+    .profile-text {
+        text-align: center;
+    }
+}
+
 @media (max-width: 800px) {
     .content {
-        padding: 30px 20px;
+        padding: 30px 40px;
     }
     
     .profile-section {
