@@ -1,5 +1,5 @@
 body {
-    font-family: 'Times New Roman', serif;
+    font-family: Helvetica, Arial, sans-serif;
     line-height: 1.6;
     margin: 0;
     padding: 0;
@@ -10,7 +10,7 @@ body {
 /* Main container */
 .content {
     max-width: 900px;
-    margin: 0 auto;
+    margin: 1 auto;
     padding: 60px 160px;
 }
 
