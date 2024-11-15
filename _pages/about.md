@@ -22,15 +22,14 @@ I conduct research in finance, macroeconomics, and environmental economics. I am
 ## Volatility and Under-Insurance in Economies with Limited Pledgeability: Evidence from the Frost Shock
 *with Victor Orestes and Thiago Silva*
 &nbsp;
-Draft coming soon, pending disclosure
-<!--[PDF](files/Frost_Shock.pdf)-->
+[PDF](files/Frost_Shock.pdf)
 
 **Abstract:** We use transaction-level data on payments, credit, and insurance to examine how Brazilian farmers responded to the severe frost of July 2021, a shock that affected coffee, a perennial crop whose plants are a major component of farm value. The frost shock reduced both output and the pledgeable value of farmers' collateral. We find that insured farmers increased investment in the years following the shock, while uninsured farmers reduced investment and borrowing. We show how this pattern is consistent with models of imperfect pledgeability of a firm's collateral, where constrained firms neither insure (ex-ante) nor fully recover from a shock (ex-post). Limited commitment endogenously generates under-insurance through the combination of upfront payment of the insurance premium with the tightening of borrowing constraints post-shock due to the decrease in total collateral. We discuss two equilibrium implications of this mechanism: the inefficacy of emergency credit lines in targeting liquidity constrained firms and the amplification of output volatility from the rising risk of extreme weather shocks.
 
 ## Aggregate Impacts of Command-and-Control Environmental Policy: Evidence from Court-Ordered Mining Bans in India
 *with Ananya Kotia and Utkarsh Saxena*
 &nbsp;
-Draft coming soon
+[PDF](files/Mining_Ban.pdf)
 
 **Abstract:** We estimate the aggregate impacts of court-ordered iron ore mining bans in India and consider the counterfactual welfare gains from an alternative policy to the ban. The local sectoral ban is a command-and-control (CAC) policy that is commonly applied to natural resource settings, usually when the regulator has a signal of widespread non-compliance. The Supreme Court of India imposed bans on iron ore mining and outbound iron ore trade in two states in response to reports that mines operated under fake environmental permits and underpaid mining royalties. Using firm-level industrial survey data, mine-level output data, and bilateral mine-to-firm auction data, we decompose the bans' effects into trade, production networks, and local labor demand channels. Our results indicate persistent declines in employment, capital stock, and borrowing by iron-consuming plants, despite the temporary duration of the ban. These findings highlight the economic spillovers caused by CAC policies, especially in industries that are upstream in the supply chain.
 
