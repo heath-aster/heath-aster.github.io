@@ -8,11 +8,11 @@ redirect_from:
   - /about.html
 classes: wide
 ---
-My research agenda studies environmental and supply chain topics in corporate finance. I will join the finance department at the CUHK Business School beginning in the 2025-26 academic year. You can find more information about me on my [MIT website](https://economics.mit.edu/people/phd-students/henry-zhang).
+I conduct research in finance, macroeconomics, and environmental economics. I am **on the 2024-25 job market**, for positions beginning in Fall 2025. You can find more information about me on my [MIT website](https://economics.mit.edu/people/phd-students/henry-zhang).
 
 # Research
 
-## Firm-Level and Aggregate Effects of Cheaper Liquidity: Evidence from Factoring
+## Job Market Paper: Firm-Level and Aggregate Effects of Cheaper Liquidity: Evidence from Factoring
 *with Victor Orestes and Thiago Silva* 
 &nbsp;
 [PDF](files/JMP.pdf)
