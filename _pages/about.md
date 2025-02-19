@@ -13,7 +13,7 @@ My research focuses on environmental and supply chain topics in corporate financ
 
 # Research
 
-## Job Market Paper: Firm-Level and Aggregate Effects of Cheaper Liquidity: Evidence from Factoring
+## Firm-Level and Aggregate Effects of Cheaper Liquidity: Evidence from Factoring
 *with Victor Orestes and Thiago Silva* 
 &nbsp;
 [PDF](files/JMP.pdf)
