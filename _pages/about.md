@@ -8,7 +8,8 @@ redirect_from:
   - /about.html
 classes: wide
 ---
-I conduct research in finance, macroeconomics, and environmental economics. I am **on the 2024-25 job market**, for positions beginning in Fall 2025. You can find more information about me on my [MIT website](https://economics.mit.edu/people/phd-students/henry-zhang).
+
+My research focuses on environmental and supply chain topics in corporate finance. I am excited to join the [Department of Finance at the CUHK Business School](https://www.bschool.cuhk.edu.hk/departments/finance/) as an assistant professor, beginning in the 2025-26 academic year. You can find more information about me on my [MIT website](https://economics.mit.edu/people/phd-students/henry-zhang).
 
 # Research
 
