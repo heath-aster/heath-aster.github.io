@@ -30,7 +30,7 @@ My research focuses on environmental and supply chain topics in corporate financ
 ## Aggregate Impacts of Command-and-Control Environmental Policy: Evidence from Court-Ordered Mining Bans in India
 *with Ananya Kotia and Utkarsh Saxena*
 &nbsp;
-[PDF](files/Mining_Ban.pdf)
+# [PDF](files/Mining_Ban.pdf)
 
 **Abstract:** We estimate the aggregate impacts of court-ordered iron ore mining bans in India and consider the counterfactual welfare gains from an alternative policy to the ban. The local sectoral ban is a command-and-control (CAC) policy that is commonly applied to natural resource settings, usually when the regulator has a signal of widespread non-compliance. The Supreme Court of India imposed bans on iron ore mining and outbound iron ore trade in two states in response to reports that mines operated under fake environmental permits and underpaid mining royalties. Using firm-level industrial survey data, mine-level output data, and bilateral mine-to-firm auction data, we decompose the bans' effects into trade, production networks, and local labor demand channels. Our results indicate persistent declines in employment, capital stock, and borrowing by iron-consuming plants, despite the temporary duration of the ban. These findings highlight the economic spillovers caused by CAC policies, especially in industries that are upstream in the supply chain.
 
