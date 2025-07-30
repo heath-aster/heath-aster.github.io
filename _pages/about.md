@@ -9,7 +9,7 @@ redirect_from:
 classes: wide
 ---
 
-My research focuses on environmental and supply chain topics in corporate finance. I am excited to join the [Department of Finance at the CUHK Business School](https://www.bschool.cuhk.edu.hk/departments/finance/) as an assistant professor, beginning in the 2025-26 academic year. You can find more information about me on my [MIT website](https://economics.mit.edu/people/phd-students/henry-zhang).
+My research focuses on environmental and supply chain topics in corporate finance. I am excited to join the [Department of Finance at the CUHK Business School](https://www.bschool.cuhk.edu.hk/departments/finance/) as an assistant professor, beginning in the 2025-26 academic year. 
 
 # Research
 
@@ -36,7 +36,7 @@ My research focuses on environmental and supply chain topics in corporate financ
 
 **Abstract:** We estimate the aggregate impacts of court-ordered iron ore mining bans in India and consider the counterfactual welfare gains from an alternative policy to the ban. The local sectoral ban is a command-and-control (CAC) policy that is commonly applied to natural resource settings, usually when the regulator has a signal of widespread non-compliance. The Supreme Court of India imposed bans on iron ore mining and outbound iron ore trade in two states in response to reports that mines operated under fake environmental permits and underpaid mining royalties. Using firm-level industrial survey data, mine-level output data, and bilateral mine-to-firm auction data, we decompose the bans' effects into trade, production networks, and local labor demand channels. Our results indicate persistent declines in employment, capital stock, and borrowing by iron-consuming plants, despite the temporary duration of the ban. These findings highlight the economic spillovers caused by CAC policies, especially in industries that are upstream in the supply chain.
 
-## Forward Guidance, Speculation, and Liquidity Shortfalls in an OTC Carbon Credit Market
+## Market Design, Forward Guidance, and Investment Decisions in Carbon Credit Markets
 *with Luis Alvarez, Victor Orestes, and Thiago Silva*
 
 **Abstract:** We estimate the effects of forward guidance on the supply of carbon credits when trading is subject to over-the-counter (OTC) frictions, focusing on the CBIO market in Brazil. We combine the OTC tape data with firms' carbon credit holdings, balance sheet outcomes, and interfirm payments to study the impact on demand for carbon credits, borrowing, investment, and supply chain spillovers. We focus on the rapid increase in prices in June 2022 followed by a crash in July 2022, driven by speculation about forward guidance and an unexpected change in carbon credit policy. We show how low liquidity generated the volatility, and then propagated by limited float, insufficient hedging options, and the absence of designated market-makers.
