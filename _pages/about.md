@@ -9,7 +9,7 @@ redirect_from:
 classes: wide
 ---
 
-My research focuses on environmental and supply chain topics in corporate finance. I am excited to join the [Department of Finance at the CUHK Business School](https://www.bschool.cuhk.edu.hk/departments/finance/) as an assistant professor, beginning in the 2025-26 academic year. 
+My research focuses on environmental and supply chain topics in corporate finance. I am excited to join the [Department of Finance at the CUHK Business School](https://www.bschool.cuhk.edu.hk/departments/finance/) as an assistant professor, beginning in the 2025-26 academic year. I recently received my PhD in economics from MIT, where I was advised by Dave Donaldson, Rob Townsend, and Tong Liu.
 
 # Research
 

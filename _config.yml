@@ -22,7 +22,7 @@ defaults:
 # Site Settings
 locale                   : "en-US"
 title                    : "Henry H. Zhang"
-description              : "PhD Candidate in Economics at MIT"
+description              : "Assistant Professor of Finance"
 url                      : "https://henryhzhang.com"
 baseurl                  : ""
 repository               : "heath-aster/heath-aster.github.io"
@@ -31,11 +31,11 @@ repository               : "heath-aster/heath-aster.github.io"
 author:
   name                   : "Henry H. Zhang"
   avatar                 : "photo.jpg"
-  bio                    : "PhD Candidate in Economics at MIT"
-  location               : "Cambridge, MA"
-  employer               : "MIT"
-  email                  : "hhz@mit.edu"
-  uri                    : "https://economics.mit.edu/people/phd-students/henry-zhang"
+  bio                    : "Assistant Professor of Finance"
+  location               : "Hong Kong"
+  employer               : "CUHK Business School"
+  email                  : "henryzhang@cuhk.edu.hk"
+  uri                    : ""
   cv                     : "/files/CV.pdf"
 
 # Analytics
