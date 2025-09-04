@@ -23,7 +23,7 @@ defaults:
 locale                   : "en-US"
 title                    : "Henry H. Zhang"
 description              : "Assistant Professor of Finance"
-url                      : "https://henryhzhang.com"
+url                      : "https://www.bschool.cuhk.edu.hk/staff/zhang-henry-haorui/"
 baseurl                  : ""
 repository               : "heath-aster/heath-aster.github.io"
 
