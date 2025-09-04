@@ -9,7 +9,7 @@ redirect_from:
 classes: wide
 ---
 
-I am an assistant professor in [Department of Finance at the CUHK Business School](https://www.bschool.cuhk.edu.hk/departments/finance/). I recently received my PhD in economics from MIT, where I was advised by Dave Donaldson, Rob Townsend, and Tong Liu. I am interested in how financial frictions and liquidity provision affect firms’ real decisions, with an emphasis on credit supply channels and intermediary behavior. I have a particular interest in environmental settings.
+I am an assistant professor in [the Department of Finance at the CUHK Business School](https://www.bschool.cuhk.edu.hk/departments/finance/). I recently received my PhD in economics from MIT. I am interested in how financial frictions and liquidity provision affect firms’ real decisions, with an emphasis on credit supply channels and intermediary behavior. I have a particular interest in environmental settings.
 
 # Research
 
