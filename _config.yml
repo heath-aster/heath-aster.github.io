@@ -23,7 +23,7 @@ defaults:
 locale                   : "en-US"
 title                    : "Henry H. Zhang"
 description              : "Assistant Professor of Finance"
-url                      : "https://www.bschool.cuhk.edu.hk/staff/zhang-henry-haorui/"
+url                      : "https://henryhzhang.com"
 baseurl                  : ""
 repository               : "heath-aster/heath-aster.github.io"
 
@@ -35,7 +35,7 @@ author:
   location               : "Hong Kong"
   employer               : "CUHK Business School"
   email                  : "henryzhang@cuhk.edu.hk"
-  uri                    : ""
+  uri                    : "https://www.bschool.cuhk.edu.hk/staff/zhang-henry-haorui/"
   cv                     : "/files/CV.pdf"
 
 # Analytics
