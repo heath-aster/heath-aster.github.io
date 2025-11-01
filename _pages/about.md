@@ -1,4 +1,4 @@
----
+--
 permalink: /
 title: "About Me"
 excerpt: "About me"
@@ -7,18 +7,18 @@ redirect_from:
   - /about/
   - /about.html
 classes: wide
----
+--
 
 I am an assistant professor in [the Department of Finance at the CUHK Business School](https://www.bschool.cuhk.edu.hk/departments/finance/). I recently received my PhD in economics from MIT. I am interested in how financial frictions and liquidity provision affect firms’ real decisions, with an emphasis on credit supply channels and intermediary behavior. I have a particular interest in environmental settings.
 
 # Research
 
-## Firm-Level and Aggregate Effects of Cheaper Liquidity: Evidence from Factoring
+## Corporate Liquidity Supply from Non-Bank Intermediaries and the Real Effects of Factoring 
 *with Victor Orestes and Thiago Silva* 
 &nbsp;
 [PDF](files/Factoring.pdf)
 
-**Abstract:** We show that firms experience large increases in sales and purchases after receiving cheaper liquidity. We focus on factoring, defined as the supplier-initiated sale of receivables. In Brazil, receivables funds (FIDCs) securitize receivables for institutional investors. By assembling a novel transaction-level dataset of factoring with other credit operations for all registered firms and FIDCs, we construct a shift-share instrument for factoring financing supply based on FIDC flows. We then use a novel combination of electronic payments, trade credit, and employer-employee matched data to estimate the impacts. A flow-induced increase in receivables demand reduces firms' factoring interest rate. In response, firms demand more permanent labor and less temporary labor. In our model, these effects arise from factoring's purpose of reducing cash inflow volatility, helping firms match inflows to outflows, which firms otherwise achieve at an efficiency cost through substitution across labor types. Using our model, we estimate that an aggregate decrease in the economy-wide factoring spread by 1 percentage point leads to 0.3 to 0.5 percentage point increases in aggregate output and wages.
+**Abstract:** We show that short-term fluctuations in firms’ ability to convert trade credit receivables into liquidity through factoring have large and persistent real effects, with limited substitution from other financing sources nor adjustments in trade credit terms. In Brazil, specialized non-bank intermediaries (FIDCs) securitize receivables and are key providers of working-capital liquidity. Using novel transaction-level data linking all factoring and credit operations, invoices, payments, and employment records, we exploit investor inflows to FIDCs in a shift-share design to identify exogenous variation in factoring supply. A one-percentage-point decline in factoring rates increases factoring volumes by 16\%, revenues by 6\%, and intermediate input expenditure by 4\%, with effects persisting for several months. Firms expand permanent employment and temporarily demand less temporary labor. A model of corporate liquidity management rationalizes these findings: factoring endogenously transforms production into collateral, tying firms’ real and financial marginal decisions in a self-reinforcing liquidity-productivity loop. Model-implied macro-elasticities indicate that lowering economy-wide factoring spreads by 1 percentage point would raise aggregate output and wages by 0.3 to 0.5 percentage points.
 
 ## Volatility and Under-Insurance in Economies with Limited Pledgeability: Evidence from the Frost Shock
 *with Victor Orestes and Thiago Silva*
