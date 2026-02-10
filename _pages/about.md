@@ -18,9 +18,10 @@ I am an assistant professor in [the Department of Finance at the CUHK Business S
 &nbsp;
 [PDF](files/Factoring.pdf)
 
+Upcoming presentations: Finance Down Under, MFA, Spring Finance Workshop, FIRS
+
 **Abstract:** We show that short-term fluctuations in firms’ ability to convert trade credit receivables into liquidity through factoring have large and persistent real effects, with limited substitution from other financing sources or adjustments in trade credit terms. In Brazil, specialized non-bank intermediaries (FIDCs) securitize receivables and are key providers of working capital financing. Using novel transaction-level data linking factoring, invoices, payments, credit operations, and employment records, we exploit investor inflows to FIDCs in a shift-share design to identify exogenous variation in factoring supply. A one-percentage-point decline in factoring rates increases factoring volumes by 16%, revenues by 6%, and intermediate input expenditure by 4%, with effects persisting for several months. Firms expand permanent employment and demand less temporary labor. A model of corporate liquidity management rationalizes these findings: factoring endogenously transforms production into collateral, tying firms’ real and financial decisions. Model-implied macro-elasticities indicate that lowering economy-wide factoring spreads by 1 percentage point would raise aggregate output and wages by 0.3 to 0.5 percentage points.
 
-Upcoming presentations: Finance Down Under, MFA, Spring Finance Workshop, FIRS
 
 ## Volatility and Under-Insurance in Economies with Limited Pledgeability: Evidence from the Frost Shock
 *with Victor Orestes and Thiago Silva*
