@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coding Assessment Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --border: #2a2a2a;
+    --accent: #00e5a0;
+    --accent-dim: rgba(0,229,160,0.1);
+    --text: #e8e8e8;
+    --muted: #666;
+    --warn: #ff6b35;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 39px, #1a1a1a 39px, #1a1a1a 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, #1a1a1a 39px, #1a1a1a 40px);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 760px;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .logo-mark {
+    width: 40px; height: 40px;
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 0.75rem;
+    color: var(--accent); letter-spacing: 0.05em; flex-shrink: 0;
+  }
+
+  .org-name {
+    font-family: var(--mono); font-size: 0.75rem;
+    color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase;
+  }
+
+  /* GATE */
+  #gate-screen { animation: fadeIn 0.6s ease both; }
+
+  .gate-title {
+    font-family: var(--mono); font-size: 2rem; font-weight: 700;
+    line-height: 1.1; margin-bottom: 0.5rem; letter-spacing: -0.02em;
+  }
+  .gate-title span { color: var(--accent); }
+
+  .gate-sub {
+    color: var(--muted); font-size: 0.9rem;
+    margin-bottom: 2.5rem; font-family: var(--mono);
+  }
+
+  .field-group { margin-bottom: 1.5rem; }
+
+  .field-label {
+    display: block; font-family: var(--mono); font-size: 0.7rem;
+    color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem;
+  }
+
+  .field-input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-family: var(--mono); font-size: 1rem;
+    padding: 0.85rem 1rem; outline: none; transition: border-color 0.2s; letter-spacing: 0.1em;
+  }
+  .field-input:focus { border-color: var(--accent); }
+  .field-input::placeholder { color: #333; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    background: var(--accent); color: #000; font-family: var(--mono);
+    font-size: 0.85rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding: 0.9rem 2rem; border: none; cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s; width: 100%;
+    justify-content: center; margin-top: 0.5rem;
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn:active { transform: scale(0.99); }
+
+  .btn-secondary {
+    background: transparent; color: var(--accent);
+    border: 1px solid var(--accent); margin-top: 1rem;
+  }
+
+  .error-msg {
+    color: var(--warn); font-family: var(--mono);
+    font-size: 0.78rem; margin-top: 0.75rem; display: none;
+  }
+
+  /* CONFIRM */
+  #confirm-screen { display: none; animation: fadeIn 0.4s ease both; }
+
+  .confirm-box {
+    border: 1px solid var(--border); background: var(--surface);
+    padding: 2rem; margin-bottom: 2rem;
+  }
+  .confirm-box h2 {
+    font-family: var(--mono); font-size: 1rem; color: var(--accent);
+    margin-bottom: 1rem; letter-spacing: 0.08em;
+  }
+  .confirm-row {
+    display: flex; justify-content: space-between;
+    padding: 0.5rem 0; border-bottom: 1px solid var(--border); font-size: 0.88rem;
+  }
+  .confirm-row:last-child { border-bottom: none; }
+  .confirm-row .key { color: var(--muted); font-family: var(--mono); font-size: 0.75rem; }
+  .confirm-row .val { font-family: var(--mono); }
+
+  .warning-box {
+    border: 1px solid var(--warn); background: rgba(255,107,53,0.05);
+    padding: 1rem 1.25rem; font-family: var(--mono); font-size: 0.8rem;
+    color: var(--warn); margin-bottom: 2rem; line-height: 1.6;
+  }
+  .warning-box strong { display: block; margin-bottom: 0.25rem; }
+
+  /* TEST */
+  #test-screen { display: none; animation: fadeIn 0.5s ease both; }
+
+  .timer-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem; background: var(--surface); border: 1px solid var(--border);
+    margin-bottom: 0.25rem; position: sticky; top: 1rem; z-index: 10;
+  }
+  .timer-label {
+    font-family: var(--mono); font-size: 0.7rem;
+    color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase;
+  }
+  .timer-display {
+    font-family: var(--mono); font-size: 1.75rem; font-weight: 700;
+    color: var(--accent); letter-spacing: 0.05em; transition: color 0.3s;
+  }
+  .timer-display.warn { color: var(--warn); }
+
+  .progress-strip { height: 3px; background: var(--border); margin-bottom: 2rem; }
+  .progress-fill { height: 100%; background: var(--accent); transition: width 1s linear, background 0.3s; }
+  .progress-fill.warn { background: var(--warn); }
+
+  .ts-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-family: var(--mono); font-size: 0.72rem; color: var(--accent);
+    background: var(--accent-dim); border: 1px solid rgba(0,229,160,0.25);
+    padding: 0.35rem 0.75rem; margin-bottom: 0.4rem;
+  }
+  .ts-badge::before { content: '●'; font-size: 0.5rem; animation: blink 2s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  #log-status {
+    font-family: var(--mono); font-size: 0.72rem; color: var(--muted); margin-bottom: 2rem;
+  }
+
+  /* DOWNLOAD PANEL */
+  .download-panel {
+    border: 1px solid var(--border); background: var(--surface); margin-bottom: 1.5rem;
+  }
+  .download-panel-header {
+    padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+    font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .download-items { padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+
+  .download-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem; border: 1px solid var(--border); background: #0d0d0d; gap: 1rem;
+  }
+  .download-item-info { flex: 1; min-width: 0; }
+  .download-item-label { font-family: var(--mono); font-size: 0.9rem; color: var(--text); margin-bottom: 0.2rem; }
+  .download-item-note { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+  .btn-download {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: var(--accent); color: #000; font-family: var(--mono);
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 0.6rem 1.1rem; border: none; cursor: pointer;
+    text-decoration: none; white-space: nowrap; flex-shrink: 0; transition: opacity 0.2s;
+  }
+  .btn-download:hover { opacity: 0.8; }
+
+  /* BACKUP / R CODE */
+  .backup-section { margin-bottom: 1.5rem; }
+
+  .backup-toggle {
+    width: 100%; display: flex; align-items: center; justify-content: space-between;
+    padding: 0.85rem 1.25rem; background: var(--surface); border: 1px solid var(--border);
+    font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
+    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .backup-toggle:hover { border-color: #444; color: var(--text); }
+  .backup-toggle .chevron { transition: transform 0.25s; font-style: normal; display: inline-block; }
+  .backup-toggle.open { border-color: #444; color: var(--text); border-bottom: none; }
+  .backup-toggle.open .chevron { transform: rotate(180deg); }
+
+  .backup-body {
+    display: none; border: 1px solid #2a2a2a; border-top: none;
+    background: #0d0d0d; padding: 1.25rem 1.5rem;
+  }
+  .backup-body.open { display: block; }
+
+  .backup-body p {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+    line-height: 1.7; margin-bottom: 1rem;
+  }
+  .backup-body code {
+    color: var(--accent); background: #1a1a1a; border: 1px solid #333;
+    padding: 0.1rem 0.35rem; font-family: var(--mono); font-size: 0.85em;
+  }
+
+  .code-block-wrapper { position: relative; }
+
+  .code-block {
+    background: #000; border: 1px solid #2a2a2a;
+    padding: 1.25rem 1.25rem 1.25rem 1.25rem;
+    overflow-x: auto; overflow-y: auto;
+    font-family: var(--mono); font-size: 0.74rem;
+    line-height: 1.75; color: #ccc; white-space: pre;
+    max-height: 400px; tab-size: 2;
+  }
+
+  .copy-btn {
+    position: absolute; top: 0.6rem; right: 0.6rem;
+    background: #1a1a1a; border: 1px solid #444; color: var(--muted);
+    font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 0.3rem 0.7rem; cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .copy-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+  /* SUBMISSION */
+  .submission-box {
+    border: 1px solid var(--border); background: var(--surface);
+    padding: 1.5rem 1.75rem; margin-bottom: 2rem;
+  }
+  .submission-box h3 {
+    font-family: var(--mono); font-size: 0.8rem; color: var(--accent);
+    letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem;
+  }
+  .submission-box p { font-size: 0.88rem; color: #ccc; line-height: 1.7; margin-bottom: 0.5rem; }
+  .submit-email {
+    display: inline-block; background: var(--accent-dim);
+    border: 1px solid rgba(0,229,160,0.3); padding: 0.5rem 1rem;
+    font-family: var(--mono); color: var(--accent); font-size: 0.9rem; margin: 0.25rem 0 0.6rem;
+  }
+  .submission-box code {
+    background: #1e1e1e; border: 1px solid #333; padding: 0.1rem 0.4rem;
+    font-family: var(--mono); font-size: 0.85em; color: var(--accent);
+  }
+
+  /* EXPIRED */
+  #expired-screen {
+    display: none; text-align: center; padding: 4rem 2rem; animation: fadeIn 0.4s ease both;
+  }
+  .expired-icon { font-size: 3rem; margin-bottom: 1rem; }
+  #expired-screen h2 { font-family: var(--mono); font-size: 1.5rem; color: var(--warn); margin-bottom: 1rem; }
+  #expired-screen p { color: var(--muted); font-family: var(--mono); font-size: 0.85rem; line-height: 1.8; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     CONFIGURATION — edit this block only
+     ═══════════════════════════════════════════ -->
+<script>
+const CONFIG = {
+  // Branding
+  orgName:        "Screening",
+  positionTitle:  "Research Assistant",
+
+  // Access code — give this to the candidate in your invitation email
+  accessCode:     "cuhk2603",
+
+  // Timer
+  durationMinutes: 120,
+
+  // Submission email
+  submissionEmail: "henryzhang@cuhk.edu.hk",
+
+  // Hosted file URLs
+  instructionsPdfUrl: "https://henryhzhang.com/files/RA_instructions.pdf",
+  dataZipUrl:         "https://henryhzhang.com/files/RA_CSVs.zip",
+
+  // Google Form timestamp logging
+  // HOW TO SET UP (5 min, no extensions needed):
+  //   1. forms.google.com → new blank form
+  //   2. Add 2 Short Answer questions: "Candidate Name"  "Timestamp"
+  //   3. Preview → three-dot menu → "Get pre-filled link" → fill both fields → Get Link
+  //   4. Copy the entry.XXXXXXX numbers from that URL into formFields below
+  //   5. Responses tab → Sheets icon to collect entries in Google Sheets
+  googleFormId: "1FAIpQLScP0i9pjHVcINOmhAIct-m-XnzXesan7G0E_66OFrmibsyVdA",
+  formFields: {
+    candidateName: "entry.440201257",
+    timestamp:     "entry.1551198196",
+  },
+};
+</script>
+<!-- ══ END CONFIGURATION ══ -->
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo-mark">RA</div>
+    <div class="org-name" id="org-name-display"></div>
+  </div>
+
+  <!-- SCREEN 1: Gate -->
+  <div id="gate-screen">
+    <div class="gate-title">Coding<br><span>Assessment</span></div>
+    <div class="gate-sub" id="position-sub"></div>
+
+    <div class="field-group">
+      <label class="field-label" for="name-input">Your Full Name</label>
+      <input class="field-input" type="text" id="name-input" placeholder="Jane Smith" autocomplete="off">
+    </div>
+    <div class="field-group">
+      <label class="field-label" for="code-input">Access Code</label>
+      <input class="field-input" type="text" id="code-input"
+             placeholder="provided in your invitation email"
+             autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false">
+    </div>
+
+    <button class="btn" onclick="handleGate()">Continue →</button>
+    <div class="error-msg" id="gate-error"></div>
+  </div>
+
+  <!-- SCREEN 2: Confirm -->
+  <div id="confirm-screen">
+    <div class="confirm-box">
+      <h2>// Assessment Details</h2>
+      <div class="confirm-row">
+        <span class="key">Candidate</span><span class="val" id="confirm-name">—</span>
+      </div>
+      <div class="confirm-row">
+        <span class="key">Position</span><span class="val" id="confirm-position">—</span>
+      </div>
+      <div class="confirm-row">
+        <span class="key">Duration</span><span class="val" id="confirm-duration">—</span>
+      </div>
+      <div class="confirm-row">
+        <span class="key">Submit to</span><span class="val" id="confirm-email">—</span>
+      </div>
+    </div>
+
+    <div class="warning-box">
+      <strong>⚠ Before you click Start</strong>
+      The timer begins the moment you click "Start Assessment" and cannot be paused.
+      Your start time will be recorded automatically.
+      Make sure you are ready to work for the full <span id="confirm-warn-duration"></span> minutes.
+    </div>
+
+    <button class="btn" onclick="startTest()">Start Assessment — Timer Begins Now</button>
+    <button class="btn btn-secondary" onclick="goBack()">← Go Back</button>
+  </div>
+
+  <!-- SCREEN 3: Test -->
+  <div id="test-screen">
+
+    <div class="timer-bar">
+      <div><div class="timer-label">Time Remaining</div></div>
+      <div class="timer-display" id="timer-display">120:00</div>
+    </div>
+    <div class="progress-strip">
+      <div class="progress-fill" id="progress-fill" style="width:100%"></div>
+    </div>
+
+    <div class="ts-badge" id="ts-badge">Logged: —</div>
+    <div id="log-status"></div>
+
+    <!-- Downloads -->
+    <div class="download-panel">
+      <div class="download-panel-header">// Assessment Files — download both before starting</div>
+      <div class="download-items">
+
+        <div class="download-item">
+          <div class="download-item-info">
+            <div class="download-item-label">📄 &nbsp;Instructions (PDF)</div>
+            <div class="download-item-note">RA_instructions.pdf — read this first</div>
+          </div>
+          <a class="btn-download" id="pdf-link" href="#" target="_blank">↓ Download</a>
+        </div>
+
+        <div class="download-item">
+          <div class="download-item-info">
+            <div class="download-item-label">🗂 &nbsp;Data Files (ZIP)</div>
+            <div class="download-item-note">df_credit &nbsp;·&nbsp; df_expenses &nbsp;·&nbsp; df_invoices &nbsp;·&nbsp; df_receipts &nbsp;·&nbsp; df_firms</div>
+          </div>
+          <a class="btn-download" id="zip-link" href="#" target="_blank">↓ Download</a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Backup: R code -->
+    <div class="backup-section">
+      <button class="backup-toggle" id="backup-toggle" onclick="toggleBackup()">
+        <span>⚠ &nbsp;ZIP won't download? Generate the data in R instead</span>
+        <i class="chevron">▾</i>
+      </button>
+      <div class="backup-body" id="backup-body">
+        <p>If the ZIP download fails, run the script below in R to regenerate all five datasets in your working directory. Requires: <code>dplyr</code>, <code>lubridate</code>, <code>ReIns</code>.</p>
+        <div class="code-block-wrapper">
+          <button class="copy-btn" id="copy-btn" onclick="copyCode()">Copy</button>
+          <div class="code-block" id="r-code-block"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Submission -->
+    <div class="submission-box">
+      <h3>// Submission</h3>
+      <p>Please don't stress about time. Remember that I do not expect you to finish. I assess your approach to coding, not your raw productivity. I impose a time limit to fairly compare across candidates. Email your code and a short write-up (approach + AI tool usage + time management) to:</p>
+      <div class="submit-email" id="submit-email-display"></div>
+      <p style="margin-top:0.75rem; font-size:0.82rem; color:#666;">
+        Subject line: <code>RA Assessment – [Your Name]</code>
+      </p>
+    </div>
+
+  </div>
+
+  <!-- SCREEN 4: Expired -->
+  <div id="expired-screen">
+    <div class="expired-icon">⏱</div>
+    <h2>Time's Up</h2>
+    <p>Your assessment window has closed.<br>
+    If you haven't already, email your submission immediately to<br><br>
+    <span style="color:var(--accent)" id="expired-email"></span></p>
+  </div>
+
+</div>
+
+<script>
+const R_CODE = `# ── Data generation for RA coding assessment ─────────────────────────────
+set.seed(720)
+library(dplyr)
+library(lubridate)
+library(ReIns)
+
+dir_out <- ""  # e.g. "~/Desktop/" — leave "" to write to working directory
+
+n_firms       <- 10
+n_obs_credit  <- 200
+n_obs_invoice <- 2000
+n_obs_receipt <- 1000
+n_obs_expense <- 100
+
+# df_credit ---------------------------------------------------------------
+df_credit <- data.frame(
+    id_borrower   = sample(1:n_firms, n_obs_credit, replace = TRUE),
+    id_security   = 1:n_obs_credit,
+    borrow_month  = floor(runif(n_obs_credit, 1, 13)),
+    borrow_day    = floor(runif(n_obs_credit, 1, 29)),
+    loan_rate     = runif(n_obs_credit, 0, 40),
+    loan_borrowed = runif(n_obs_credit, 100, 10^4),
+    maturity      = round(runif(n_obs_credit, 30, 200), digits = 0),
+    loan_type     = sample(c("Line of Credit", "Term Loan"),
+                           n_obs_credit, replace = TRUE)
+  ) %>%
+  mutate(borrow_date   = as.Date(paste("2023", borrow_month, borrow_day, sep = "-"))) %>%
+  mutate(loan_rate     = ifelse(loan_type == "Line of Credit",
+                                (loan_rate + 1)^1.2 - 1, loan_rate)) %>%
+  mutate(loan_rate     = ifelse(borrow_month >= 10,
+                                (loan_rate + 1)^1.1 - 1, loan_rate)) %>%
+  mutate(loan_borrowed = loan_borrowed / loan_rate^0.2)
+write.csv(df_credit, paste0(dir_out, "df_credit.csv"))
+
+# df_invoices -------------------------------------------------------------
+days_in_year <- seq(ym(202301), ym(202312), by = "day")
+df_invoices <- data.frame(
+    hash_invoice = 1:n_obs_invoice,
+    id_seller    = sample(1:n_firms, n_obs_invoice, replace = TRUE),
+    id_buyer     = sample(1:n_firms, n_obs_invoice, replace = TRUE),
+    maturity     = round(rtexp(n_obs_invoice, rate = 0.1, endpoint = 300) +
+                         runif(n_obs_invoice, 0, 90)),
+    issue_date   = sample(days_in_year, n_obs_invoice, replace = TRUE)
+  ) %>%
+  mutate(payment  = round(rexp(n_obs_invoice, rate = 10^-3))) %>%
+  mutate(due_date = issue_date + maturity) %>%
+  filter(id_seller != id_buyer)
+write.csv(df_invoices, paste0(dir_out, "df_invoices.csv"))
+
+# df_receipts -------------------------------------------------------------
+df_receipts <- data.frame(
+    hash_receipt = 1:n_obs_receipt,
+    id_seller    = sample(1:n_firms, n_obs_receipt, replace = TRUE),
+    sale_date    = sample(days_in_year, n_obs_receipt, replace = TRUE)
+  ) %>%
+  mutate(payment = round(rexp(n_obs_receipt, rate = 10^-3)))
+write.csv(df_receipts, paste0(dir_out, "df_receipts.csv"))
+
+# df_expenses -------------------------------------------------------------
+df_payouts <- data.frame(
+  hash_expense = 1:3,
+  id_firm      = 1:3,
+  expense_date = c(as.Date("2023-04-01"), as.Date("2023-06-30"), as.Date("2023-10-01")),
+  payment      = c(30060, 22030, 28050)
+)
+df_expenses <- rbind(
+  df_payouts,
+  data.frame(
+    hash_expense = 4:n_obs_expense,
+    id_firm      = sample(1:n_firms, n_obs_expense - 3, replace = TRUE),
+    expense_date = sample(days_in_year, n_obs_expense - 3, replace = TRUE)
+  ) %>%
+  mutate(payment = round(rexp(n_obs_expense - 3, rate = 10^-2.5)))
+)
+write.csv(df_expenses, paste0(dir_out, "df_expenses.csv"))
+
+# df_firms ----------------------------------------------------------------
+df_firms <- data.frame(
+  id_firm       = 1:n_firms,
+  industry      = sample(c("Manufacturing", "Retail", "Services", "Finance"),
+                         n_firms, replace = TRUE),
+  founding_year = sample(1990:2015, n_firms, replace = FALSE),
+  start_cash    = round(runif(n_firms, 5000, 50000))
+)
+write.csv(df_firms, paste0(dir_out, "df_firms.csv"))`;
+
+// ── Init ──────────────────────────────────────────────────────────────────
+document.getElementById('org-name-display').textContent = CONFIG.orgName;
+document.getElementById('position-sub').textContent =
+  CONFIG.positionTitle + '  ·  ' + CONFIG.orgName;
+document.getElementById('r-code-block').textContent = R_CODE;
+
+// ── Gate ──────────────────────────────────────────────────────────────────
+let candidateName = '';
+
+function handleGate() {
+  const name = document.getElementById('name-input').value.trim();
+  const code = document.getElementById('code-input').value.trim();
+  const err  = document.getElementById('gate-error');
+
+  if (!name) {
+    err.textContent = 'Please enter your full name.';
+    err.style.display = 'block'; return;
+  }
+  if (code.toUpperCase() !== CONFIG.accessCode.toUpperCase()) {
+    err.textContent = 'Incorrect access code. Please check your invitation email.';
+    err.style.display = 'block'; return;
+  }
+  err.style.display = 'none';
+  candidateName = name;
+  showConfirm();
+}
+
+document.getElementById('code-input').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') handleGate();
+});
+
+// ── Confirm ───────────────────────────────────────────────────────────────
+function showConfirm() {
+  document.getElementById('gate-screen').style.display    = 'none';
+  document.getElementById('confirm-screen').style.display = 'block';
+  document.getElementById('confirm-name').textContent     = candidateName;
+  document.getElementById('confirm-position').textContent = CONFIG.positionTitle;
+  document.getElementById('confirm-duration').textContent = CONFIG.durationMinutes + ' minutes';
+  document.getElementById('confirm-email').textContent    = CONFIG.submissionEmail;
+  document.getElementById('confirm-warn-duration').textContent = CONFIG.durationMinutes;
+}
+
+function goBack() {
+  document.getElementById('confirm-screen').style.display = 'none';
+  document.getElementById('gate-screen').style.display    = 'block';
+}
+
+// ── Start ─────────────────────────────────────────────────────────────────
+let timerInterval = null;
+let secondsLeft   = 0;
+let totalSeconds  = 0;
+
+function startTest() {
+  const now = new Date();
+  const tsString = now.toLocaleString('en-US', {
+    timeZone: 'Asia/Hong_Kong',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+    hour12: false
+  }) + ' HKT';
+
+  document.getElementById('confirm-screen').style.display = 'none';
+  document.getElementById('test-screen').style.display    = 'block';
+
+  document.getElementById('pdf-link').href               = CONFIG.instructionsPdfUrl;
+  document.getElementById('zip-link').href               = CONFIG.dataZipUrl;
+  document.getElementById('submit-email-display').textContent = CONFIG.submissionEmail;
+  document.getElementById('expired-email').textContent   = CONFIG.submissionEmail;
+  document.getElementById('ts-badge').textContent        = 'Start logged: ' + tsString;
+
+  logToGoogleForm(candidateName, tsString);
+
+  totalSeconds = CONFIG.durationMinutes * 60;
+  secondsLeft  = totalSeconds;
+  updateTimerDisplay();
+  timerInterval = setInterval(tick, 1000);
+}
+
+// ── Timer ─────────────────────────────────────────────────────────────────
+function tick() {
+  secondsLeft--;
+  if (secondsLeft <= 0) {
+    secondsLeft = 0;
+    updateTimerDisplay();
+    clearInterval(timerInterval);
+    showExpired();
+    return;
+  }
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const m  = Math.floor(secondsLeft / 60).toString().padStart(2, '0');
+  const s  = (secondsLeft % 60).toString().padStart(2, '0');
+  const el = document.getElementById('timer-display');
+  el.textContent = m + ':' + s;
+
+  const pct = (secondsLeft / totalSeconds) * 100;
+  const pf  = document.getElementById('progress-fill');
+  pf.style.width = pct + '%';
+
+  const isWarn = secondsLeft <= 600;
+  el.classList.toggle('warn', isWarn);
+  pf.classList.toggle('warn', isWarn);
+}
+
+function showExpired() {
+  document.getElementById('test-screen').style.display    = 'none';
+  document.getElementById('expired-screen').style.display = 'block';
+}
+
+// ── Backup toggle ─────────────────────────────────────────────────────────
+function toggleBackup() {
+  document.getElementById('backup-toggle').classList.toggle('open');
+  document.getElementById('backup-body').classList.toggle('open');
+}
+
+// ── Copy R code ───────────────────────────────────────────────────────────
+function copyCode() {
+  navigator.clipboard.writeText(R_CODE).then(function() {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'Copied ✓';
+    btn.classList.add('copied');
+    setTimeout(function() {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+
+// ── Google Form logger ────────────────────────────────────────────────────
+function logToGoogleForm(name, timestamp) {
+  const statusEl = document.getElementById('log-status');
+
+  if (CONFIG.googleFormId === 'YOUR_FORM_ID_HERE') {
+    statusEl.textContent = '⚠ Timestamp logging not configured.';
+    return;
+  }
+
+  const formUrl = 'https://docs.google.com/forms/d/e/' + CONFIG.googleFormId + '/formResponse';
+  const body = new URLSearchParams();
+  body.set(CONFIG.formFields.candidateName, name);
+  body.set(CONFIG.formFields.timestamp, timestamp);
+
+  fetch(formUrl, {
+    method:  'POST',
+    mode:    'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body:    body.toString()
+  })
+  .then(function() {
+    statusEl.textContent = '✓ Start time logged.';
+    statusEl.style.color = 'var(--accent)';
+  })
+  .catch(function() {
+    statusEl.textContent = '⚠ Could not log automatically — note start time manually.';
+    statusEl.style.color = 'var(--warn)';
+  });
+}
+</script>
+</body>
+</html>
