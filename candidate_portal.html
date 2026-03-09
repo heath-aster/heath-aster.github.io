@@ -212,36 +212,6 @@
   }
   .btn-download:hover { opacity: 0.8; }
 
-  /* BACKUP / R CODE */
-  .backup-section { margin-bottom: 1.5rem; }
-
-  .backup-toggle {
-    width: 100%; display: flex; align-items: center; justify-content: space-between;
-    padding: 0.85rem 1.25rem; background: var(--surface); border: 1px solid var(--border);
-    font-family: var(--mono); font-size: 0.75rem; color: var(--muted);
-    letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  .backup-toggle:hover { border-color: #444; color: var(--text); }
-  .backup-toggle .chevron { transition: transform 0.25s; font-style: normal; display: inline-block; }
-  .backup-toggle.open { border-color: #444; color: var(--text); border-bottom: none; }
-  .backup-toggle.open .chevron { transform: rotate(180deg); }
-
-  .backup-body {
-    display: none; border: 1px solid #2a2a2a; border-top: none;
-    background: #0d0d0d; padding: 1.25rem 1.5rem;
-  }
-  .backup-body.open { display: block; }
-
-  .backup-body p {
-    font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
-    line-height: 1.7; margin-bottom: 1rem;
-  }
-  .backup-body code {
-    color: var(--accent); background: #1a1a1a; border: 1px solid #333;
-    padding: 0.1rem 0.35rem; font-family: var(--mono); font-size: 0.85em;
-  }
-
   .code-block-wrapper { position: relative; }
 
   .code-block {
@@ -431,23 +401,6 @@ const CONFIG = {
 
       </div>
     </div>
-
-    <!-- Backup: R code -->
-     <!-- 
-    <div class="backup-section">
-      <button class="backup-toggle" id="backup-toggle" onclick="toggleBackup()">
-        <span>⚠ &nbsp;ZIP won't download? Generate the data in R instead</span>
-        <i class="chevron">▾</i>
-      </button>
-      <div class="backup-body" id="backup-body">
-        <p>If the ZIP download fails, run the script below in R to regenerate all five datasets in your working directory. Requires: <code>dplyr</code>, <code>lubridate</code>, <code>ReIns</code>.</p>
-        <div class="code-block-wrapper">
-          <button class="copy-btn" id="copy-btn" onclick="copyCode()">Copy</button>
-          <div class="code-block" id="r-code-block"></div>
-        </div>
-      </div>
-    </div>
-    -->
 
     <!-- Submission -->
     <div class="submission-box">
@@ -670,24 +623,6 @@ function showExpired() {
   document.getElementById('expired-screen').style.display = 'block';
 }
 
-// ── Backup toggle ─────────────────────────────────────────────────────────
-function toggleBackup() {
-  document.getElementById('backup-toggle').classList.toggle('open');
-  document.getElementById('backup-body').classList.toggle('open');
-}
-
-// ── Copy R code ───────────────────────────────────────────────────────────
-function copyCode() {
-  navigator.clipboard.writeText(R_CODE).then(function() {
-    const btn = document.getElementById('copy-btn');
-    btn.textContent = 'Copied ✓';
-    btn.classList.add('copied');
-    setTimeout(function() {
-      btn.textContent = 'Copy';
-      btn.classList.remove('copied');
-    }, 2000);
-  });
-}
 
 // ── Google Form logger ────────────────────────────────────────────────────
 function logToGoogleForm(name, timestamp) {
