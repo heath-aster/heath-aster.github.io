@@ -516,7 +516,10 @@ write.csv(df_firms, paste0(dir_out, "df_firms.csv"))`;
 document.getElementById('org-name-display').textContent = CONFIG.orgName;
 document.getElementById('position-sub').textContent =
   CONFIG.positionTitle + '  ·  ' + CONFIG.orgName;
-document.getElementById('r-code-block').textContent = R_CODE;
+const rCodeBlock = document.getElementById('r-code-block');
+if (rCodeBlock) {
+  rCodeBlock.textContent = R_CODE;
+}
 
 // ── Gate ──────────────────────────────────────────────────────────────────
 let candidateName = '';
