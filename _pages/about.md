@@ -18,7 +18,10 @@ I am an assistant professor in [the Department of Finance at the CUHK Business S
 &nbsp;
 [PDF](files/Factoring.pdf)
 
-Upcoming presentations: Finance Down Under, MFA, Spring Finance Workshop, FIRS
+**Presentations**
+
+- Upcoming: FIRS, Lake District Workshop, Future Finance Fest, CEBRA
+- Recent: AFA JFMP, Finance Down Under, MFA, Spring Finance Workshop (Ischgl)
 
 **Abstract:** We show that short-term fluctuations in firms’ ability to convert trade credit receivables into liquidity through factoring have large and persistent real effects, with limited substitution from other financing sources or adjustments in trade credit terms. In Brazil, specialized non-bank intermediaries (FIDCs) securitize receivables and are key providers of working capital financing. Using novel transaction-level data linking factoring, invoices, payments, credit operations, and employment records, we exploit investor inflows to FIDCs in a shift-share design to identify exogenous variation in factoring supply. A one-percentage-point decline in factoring rates increases factoring volumes by 16%, revenues by 6%, and intermediate input expenditure by 4%, with effects persisting for several months. Firms expand permanent employment and demand less temporary labor. A model of corporate liquidity management rationalizes these findings: factoring endogenously transforms production into collateral, tying firms’ real and financial decisions. Model-implied macro-elasticities indicate that lowering economy-wide factoring spreads by 1 percentage point would raise aggregate output and wages by 0.3 to 0.5 percentage points.
 
@@ -27,6 +30,10 @@ Upcoming presentations: Finance Down Under, MFA, Spring Finance Workshop, FIRS
 *with Victor Orestes and Thiago Silva*
 &nbsp;
 [PDF](files/Frost_Shock.pdf)
+
+**Pesentations**
+
+- Upcoming: Zhejiang University, CEBRA
 
 **Abstract:** We use transaction-level data on payments, credit, and insurance to examine how Brazilian farmers responded to the severe frost of July 2021, a shock that affected coffee, a perennial crop whose plants constitute a major component of farm value. The frost shock reduced both output and the pledgeable value of farmers' collateral. We find that insured farmers increased investment in the years following the shock, while uninsured farmers reduced investment and borrowing. We show how this pattern is consistent with models of imperfect pledgeability of a firm’s collateral, where constrained firms neither insure (ex ante) nor fully recover from a shock (ex post). Limited commitment endogenously generates under-insurance because paying premiums upfront tightens collateral constraints, and these constraints further tighten after the shock when collateral value falls. We discuss two equilibrium implications of this mechanism: the inefficacy of emergency credit lines in targeting liquidity-constrained firms and the amplification of output volatility from the rising risk of extreme weather shocks.
 
@@ -41,5 +48,9 @@ Upcoming presentations: Finance Down Under, MFA, Spring Finance Workshop, FIRS
 
 ## Market Design, Forward Guidance, and Investment Decisions in Carbon Credit Markets
 *with Luis Alvarez, Victor Orestes, and Thiago Silva*
+
+**Pesentations**
+
+- Upcoming: VU Amsterdam, SKEMA
 
 **Abstract:** We estimate the effects of forward guidance on the supply of carbon credits when trading is subject to over-the-counter (OTC) frictions, focusing on the CBIO market in Brazil. We combine the OTC tape data with firms' carbon credit holdings, balance sheet outcomes, and interfirm payments to study the impact on demand for carbon credits, borrowing, investment, and supply chain spillovers. We focus on the rapid increase in prices in June 2022 followed by a crash in July 2022, driven by speculation about forward guidance and an unexpected change in carbon credit policy. We show how low liquidity generated volatility that was then propagated by limited float, insufficient hedging options, and the absence of designated market-makers.
