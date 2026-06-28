@@ -1,0 +1,329 @@
+{
+  "projects": {
+    "factoring": {
+      "website_title": "Corporate Liquidity Supply from Non-Bank Intermediaries and the Real Effects of Factoring",
+      "talks": [
+        {
+          "date": "2024-10",
+          "venue": "MIT macro internal seminar",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "MIT Economics",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2024-10",
+          "venue": "MIT finance lunch internal",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "MIT Sloan",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-01",
+          "venue": "Tsinghua SEM",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "Tsinghua SEM",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-01",
+          "venue": "Fudan FISF",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "Fudan FISF",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-01",
+          "venue": "CUHK",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "Chinese University of Hong Kong",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-01",
+          "venue": "CityUHK",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "City University of Hong Kong",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-01",
+          "venue": "HKU",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "University of Hong Kong",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-01",
+          "venue": "HKUST",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "HKUST",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-01",
+          "venue": "Bank of Thailand",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "Bank of Thailand",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-01",
+          "venue": "HKIMR",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "HKIMR",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-03",
+          "venue": "CES North America",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "CES NA",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-01",
+          "venue": "AFA JFMP",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "AFA JFMP",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-02",
+          "venue": "Finance Down Under",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "Finance Down Under",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-02",
+          "venue": "BU",
+          "website_selected": false,
+          "include_in_cv": false,
+          "cv_label": "BU",
+          "upcoming": false,
+          "presenter": "coauthor",
+          "note": "by Victor Orestes"
+        },
+        {
+          "date": "2026-04",
+          "venue": "Spring Finance Workshop",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "Spring Finance Workshop",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-04",
+          "venue": "Wharton brownbag",
+          "website_selected": false,
+          "include_in_cv": false,
+          "cv_label": "Wharton brownbag",
+          "upcoming": false,
+          "presenter": "coauthor",
+          "note": "by Victor Orestes"
+        },
+        {
+          "date": "2026-05",
+          "venue": "MFA",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "MFA",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-05",
+          "venue": "FIRS",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "FIRS",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-06",
+          "venue": "Lake District Workshop",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "Lake District Workshop",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-06",
+          "venue": "Future Finance Fest",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "Future Finance Fest",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-06",
+          "venue": "CEBRA",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "CEBRA",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-08",
+          "venue": "EEA",
+          "website_selected": true,
+          "include_in_cv": false,
+          "cv_label": "EEA",
+          "upcoming": true,
+          "presenter": "coauthor",
+          "note": "by Victor Orestes"
+        },
+        {
+          "date": "2027-01",
+          "venue": "IBEFA",
+          "website_selected": true,
+          "include_in_cv": false,
+          "cv_label": "IBEFA",
+          "upcoming": true,
+          "presenter": "coauthor",
+          "note": "by Victor Orestes"
+        }
+      ]
+    },
+    "frost_shock": {
+      "website_title": "Volatility and Under-Insurance in Economies with Limited Pledgeability: Evidence from the Frost Shock",
+      "talks": [
+        {
+          "date": "2024-09",
+          "venue": "MIT macro lunch internal",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "MIT Economics",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-01",
+          "venue": "Bank of Thailand",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "Bank of Thailand",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-04",
+          "venue": "MIT enviro lunch internal",
+          "website_selected": false,
+          "include_in_cv": false,
+          "cv_label": "MIT Economics",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-05",
+          "venue": "LSE Environment Camp",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "LSE Environment Camp",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2025-08",
+          "venue": "HK-Shenzhen Newcomer Workshop",
+          "website_selected": false,
+          "include_in_cv": false,
+          "cv_label": "HK-Shenzhen Newcomer Workshop",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-05",
+          "venue": "Zhejiang University",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "Zhejiang University",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-06",
+          "venue": "CEBRA",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "CEBRA",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-07",
+          "venue": "AsianFA",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "AsianFA",
+          "upcoming": true,
+          "presenter": "self"
+        }
+      ]
+    },
+    "cbio": {
+      "website_title": "Market Design, Forward Guidance, and Investment Decisions in Carbon Credit Markets",
+      "talks": [
+        {
+          "date": "2026-04",
+          "venue": "CUHK brownbag",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "Chinese University of Hong Kong",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-06",
+          "venue": "VU Amsterdam",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "VU Amsterdam",
+          "upcoming": false,
+          "presenter": "self"
+        },
+        {
+          "date": "2026-06",
+          "venue": "SKEMA",
+          "website_selected": false,
+          "include_in_cv": true,
+          "cv_label": "SKEMA",
+          "upcoming": false,
+          "presenter": "self"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{% assign project = site.data.presentations.projects[include.project] %}
+{% assign selected_talks = project.talks | where: "website_selected", true %}
+{% assign selected_past = selected_talks | where: "upcoming", false %}
+{% assign selected_upcoming = selected_talks | where: "upcoming", true %}
+{% if selected_talks.size > 0 %}
+<p><small><strong>Selected presentations:</strong>{% if selected_past.size > 0 %} {% for talk in selected_past %}{{ talk.website_label | default: talk.venue }}{% unless forloop.last %}, {% endunless %}{% endfor %}{% endif %}{% if selected_upcoming.size > 0 %}{% if selected_past.size > 0 %}. {% else %} {% endif %}<strong>Upcoming:</strong> {% for talk in selected_upcoming %}{{ talk.website_label | default: talk.venue }}{% unless forloop.last %}, {% endunless %}{% endfor %}{% endif %}.</small></p>
+{% endif %}
