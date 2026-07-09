@@ -11,3 +11,13 @@ Gemfile.lock
 # Ingore files created by npm
 node_modules
 package-lock.json
+
+# Ignore macOS Finder metadata
+.DS_Store
+
+# Ignore local LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.synctex(busy)

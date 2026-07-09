@@ -24,7 +24,7 @@
         {
           "date": "2025-01",
           "venue": "Tsinghua SEM",
-          "website_selected": true,
+          "website_selected": false,
           "include_in_cv": true,
           "cv_label": "Tsinghua SEM",
           "upcoming": false,
@@ -33,7 +33,7 @@
         {
           "date": "2025-01",
           "venue": "Fudan FISF",
-          "website_selected": true,
+          "website_selected": false,
           "include_in_cv": true,
           "cv_label": "Fudan FISF",
           "upcoming": false,
@@ -42,7 +42,7 @@
         {
           "date": "2025-01",
           "venue": "CUHK",
-          "website_selected": true,
+          "website_selected": false,
           "include_in_cv": true,
           "cv_label": "Chinese University of Hong Kong",
           "upcoming": false,
@@ -51,7 +51,7 @@
         {
           "date": "2025-01",
           "venue": "CityUHK",
-          "website_selected": true,
+          "website_selected": false,
           "include_in_cv": true,
           "cv_label": "City University of Hong Kong",
           "upcoming": false,
@@ -60,7 +60,7 @@
         {
           "date": "2025-01",
           "venue": "HKU",
-          "website_selected": true,
+          "website_selected": false,
           "include_in_cv": true,
           "cv_label": "University of Hong Kong",
           "upcoming": false,
@@ -69,7 +69,7 @@
         {
           "date": "2025-01",
           "venue": "HKUST",
-          "website_selected": true,
+          "website_selected": false,
           "include_in_cv": true,
           "cv_label": "HKUST",
           "upcoming": false,
@@ -87,7 +87,7 @@
         {
           "date": "2025-01",
           "venue": "HKIMR",
-          "website_selected": true,
+          "website_selected": false,
           "include_in_cv": true,
           "cv_label": "HKIMR",
           "upcoming": false,
@@ -123,12 +123,21 @@
         {
           "date": "2026-02",
           "venue": "BU",
-          "website_selected": false,
+          "website_selected": true,
           "include_in_cv": false,
           "cv_label": "BU",
           "upcoming": false,
           "presenter": "coauthor",
           "note": "by Victor Orestes"
+        },
+        {
+          "date": "2026-03",
+          "venue": "MFA",
+          "website_selected": true,
+          "include_in_cv": true,
+          "cv_label": "MFA",
+          "upcoming": false,
+          "presenter": "self"
         },
         {
           "date": "2026-04",
@@ -148,15 +157,6 @@
           "upcoming": false,
           "presenter": "coauthor",
           "note": "by Victor Orestes"
-        },
-        {
-          "date": "2026-05",
-          "venue": "MFA",
-          "website_selected": true,
-          "include_in_cv": true,
-          "cv_label": "MFA",
-          "upcoming": false,
-          "presenter": "self"
         },
         {
           "date": "2026-05",
