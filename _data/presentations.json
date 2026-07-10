@@ -5,18 +5,18 @@
       "talks": [
         {
           "date": "2024-10",
-          "venue": "MIT macro internal seminar",
+          "venue": "MIT macro seminar",
           "website_selected": false,
-          "include_in_cv": true,
+          "include_in_cv": false,
           "cv_label": "MIT Economics",
           "upcoming": false,
           "presenter": "self"
         },
         {
           "date": "2024-10",
-          "venue": "MIT finance lunch internal",
+          "venue": "MIT finance lunch",
           "website_selected": false,
-          "include_in_cv": true,
+          "include_in_cv": false,
           "cv_label": "MIT Sloan",
           "upcoming": false,
           "presenter": "self"
@@ -25,7 +25,7 @@
           "date": "2025-01",
           "venue": "Tsinghua SEM",
           "website_selected": false,
-          "include_in_cv": true,
+          "include_in_cv": false,
           "cv_label": "Tsinghua SEM",
           "upcoming": false,
           "presenter": "self"
@@ -221,9 +221,9 @@
       "talks": [
         {
           "date": "2024-09",
-          "venue": "MIT macro lunch internal",
+          "venue": "MIT macro lunch",
           "website_selected": false,
-          "include_in_cv": true,
+          "include_in_cv": false,
           "cv_label": "MIT Economics",
           "upcoming": false,
           "presenter": "self"
@@ -239,7 +239,7 @@
         },
         {
           "date": "2025-04",
-          "venue": "MIT enviro lunch internal",
+          "venue": "MIT environmental lunch",
           "website_selected": false,
           "include_in_cv": false,
           "cv_label": "MIT Economics",
@@ -300,7 +300,7 @@
           "date": "2026-04",
           "venue": "CUHK brownbag",
           "website_selected": false,
-          "include_in_cv": true,
+          "include_in_cv": false,
           "cv_label": "Chinese University of Hong Kong",
           "upcoming": false,
           "presenter": "self"
