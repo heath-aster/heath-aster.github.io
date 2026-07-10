@@ -288,7 +288,7 @@
           "website_selected": true,
           "include_in_cv": true,
           "cv_label": "AsianFA",
-          "upcoming": true,
+          "upcoming": false,
           "presenter": "self"
         }
       ]
@@ -308,7 +308,7 @@
         {
           "date": "2026-06",
           "venue": "VU Amsterdam",
-          "website_selected": false,
+          "website_selected": true,
           "include_in_cv": true,
           "cv_label": "VU Amsterdam",
           "upcoming": false,
@@ -317,7 +317,7 @@
         {
           "date": "2026-06",
           "venue": "SKEMA",
-          "website_selected": false,
+          "website_selected": true,
           "include_in_cv": true,
           "cv_label": "SKEMA",
           "upcoming": false,
