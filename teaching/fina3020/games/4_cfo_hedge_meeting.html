@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>CFO Hedge Meeting | FINA3020 CUHK</title>
+    <!-- Chart.js -->
+    <script src="vendor/chart.umd-4.4.7.js"></script>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js"></script>
+    <style>
+        /* Left Sidebar & Vertical Stepper Styling */
+        .stage-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            height: fit-content;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .vertical-stepper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.75rem 0.85rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: rgba(19, 24, 34, 0.6);
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .stepper-step:hover:not(.locked) {
+            background: rgba(30, 40, 58, 0.8);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .stepper-step.active {
+            background: rgba(218, 165, 32, 0.15);
+            border-color: var(--cuhk-gold);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed {
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .stepper-step.locked {
+            opacity: 0.45;
+            cursor: not-allowed;
+            background: rgba(11, 14, 20, 0.4);
+            border-color: transparent;
+        }
+
+        .step-num {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .stepper-step.active .step-num {
+            background: var(--cuhk-gold);
+            color: #000;
+            border-color: var(--cuhk-gold-light);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed .step-num {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+        }
+
+        .step-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .step-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .stepper-step.locked .step-title {
+            color: var(--text-muted);
+        }
+
+        .stepper-step.active .step-title {
+            color: var(--cuhk-gold-light);
+        }
+
+        .step-subtitle {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .step-status {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .stepper-step.active .step-status {
+            color: var(--cuhk-gold);
+        }
+
+        .stepper-step.completed .step-status {
+            color: var(--success);
+        }
+
+        .sidebar-summary-card {
+            background: rgba(11, 14, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.9rem;
+        }
+
+        .market-scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-card {
+            background: rgba(19, 24, 34, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .scenario-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .scenario-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--cuhk-gold-light);
+            margin: 0.25rem 0;
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .decision-card {
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem 1rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-align: center;
+            position: relative;
+        }
+
+        .decision-card:hover {
+            border-color: var(--cuhk-gold);
+            transform: translateY(-3px);
+            background: rgba(30, 40, 58, 0.9);
+        }
+
+        .decision-card.selected {
+            border-color: var(--cuhk-gold);
+            background: rgba(218, 165, 32, 0.15);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .badge-locked { background: rgba(59, 130, 246, 0.2); color: var(--info); }
+        .badge-option { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .badge-float { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        .shock-banner {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.3));
+            border: 1px solid var(--danger);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { border-color: rgba(239, 68, 68, 0.5); }
+            50% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+            100% { border-color: rgba(239, 68, 68, 0.5); }
+        }
+
+        .shock-headline {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--danger);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-box {
+            background: rgba(19, 24, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .result-box.highlight {
+            border-color: var(--cuhk-gold);
+            background: rgba(218, 165, 32, 0.1);
+        }
+
+        .reflection-textarea {
+            width: 100%;
+            height: 90px;
+            background: rgba(11, 14, 20, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+            margin-top: 0.5rem;
+        }
+
+        .reflection-textarea:focus {
+            outline: none;
+            border-color: var(--cuhk-gold);
+            box-shadow: 0 0 10px rgba(218, 165, 32, 0.2);
+        }
+
+        .misconception-box {
+            background: rgba(239, 68, 68, 0.08);
+            border-left: 4px solid var(--danger);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 900px) {
+            .decision-cards { grid-template-columns: repeat(2, 1fr); }
+            .results-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 600px) {
+            .stage-stepper { flex-direction: column; gap: 0.5rem; }
+            .decision-cards { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="brand-section">
+            <span class="cuhk-badge">FINA3020 &middot; Week 4 Game</span>
+            <div>
+                <h1 class="app-title">CFO Hedge Meeting</h1>
+                <p style="font-size:0.8rem; color:var(--text-secondary);">Corporate Transaction Exposure, Forward Lock vs Option Downside Floor Simulator</p>
+            </div>
+        </div>
+        <div class="header-actions" style="display:flex; align-items:center; gap:0.75rem;">
+            <button class="btn btn-gold" id="btn-student-id" onclick="FINA3020Utils.ensureStudentCredentials(true)">Set Name & CUHK ID</button>
+            <button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export Responses (.csv)</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <!-- Left Sidebar: Stage Workflow Stepper & Contract Overview -->
+        <aside class="glass-panel stage-sidebar">
+            <div class="sidebar-header">
+                <h3 class="sidebar-title">CFO Workflow</h3>
+                <span class="badge badge-gold" id="stage-progress-badge">Stage 1 of 5</span>
+            </div>
+
+            <div class="vertical-stepper">
+                <div class="stepper-step active" id="step1-indicator" onclick="handleStepClick(1)">
+                    <div class="step-num" id="step1-num">1</div>
+                    <div class="step-details">
+                        <div class="step-title">1. Identification</div>
+                        <div class="step-subtitle">Contractual Exposure</div>
+                    </div>
+                    <div class="step-status" id="step1-status">In Progress</div>
+                </div>
+
+                <div class="stepper-step locked" id="step2-indicator" onclick="handleStepClick(2)">
+                    <div class="step-num" id="step2-num">2</div>
+                    <div class="step-details">
+                        <div class="step-title">2. Baseline Choice</div>
+                        <div class="step-subtitle">Strategy Selection</div>
+                    </div>
+                    <div class="step-status" id="step2-status">&#128274; Locked</div>
+                </div>
+
+                <div class="stepper-step locked" id="step3-indicator" onclick="handleStepClick(3)">
+                    <div class="step-num" id="step3-num">3</div>
+                    <div class="step-details">
+                        <div class="step-title">3. Market Shock</div>
+                        <div class="step-subtitle" id="step3-subtitle">Unannounced Market Event</div>
+                    </div>
+                    <div class="step-status" id="step3-status">&#128274; Locked</div>
+                </div>
+
+                <div class="stepper-step locked" id="step4-indicator" onclick="handleStepClick(4)">
+                    <div class="step-num" id="step4-num">4</div>
+                    <div class="step-details">
+                        <div class="step-title">4. Execution Debrief</div>
+                        <div class="step-subtitle">Payoffs & Lessons</div>
+                    </div>
+                    <div class="step-status" id="step4-status">&#128274; Locked</div>
+                </div>
+
+                <div class="stepper-step locked" id="step5-indicator" onclick="handleStepClick(5)">
+                    <div class="step-num" id="step5-num">5</div>
+                    <div class="step-details">
+                        <div class="step-title">5. Exit Reflection</div>
+                        <div class="step-subtitle">Participation Credit</div>
+                    </div>
+                    <div class="step-status" id="step5-status">&#128274; Locked</div>
+                </div>
+            </div>
+
+            <div class="sidebar-summary-card">
+                <h4 style="font-size:0.75rem; color:var(--cuhk-gold-light); margin-bottom:0.6rem; font-family:'Outfit'; text-transform:uppercase; letter-spacing:0.05em;">Contract Parameters</h4>
+                <div style="font-size:0.8rem; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; color:var(--text-secondary);">
+                    <div>Notional: <strong style="color:#60A5FA;">€1,000,000</strong></div>
+                    <div>Tenor: <strong>90 Days</strong></div>
+                    <div>Spot <i>S</i><sub>0</sub>: <strong>8.4000</strong></div>
+                    <div>Forward <i>F</i><sub>0</sub>: <strong>8.4200</strong></div>
+                    <div>Strike <i>K</i>: <strong>8.4000</strong></div>
+                    <div>Premium: <strong style="color:#10B981;">0.1200</strong></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- STAGE 1: IDENTIFICATION & CONTEXT -->
+        <div class="glass-panel stage-panel" id="stage1-panel">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <div>
+                    <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 1: Contractual Exposure Identification</h2>
+                    <p style="font-size:0.9rem; color:var(--text-secondary);">You are the Chief Financial Officer (CFO) of a Hong Kong Trading Firm.</p>
+                </div>
+                <span class="badge badge-locked">90-Day Settlement</span>
+            </div>
+
+            <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">CUHK Student ID(s):</label>
+                    <input type="text" id="studentIdInput" class="input-field" placeholder="e.g. 1155123456" style="width:100%; box-sizing:border-box;" required>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Student Full Name(s) (given name SURNAME; ...):</label>
+                    <input type="text" id="studentNameInput" class="input-field" placeholder="e.g. Seon LOU; John CHAN" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Course Section:</label>
+                    <select id="cfoSectionSelect" class="input-field" style="width:100%; box-sizing:border-box;" required>
+                        <option value="">-- Select Section --</option>
+                        <option value="A">Section A</option>
+                        <option value="B">Section B</option>
+                        <option value="C">Section C</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="market-scenario-grid">
+                <div class="scenario-card">
+                    <div class="scenario-label">Contractual Cash Flow</div>
+                    <div class="scenario-val" style="color:#60A5FA;">€1,000,000</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Due in 90 Days (<i>T</i> = 0.25)</div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-label">Spot Rate (<i>S</i><sub>0</sub>)</div>
+                    <div class="scenario-val">8.4000</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">HKD per EUR</div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-label">90-Day Forward (<i>F</i><sub>0</sub>)</div>
+                    <div class="scenario-val">8.4200</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Bank Executable Quote</div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-label">90-Day Option (<i>K</i> = 8.40)</div>
+                    <div class="scenario-val" style="color:#10B981;">0.1200</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Premium (HKD/EUR)</div>
+                </div>
+            </div>
+
+            <div style="background:rgba(11, 14, 20, 0.6); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                <h3 style="font-size:1rem; color:var(--text-primary); margin-bottom:0.5rem;">Step 1 Check: Identify Exposure Nature</h3>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1rem;">
+                    Your firm exported precision machinery to Germany and will receive <strong>€1,000,000 in 90 days</strong>. What is the economic nature of this contractual cash flow?
+                </p>
+                
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="decision-card" id="exp-type-rec" onclick="setExposureType('receivable')">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:1.1rem; color:var(--success);">Foreign Receivable (Asset)</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.3rem;">Risk: Euro Depreciates (<i>S<sub>T</sub></i> &downarrow;) &rarr; Fewer HKD received.</div>
+                    </div>
+                    <div class="decision-card" id="exp-type-pay" onclick="setExposureType('payable')">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:1.1rem; color:var(--danger);">Foreign Payable (Liability)</div>
+                        <div style="font-size:0.8rem; color:var(--text-muted); margin-top:0.3rem;">Risk: Euro Appreciates (<i>S<sub>T</sub></i> &uparrow;) &rarr; More HKD required.</div>
+                    </div>
+                </div>
+
+                <!-- Sanity Check Feedback Box -->
+                <div id="sanity-check-feedback" style="display:none; margin-top:1.25rem; padding:1rem; border-radius:8px; font-size:0.88rem; line-height:1.5;"></div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-stage1-proceed" onclick="proceedFromStage1()" disabled style="width:100%; opacity:0.5; cursor:not-allowed;">Select Exposure Type to Verify Sanity Check &rarr;</button>
+        </div>
+
+        <!-- STAGE 2: BASELINE STRATEGY SELECTION -->
+        <div class="glass-panel stage-panel" id="stage2-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <div>
+                    <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 2: Evaluate Probability Distribution & Select Hedge</h2>
+                    <p style="font-size:0.9rem; color:var(--text-secondary);">Analyze the ex-ante spot rate probability distribution <i>f</i>(<i>S<sub>T</sub></i>) before selecting your corporate hedging strategy.</p>
+                </div>
+                <span class="badge badge-locked">Exposure: €1M Receivable</span>
+            </div>
+
+            <!-- Probability Distribution Summary Card -->
+            <div style="background:rgba(11, 14, 20, 0.6); border:1px solid var(--border-color); border-radius:10px; padding:1rem; margin-bottom:1.25rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div style="font-size:0.85rem; font-weight:700; color:var(--cuhk-gold-light);">Ex-Ante Spot Rate Probability Distribution: <i>f</i>(<i>S<sub>T</sub></i>)</div>
+                    <button class="btn" id="btn-toggle-states" onclick="toggleStateHighlight()" style="font-size:0.75rem; padding:0.3rem 0.6rem; background:rgba(255,255,255,0.05); color:var(--cuhk-gold-light); border:1px solid var(--border-color);">
+                        💡 Highlight 3 Macro States on Graph
+                    </button>
+                </div>
+                <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:0.75rem;">
+                    At <i>t</i> = 0, future spot rate <i>S<sub>T</sub></i> in 90 days is uncertain. Market consensus models 3 macro states:
+                </p>
+
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.75rem; text-align:center;">
+                    <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:0.6rem; cursor:pointer;" onclick="toggleStateHighlight()">
+                        <div style="font-size:0.72rem; color:var(--danger); font-weight:700;">📉 State 1: ECB Rate Cut (25%)</div>
+                        <div style="font-size:1rem; font-family:'JetBrains Mono'; font-weight:700; color:var(--text-primary); margin:0.2rem 0;"><i>S<sub>T</sub></i> = 7.8000</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">Euro Crash</div>
+                    </div>
+                    <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.3); border-radius:8px; padding:0.6rem; cursor:pointer;" onclick="toggleStateHighlight()">
+                        <div style="font-size:0.72rem; color:var(--info); font-weight:700;">↔️ State 2: Expected (50%)</div>
+                        <div style="font-size:1rem; font-family:'JetBrains Mono'; font-weight:700; color:var(--text-primary); margin:0.2rem 0;"><i>S<sub>T</sub></i> = 8.4000</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">Baseline Consensus</div>
+                    </div>
+                    <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:8px; padding:0.6rem; cursor:pointer;" onclick="toggleStateHighlight()">
+                        <div style="font-size:0.72rem; color:var(--success); font-weight:700;">📈 State 3: Euro Rally (25%)</div>
+                        <div style="font-size:1rem; font-family:'JetBrains Mono'; font-weight:700; color:var(--text-primary); margin:0.2rem 0;"><i>S<sub>T</sub></i> = 9.1000</div>
+                        <div style="font-size:0.7rem; color:var(--text-muted);">Euro Appreciation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payoff Curve Chart -->
+            <div style="height: 280px; margin-bottom: 1.25rem; position: relative;">
+                <canvas id="payoffChart"></canvas>
+            </div>
+
+            <!-- Strategy Choice Cards -->
+            <div class="decision-cards">
+                <div class="decision-card" id="strat-unhedged" onclick="selectStrategy('unhedged')">
+                    <span class="card-badge badge-float">Floating</span>
+                    <div style="font-family:'Outfit'; font-weight:700; font-size:1rem; margin-top:0.3rem;">1. Unhedged</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">Full spot exposure <i>f</i>(<i>S<sub>T</sub></i>).</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.425M</strong></div>
+                    <div style="font-family:'JetBrains Mono'; font-size:0.75rem; font-weight:700; color:#F59E0B; margin-top:0.2rem;">Floor: HKD 7,800,000</div>
+                </div>
+
+                <div class="decision-card" id="strat-forward" onclick="selectStrategy('forward')">
+                    <span class="card-badge badge-locked">Hard Lock</span>
+                    <div style="font-family:'Outfit'; font-weight:700; font-size:1rem; margin-top:0.3rem;">2. Forward Hedge</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">Lock <i>F</i><sub>0</sub> = 8.4200.</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.420M</strong></div>
+                    <div style="font-family:'JetBrains Mono'; font-size:0.75rem; font-weight:700; color:#60A5FA; margin-top:0.2rem;">Floor: HKD 8,420,000</div>
+                </div>
+
+                <div class="decision-card" id="strat-mmh" onclick="selectStrategy('mmh')">
+                    <span class="card-badge badge-locked">Synthetic CIP</span>
+                    <div style="font-family:'Outfit'; font-weight:700; font-size:1rem; margin-top:0.3rem;">3. Money Market</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">Borrow EUR, spot convert.</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.421M</strong></div>
+                    <div style="font-family:'JetBrains Mono'; font-size:0.75rem; font-weight:700; color:#3B82F6; margin-top:0.2rem;">Floor: HKD 8,421,000</div>
+                </div>
+
+                <div class="decision-card" id="strat-option" onclick="selectStrategy('option')">
+                    <span class="card-badge badge-option">Asymmetric Floor</span>
+                    <div style="font-family:'Outfit'; font-weight:700; font-size:1rem; margin-top:0.3rem;">4. Put Option</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">Strike 8.40 (Prem FV 0.1215).</div>
+                    <div style="font-size:0.75rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.453M</strong></div>
+                    <div style="font-family:'JetBrains Mono'; font-size:0.75rem; font-weight:700; color:#10B981; margin-top:0.2rem;">Floor: HKD 8,278,500</div>
+                </div>
+            </div>
+
+            <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+                <button class="btn" style="background:rgba(255,255,255,0.05); color:var(--text-secondary);" onclick="goToStage(1)">&larr; Back</button>
+                <button class="btn btn-primary" style="flex:1;" onclick="goToStage(3)">Lock Ex-Ante Strategy & Observe Market Realization &rarr;</button>
+            </div>
+        </div>
+
+        <!-- STAGE 3: MARKET REALIZATION & SETTLEMENT -->
+        <div class="glass-panel stage-panel" id="stage3-panel" style="display:none;">
+            
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <div>
+                    <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 3: Market Realization & Contract Settlement</h2>
+                    <p style="font-size:0.9rem; color:var(--text-secondary);">90 days have elapsed. Nature draws the realized market state <i>S<sub>T</sub></i> from distribution <i>f</i>(<i>S<sub>T</sub></i>).</p>
+                </div>
+                <span class="badge badge-locked">Settlement Phase</span>
+            </div>
+
+            <!-- Market Realization Scenario Selector -->
+            <div style="background:rgba(11,14,20,0.6); border:1px solid var(--border-color); border-radius:10px; padding:1rem; margin-bottom:1.25rem;">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:0.75rem;">
+                    Simulate Market Realization (Explore all 3 States from <i>f</i>(<i>S<sub>T</sub></i>)):
+                </label>
+                <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.75rem;">
+                    <div class="decision-card selected" id="shock-btn-ecb" onclick="selectShockScenario('ecb_cut')" style="padding:0.75rem 0.5rem; text-align:center; position:relative;">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:0.9rem; color:var(--danger);">📉 State 1: ECB Rate Cut</div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.2rem;">Realized <i>S<sub>T</sub></i> = 7.8000</div>
+                        <span id="viewed-badge-ecb" style="display:none; font-size:0.7rem; color:var(--success); font-weight:700; margin-top:0.3rem;">✓ Explored</span>
+                    </div>
+                    <div class="decision-card" id="shock-btn-rally" onclick="selectShockScenario('eur_rally')" style="padding:0.75rem 0.5rem; text-align:center; position:relative;">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:0.9rem; color:var(--success);">📈 State 3: Euro Rally</div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.2rem;">Realized <i>S<sub>T</sub></i> = 9.1000</div>
+                        <span id="viewed-badge-rally" style="display:none; font-size:0.7rem; color:var(--success); font-weight:700; margin-top:0.3rem;">✓ Explored</span>
+                    </div>
+                    <div class="decision-card" id="shock-btn-cip" onclick="selectShockScenario('cip_basis')" style="padding:0.75rem 0.5rem; text-align:center; position:relative;">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:0.9rem; color:var(--warning);">⚡ State 2: CIP Basis Shock</div>
+                        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.2rem;">Forward drops to 8.1000</div>
+                        <span id="viewed-badge-cip" style="display:none; font-size:0.7rem; color:var(--success); font-weight:700; margin-top:0.3rem;">✓ Explored</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Shock Banner -->
+            <div class="shock-banner" id="shock-banner-container">
+                <div class="shock-headline" id="shock-headline-text">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    REALIZED MARKET STATE: ECB Emergency Rate Cut (Depreciation Shock)
+                </div>
+                <p style="font-size:0.95rem; color:var(--text-primary); margin-bottom:0.5rem;" id="shock-desc-text">
+                    Week 4 Lecture Case: The European Central Bank cut rates unexpectedly by 75 bps. Spot Euro depreciated to 7.8000 HKD.
+                </p>
+                <div style="display:flex; align-items:center; gap:1.5rem; margin-top:1rem;">
+                    <div>
+                        <span style="font-size:0.75rem; color:var(--text-muted); display:block;">Ex-Ante Spot (<i>S</i><sub>0</sub>)</span>
+                        <span style="font-family:'JetBrains Mono'; font-size:1.2rem; font-weight:700;" id="shock-initial-spot">8.4000 HKD</span>
+                    </div>
+                    <div style="font-size:1.5rem; color:var(--danger);" id="shock-arrow-icon">&rarr;</div>
+                    <div>
+                        <span style="font-size:0.75rem; color:var(--text-muted); display:block;" id="shock-rate-label">Realized Spot Rate (<i>S<sub>T</sub></i>)</span>
+                        <span style="font-family:'JetBrains Mono'; font-size:1.4rem; font-weight:700; color:var(--danger);" id="shock-rate-val">7.8000 HKD (-7.14%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ex-Post Strategy Execution Evaluation -->
+            <div style="background:rgba(19, 24, 34, 0.8); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                <h3 style="font-family:'Outfit'; color:var(--cuhk-gold-light); margin-bottom:0.5rem;">Ex-Post Performance of Pre-Committed Strategy</h3>
+                <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:0.75rem;">
+                    Your pre-committed ex-ante strategy: <strong id="userSelectedBaselineLabel" style="color:var(--cuhk-gold-light);">FORWARD HEDGE</strong>.
+                </p>
+
+                <!-- Step 3 Interactive Analytical Hint -->
+                <div id="stage3-hint-box" style="padding:1rem; border-radius:8px; background:rgba(218, 165, 32, 0.12); border:1px solid var(--cuhk-gold); font-size:0.88rem; line-height:1.5;"></div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-stage3-proceed" onclick="goToStage(4)" style="width:100%;">Proceed to Final Execution Debrief & Payoffs &rarr;</button>
+        </div>
+
+        <!-- STAGE 4: DEBRIEF & PAYOFF BREAKDOWN -->
+        <div class="glass-panel stage-panel" id="stage4-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <div>
+                    <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 4: Execution Debrief & Payoffs</h2>
+                    <p style="font-size:0.9rem; color:var(--text-secondary);" id="stage4-executed-rate">Executed Spot Rate: <strong style="color:var(--danger); font-family:'JetBrains Mono';"><i>S<sub>T</sub></i> = 7.8000 HKD/EUR</strong></p>
+                </div>
+                <span class="badge badge-locked">Post-Shock Payoffs</span>
+            </div>
+
+            <div class="results-grid">
+                <div class="result-box" id="res-box-unhedged">
+                    <div class="scenario-label">1. Unhedged</div>
+                    <div class="scenario-val" style="color:var(--danger);" id="res-val-unhedged">HKD 7,800,000</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);" id="res-diff-unhedged">Severe Loss (-HKD 620k)</div>
+                </div>
+
+                <div class="result-box highlight" id="res-box-forward">
+                    <div class="scenario-label">2. Forward Hedge</div>
+                    <div class="scenario-val" style="color:var(--info);" id="res-val-forward">HKD 8,420,000</div>
+                    <div style="font-size:0.75rem; color:var(--success);">Optimal Fixed Lock!</div>
+                </div>
+
+                <div class="result-box" id="res-box-mmh">
+                    <div class="scenario-label">3. Money Market</div>
+                    <div class="scenario-val" style="color:#3B82F6;" id="res-val-mmh">HKD 8,421,000</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">CIP Equivalent</div>
+                </div>
+
+                <div class="result-box" id="res-box-option">
+                    <div class="scenario-label">4. Put Option</div>
+                    <div class="scenario-val" style="color:var(--success);" id="res-val-option">HKD 8,278,500</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Exercised at 8.40 Floor</div>
+                </div>
+            </div>
+
+            <div class="misconception-box">
+                <strong style="color:var(--cuhk-gold-light); display:block; margin-bottom:0.3rem;">Core Misconception Debrief & Lessons:</strong>
+                <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.85rem; line-height:1.5;">
+                    <li><strong>Misconception 1 (Wrong Option Type)</strong>: If you bought a <em>Call Option</em> for a receivable, you paid an upfront premium for the right to buy Euros at 8.40 when you needed to sell Euros. You suffered the full spot drop to 7.80 PLUS the lost premium!</li>
+                    <li><strong>Forward vs Option Trade-Off</strong>: The Forward lock yielded <strong>HKD 8,420,000</strong> (100% protected at zero upfront cost). The Put Option floor yielded <strong>HKD 8,278,500</strong> (exercised at 8.40 strike less 0.1215 premium FV). The option cost <strong>HKD 141,500</strong> more due to the upfront premium hurdle!</li>
+                    <li><strong>When is the Option Better?</strong> The Put Option outperforms the Forward only if the Euro rallies above <strong><i>S<sub>T</sub></i> &gt; <i>F</i><sub>0</sub> + <i>p</i><sub>fv</sub> = 8.4200 + 0.1215 = 8.5415 HKD/EUR</strong>.</li>
+                </ul>
+            </div>
+
+            <button class="btn btn-primary" onclick="goToStage(5)" style="width:100%; margin-top:1.5rem;">Proceed to Stage 5: Exit Reflection &rarr;</button>
+        </div>
+
+        <!-- STAGE 5: EXIT REFLECTION & PARTICIPATION -->
+        <div class="glass-panel stage-panel" id="stage5-panel" style="display:none;">
+            <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light); margin-bottom:0.5rem;">Stage 5: Individual Exit Reflection</h2>
+            <p style="font-size:0.9rem; color:var(--text-secondary); margin-bottom:1.5rem;">
+                Submit your final 1-sentence reflection to earn full participation credit for Week 4 Game.
+            </p>
+
+            <div style="background:rgba(19, 24, 34, 0.8); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                <label style="font-size:0.85rem; font-weight:600; color:var(--text-primary); display:block;">
+                    Exit Prompt: <em>“Why did you prefer a hard forward lock over option flexibility for this exposure (or what changed your mind after the market shock)?”</em>
+                </label>
+                <textarea id="reflectionText" class="reflection-textarea" placeholder="Type your 1-sentence analytical reflection here..."></textarea>
+            </div>
+
+            <div style="display:flex; gap:1rem;">
+                <button class="btn btn-primary" style="flex:2;" onclick="submitGameResponse()">Submit & Save Participation Record</button>
+                <button class="btn" style="background:rgba(255,255,255,0.05); color:var(--text-secondary); flex:1;" onclick="FINA3020Utils.exportResponsesCSV()">Export History CSV</button>
+            </div>
+
+            <div id="submissionAlert" style="display:none; margin-top:1rem; padding:1rem; border-radius:8px; background:rgba(16, 185, 129, 0.15); border:1px solid var(--success); color:var(--success); font-size:0.9rem; text-align:center;">
+                Submission status will appear here.
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Global Game State
+        let gameState = {
+            currentStage: 1,
+            maxUnlockedStage: 1,
+            exposureType: null, // initially null, student must choose
+            selectedStrategy: 'forward', // default strategy
+            shockChoice: 'hold',
+            notional: 1000000,
+            S0: 8.4000,
+            F0: 8.4200,
+            strike: 8.4000,
+            premium: 0.1200,
+            rHKD: 0.0500,
+            rEUR: 0.0400,
+            days: 90,
+            ST_shock: 7.8000
+        };
+
+        let chartInstance = null;
+
+        function handleStepClick(targetStage) {
+            if (targetStage > gameState.maxUnlockedStage) {
+                alert(`Stage ${targetStage} is locked. Please complete the current stage first.`);
+                return;
+            }
+            goToStage(targetStage);
+        }
+
+        function setExposureType(type) {
+            gameState.exposureType = type;
+            document.getElementById('exp-type-rec').classList.toggle('selected', type === 'receivable');
+            document.getElementById('exp-type-pay').classList.toggle('selected', type === 'payable');
+
+            const feedbackEl = document.getElementById('sanity-check-feedback');
+            const proceedBtn = document.getElementById('btn-stage1-proceed');
+
+            if (type === 'receivable') {
+                // Correct Sanity Check!
+                feedbackEl.style.display = 'block';
+                feedbackEl.style.background = 'rgba(16, 185, 129, 0.15)';
+                feedbackEl.style.border = '1px solid var(--success)';
+                feedbackEl.style.color = 'var(--text-primary)';
+                feedbackEl.innerHTML = `
+                    <strong style="color:var(--success); font-size:0.95rem; display:block; margin-bottom:0.3rem;">&#10004; Correct Sanity Check!</strong>
+                    Exporting goods creates a future foreign currency cash inflow (<strong>€1,000,000 Foreign Receivable / Asset</strong>).
+                    <br><span style="color:var(--text-secondary); font-size:0.82rem;">Your primary risk is Euro depreciation (<i>S<sub>T</sub></i> &downarrow;), which reduces your HKD conversion value. A hedge must lock or floor the conversion rate.</span>
+                `;
+                
+                gameState.maxUnlockedStage = Math.max(gameState.maxUnlockedStage, 2);
+                proceedBtn.disabled = false;
+                proceedBtn.style.opacity = '1';
+                proceedBtn.style.cursor = 'pointer';
+                proceedBtn.innerHTML = 'Sanity Check Passed! Proceed to Stage 2: Strategy Evaluation &rarr;';
+            } else if (type === 'payable') {
+                // Incorrect Sanity Check!
+                feedbackEl.style.display = 'block';
+                feedbackEl.style.background = 'rgba(239, 68, 68, 0.15)';
+                feedbackEl.style.border = '1px solid var(--danger)';
+                feedbackEl.style.color = 'var(--text-primary)';
+                feedbackEl.innerHTML = `
+                    <strong style="color:var(--danger); font-size:0.95rem; display:block; margin-bottom:0.3rem;">&#10008; Incorrect Sanity Check!</strong>
+                    You exported machinery and will <strong>RECEIVE €1,000,000</strong> in 90 days. This is a foreign currency cash inflow (Receivable / Asset), NOT a Payable / Liability.
+                    <br><span style="color:var(--text-secondary); font-size:0.82rem;">A Payable (Liability) represents an obligation to pay foreign currency when importing. Re-evaluate your position to proceed.</span>
+                `;
+
+                proceedBtn.disabled = true;
+                proceedBtn.style.opacity = '0.5';
+                proceedBtn.style.cursor = 'not-allowed';
+                proceedBtn.innerHTML = 'Fix Sanity Check to Proceed &rarr;';
+            }
+
+            updateStepperUI();
+        }
+
+        function proceedFromStage1() {
+            if (gameState.exposureType !== 'receivable') {
+                alert('Please pass the Step 1 Sanity Check by selecting Foreign Receivable (Asset) before proceeding.');
+                return;
+            }
+            goToStage(2);
+        }
+
+        function updateStepperUI() {
+            const badgeEl = document.getElementById('stage-progress-badge');
+            if (badgeEl) badgeEl.textContent = `Stage ${gameState.currentStage} of 5`;
+
+            const step3Sub = document.getElementById('step3-subtitle');
+            if (step3Sub) {
+                if (gameState.currentStage >= 3) {
+                    const activeKey = gameState.activeShockScenario || 'ecb_cut';
+                    const scen = shockScenarios[activeKey] || shockScenarios['ecb_cut'];
+                    step3Sub.textContent = scen.subtitle;
+                } else {
+                    step3Sub.textContent = 'Unannounced Market Event';
+                }
+            }
+
+            for (let i = 1; i <= 5; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                const numEl = document.getElementById(`step${i}-num`);
+                const statusEl = document.getElementById(`step${i}-status`);
+
+                if (!indicator) continue;
+
+                indicator.classList.remove('active', 'completed', 'locked');
+
+                if (i === gameState.currentStage) {
+                    indicator.classList.add('active');
+                    if (statusEl) statusEl.textContent = 'In Progress';
+                    if (numEl) numEl.textContent = i;
+                } else if (i < gameState.currentStage) {
+                    indicator.classList.add('completed');
+                    if (statusEl) statusEl.textContent = 'Completed';
+                    if (numEl) numEl.textContent = '✓';
+                } else if (i <= gameState.maxUnlockedStage) {
+                    // Unlocked but not active
+                    if (statusEl) statusEl.textContent = 'Unlocked';
+                    if (numEl) numEl.textContent = i;
+                } else {
+                    // Locked
+                    indicator.classList.add('locked');
+                    if (statusEl) statusEl.innerHTML = '&#128274; Locked';
+                    if (numEl) numEl.textContent = i;
+                }
+            }
+        }
+
+        function goToStage(stageNum) {
+            // Validate Student ID & Section if moving past stage 1
+            if (stageNum > 1) {
+                const idInput = document.getElementById('studentIdInput');
+                const nameInput = document.getElementById('studentNameInput');
+                const secInput = document.getElementById('cfoSectionSelect');
+
+                const sId = idInput ? idInput.value.trim() : FINA3020Utils.getStudentID();
+                const sName = nameInput ? nameInput.value.trim() : FINA3020Utils.getFullName();
+                const sec = secInput ? secInput.value.trim().toUpperCase() : FINA3020Utils.getSection();
+
+                if (!sId || !sName) {
+                    alert('Please enter your full name and 10-digit CUHK Student ID before proceeding.');
+                    return;
+                }
+                if (!sec || !['A', 'B', 'C'].includes(sec)) {
+                    alert('Please select a valid Course Section (Section A, B, or C).');
+                    return;
+                }
+
+                if (!FINA3020Utils.setStudentCredentials(sId, sName, sec)) {
+                    alert('Please check your full name, 10-digit CUHK ID, and section.');
+                    return;
+                }
+            }
+
+            gameState.currentStage = stageNum;
+            gameState.maxUnlockedStage = Math.max(gameState.maxUnlockedStage, stageNum);
+
+            // Hide/Show stage panels
+            for (let i = 1; i <= 5; i++) {
+                const panel = document.getElementById(`stage${i}-panel`);
+                if (panel) {
+                    panel.style.display = (i === stageNum) ? 'block' : 'none';
+                }
+            }
+
+            updateStepperUI();
+
+            if (stageNum === 2) {
+                renderPayoffChart();
+            } else if (stageNum === 3) {
+                selectShockScenario(gameState.activeShockScenario || 'ecb_cut');
+            } else if (stageNum === 4) {
+                updateStage4Payoffs();
+            }
+        }
+
+        const shockScenarios = {
+            'ecb_cut': {
+                key: 'ecb_cut',
+                headline: 'MARKET SHOCK 1: ECB Emergency Rate Cut (Depreciation Shock)',
+                desc: 'Week 4 Lecture Case: The European Central Bank cuts benchmark interest rates unexpectedly by 75 bps to combat recession fears. Capital flees the Eurozone.',
+                ST: 7.8000,
+                pct: '-7.14%',
+                subtitle: 'ECB Rate Cut (7.80 HKD)',
+                color: 'var(--danger)',
+                hintHold: `
+                    <strong style="color:var(--cuhk-gold-light); font-size:0.95rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 1: Realized <i>S<sub>T</sub></i> = 7.8000 HKD/EUR):</strong>
+                    The spot exchange rate at 90-day maturity is 7.8000 HKD per Euro.
+                    <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.83rem; margin-top:0.3rem; line-height:1.5;">
+                        <li><strong>Forward Hedge / MMH</strong>: Settles at contractual lock <i>F</i><sub>0</sub> = 8.4200, delivering <strong>HKD 8,420,000</strong>.</li>
+                        <li><strong>Put Option</strong>: Since realized spot (7.8000) is below strike (8.4000), the firm exercises the put floor at 8.4000. Net of option premium FV (0.1215 HKD/EUR), net revenue is <strong>HKD 8,278,500</strong>.</li>
+                        <li><strong>Unhedged</strong>: Converts €1,000,000 at market spot 7.8000, delivering <strong>HKD 7,800,000</strong>.</li>
+                    </ul>
+                `
+            },
+            'eur_rally': {
+                key: 'eur_rally',
+                headline: 'MARKET SHOCK 2: Global Risk-On Rally (Euro Appreciation)',
+                desc: 'Week 3 UIP & Macro Case: Strong European economic indicators trigger a major Euro rally. The Euro surges against HKD.',
+                ST: 9.1000,
+                pct: '+8.33%',
+                subtitle: 'Euro Rally (9.10 HKD)',
+                color: 'var(--success)',
+                hintHold: `
+                    <strong style="color:var(--cuhk-gold-light); font-size:0.95rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 3: Realized <i>S<sub>T</sub></i> = 9.1000 HKD/EUR):</strong>
+                    The spot exchange rate at 90-day maturity is 9.1000 HKD per Euro.
+                    <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.83rem; margin-top:0.3rem; line-height:1.5;">
+                        <li><strong>Put Option</strong>: Since realized spot (9.1000) exceeds strike (8.4000), the firm lets the option expire unexercised and converts at spot (9.1000). Net revenue is <strong>HKD 8,978,500</strong> (€1,000,000 × 9.1000 minus option premium FV of HKD 121,500).</li>
+                        <li><strong>Forward Hedge / MMH</strong>: Settles at contractual lock <i>F</i><sub>0</sub> = 8.4200, delivering <strong>HKD 8,420,000</strong>.</li>
+                        <li><strong>Unhedged</strong>: Converts €1,000,000 at market spot 9.1000, delivering <strong>HKD 9,100,000</strong>.</li>
+                    </ul>
+                `
+            },
+            'cip_basis': {
+                key: 'cip_basis',
+                headline: 'MARKET SHOCK 3: Interbank Swap Market Disruption (CIP Basis Shock)',
+                desc: 'Week 4 CIP & Money Market Case: Bank balance-sheet constraints tighten. Interbank CIP swap spreads expand.',
+                ST: 8.1000,
+                pct: '-3.57%',
+                subtitle: 'CIP Swap Friction (8.10 HKD)',
+                color: 'var(--warning)',
+                hintHold: `
+                    <strong style="color:var(--cuhk-gold-light); font-size:0.95rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 2: Interbank Swap Friction, Forward = 8.1000 HKD/EUR):</strong>
+                    Interbank FX swap market liquidity squeezes widen dealer spreads.
+                    <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.83rem; margin-top:0.3rem; line-height:1.5;">
+                        <li><strong>Pre-Committed Forward / MMH</strong>: Contracts locked at <i>t</i> = 0 settle at agreed rate <i>F</i><sub>0</sub> = 8.4200 (HKD 8,420,000 / HKD 8,421,000).</li>
+                        <li><strong>Unhedged Spot / New Forward</strong>: Entering a new forward contract during market friction locks the repriced forward rate (8.1000), delivering HKD 8,100,000.</li>
+                    </ul>
+                `
+            }
+        };
+
+        const visitedStates = {
+            'ecb_cut': false,
+            'eur_rally': false,
+            'cip_basis': false
+        };
+
+        function selectShockScenario(scenKey) {
+            gameState.activeShockScenario = scenKey;
+            visitedStates[scenKey] = true;
+
+            const scen = shockScenarios[scenKey] || shockScenarios['ecb_cut'];
+            gameState.ST_shock = scen.ST;
+
+            // Highlight scenario selector cards & update viewed badges
+            ['ecb_cut', 'eur_rally', 'cip_basis'].forEach(sKey => {
+                const sBtnKey = sKey === 'ecb_cut' ? 'ecb' : (sKey === 'eur_rally' ? 'rally' : 'cip');
+                const card = document.getElementById(`shock-btn-${sBtnKey}`);
+                const badge = document.getElementById(`viewed-badge-${sBtnKey}`);
+
+                if (card) {
+                    card.classList.toggle('selected', sKey === scenKey);
+                }
+                if (badge) {
+                    badge.style.display = visitedStates[sKey] ? 'block' : 'none';
+                }
+            });
+
+            // Update Shock Banner
+            const headlineEl = document.getElementById('shock-headline-text');
+            const descEl = document.getElementById('shock-desc-text');
+            const rateValEl = document.getElementById('shock-rate-val');
+
+            if (headlineEl) headlineEl.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> ${scen.headline}`;
+            if (descEl) descEl.textContent = scen.desc;
+            if (rateValEl) {
+                rateValEl.textContent = `${scen.ST.toFixed(4)} HKD (${scen.pct})`;
+                rateValEl.style.color = scen.color;
+            }
+
+            // Update sidebar subtitle if Stage 3 is active/unlocked
+            const subTitleEl = document.getElementById('step3-subtitle');
+            if (subTitleEl && gameState.currentStage >= 3) {
+                subTitleEl.textContent = scen.subtitle;
+            }
+
+            // Render analytical hint directly
+            const hintBox = document.getElementById('stage3-hint-box');
+            if (hintBox) {
+                hintBox.style.display = 'block';
+                hintBox.style.background = 'rgba(218, 165, 32, 0.12)';
+                hintBox.style.borderColor = 'var(--cuhk-gold)';
+                hintBox.innerHTML = scen.hintHold;
+            }
+
+            // Check if all 3 states have been viewed
+            const visitedCount = Object.values(visitedStates).filter(Boolean).length;
+            const proceedBtn = document.getElementById('btn-stage3-proceed');
+
+            if (proceedBtn) {
+                if (visitedCount < 3) {
+                    proceedBtn.disabled = true;
+                    proceedBtn.style.opacity = '0.5';
+                    proceedBtn.style.cursor = 'not-allowed';
+                    proceedBtn.innerHTML = `Explore All 3 Market Realization States to Proceed (${visitedCount}/3 States Explored) &rarr;`;
+                } else {
+                    proceedBtn.disabled = false;
+                    proceedBtn.style.opacity = '1';
+                    proceedBtn.style.cursor = 'pointer';
+                    proceedBtn.innerHTML = `All 3 States Explored! Proceed to Stage 4: Execution Debrief & Payoffs &rarr;`;
+                    gameState.maxUnlockedStage = Math.max(gameState.maxUnlockedStage, 4);
+                }
+            }
+
+            updateStepperUI();
+        }
+
+        function selectStrategy(strat) {
+            gameState.selectedStrategy = strat;
+            ['unhedged', 'forward', 'mmh', 'option'].forEach(s => {
+                const el = document.getElementById(`strat-${s}`);
+                if (el) el.classList.toggle('selected', s === strat);
+            });
+            const labelEl = document.getElementById('userSelectedBaselineLabel');
+            if (labelEl) labelEl.textContent = strat.toUpperCase();
+        }
+
+        function confirmShockChoice(choice) {
+            gameState.shockChoice = choice;
+            gameState.maxUnlockedStage = Math.max(gameState.maxUnlockedStage, 4);
+
+            // Highlight choice UI
+            const holdCard = document.getElementById('shock-opt-hold');
+            const switchCard = document.getElementById('shock-opt-switch');
+            if (holdCard) holdCard.classList.toggle('selected', choice === 'hold');
+            if (switchCard) switchCard.classList.toggle('selected', choice === 'switch');
+
+            // Render analytical hint from active shock scenario
+            const hintBox = document.getElementById('stage3-hint-box');
+            const proceedBtn = document.getElementById('btn-stage3-proceed');
+
+            const activeScenKey = gameState.activeShockScenario || 'ecb_cut';
+            const scen = shockScenarios[activeScenKey] || shockScenarios['ecb_cut'];
+
+            if (hintBox) {
+                hintBox.style.display = 'block';
+                
+                if (choice === 'hold') {
+                    hintBox.style.background = 'rgba(218, 165, 32, 0.12)';
+                    hintBox.style.borderColor = 'var(--cuhk-gold)';
+                    hintBox.innerHTML = scen.hintHold;
+                } else {
+                    hintBox.style.background = 'rgba(239, 68, 68, 0.12)';
+                    hintBox.style.borderColor = 'var(--danger)';
+                    hintBox.innerHTML = scen.hintSwitch;
+                }
+            }
+
+            if (proceedBtn) {
+                proceedBtn.disabled = false;
+                proceedBtn.style.opacity = '1';
+                proceedBtn.style.cursor = 'pointer';
+                proceedBtn.innerHTML = 'Choice Confirmed! Proceed to Final Execution Debrief &rarr;';
+            }
+
+            updateStepperUI();
+        }
+
+        let isStateHighlightActive = false;
+
+        function toggleStateHighlight() {
+            isStateHighlightActive = !isStateHighlightActive;
+            const btn = document.getElementById('btn-toggle-states');
+            if (btn) {
+                btn.style.background = isStateHighlightActive ? 'rgba(218, 165, 32, 0.25)' : 'rgba(255, 255, 255, 0.05)';
+                btn.style.borderColor = isStateHighlightActive ? 'var(--cuhk-gold)' : 'var(--border-color)';
+                btn.innerHTML = isStateHighlightActive 
+                    ? '✨ Macro States Highlighted (Click to Reset View)' 
+                    : '💡 Highlight 3 Macro States on Graph';
+            }
+            renderPayoffChart();
+        }
+
+        function renderPayoffChart() {
+            const ctx = document.getElementById('payoffChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            const spotRange = [];
+            const unhedgedPayoffs = [];
+            const forwardPayoffs = [];
+            const optionPayoffs = [];
+
+            const premFV = gameState.premium * (1 + gameState.rHKD * (gameState.days / 365));
+
+            for (let s = 7.50; s <= 9.30; s += 0.10) {
+                const sStr = s.toFixed(2);
+                spotRange.push(sStr);
+                
+                const unhedged = s * gameState.notional;
+                const forward = gameState.F0 * gameState.notional;
+                const putPayoff = (Math.max(s, gameState.strike) - premFV) * gameState.notional;
+
+                unhedgedPayoffs.push(unhedged);
+                forwardPayoffs.push(forward);
+                optionPayoffs.push(putPayoff);
+            }
+
+            const isStatePoint = (sStr) => (sStr === '7.80' || sStr === '8.40' || sStr === '9.10');
+            const stateColors = spotRange.map(sStr => {
+                if (sStr === '7.80') return '#EF4444';
+                if (sStr === '8.40') return '#60A5FA';
+                if (sStr === '9.10') return '#10B981';
+                return 'transparent';
+            });
+            const stateRadii = spotRange.map(sStr => (isStatePoint(sStr) && isStateHighlightActive) ? 7 : 0);
+
+            const chartConfig = FINA3020Utils.getChartDefaults ? FINA3020Utils.getChartDefaults() : {};
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: spotRange,
+                    datasets: [
+                        {
+                            label: '1. Unhedged (Floating Spot)',
+                            data: unhedgedPayoffs,
+                            borderColor: isStateHighlightActive ? 'rgba(239, 68, 68, 0.35)' : '#EF4444',
+                            borderDash: isStateHighlightActive ? [4, 4] : [5, 5],
+                            borderWidth: 2,
+                            pointRadius: stateRadii,
+                            pointHoverRadius: stateRadii.map(r => r ? 10 : 0),
+                            pointBackgroundColor: stateColors,
+                            pointBorderColor: '#0F172A',
+                            pointBorderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: '2. Forward Hedge (Hard Lock)',
+                            data: forwardPayoffs,
+                            borderColor: isStateHighlightActive ? 'rgba(59, 130, 246, 0.35)' : '#3B82F6',
+                            borderDash: isStateHighlightActive ? [4, 4] : [],
+                            borderWidth: 3,
+                            pointRadius: stateRadii,
+                            pointHoverRadius: stateRadii.map(r => r ? 10 : 0),
+                            pointBackgroundColor: stateColors,
+                            pointBorderColor: '#0F172A',
+                            pointBorderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: '4. Put Option Net (Floor at 8.278 HKD)',
+                            data: optionPayoffs,
+                            borderColor: isStateHighlightActive ? 'rgba(16, 185, 129, 0.35)' : '#10B981',
+                            borderDash: isStateHighlightActive ? [4, 4] : [],
+                            borderWidth: 3,
+                            pointRadius: stateRadii,
+                            pointHoverRadius: stateRadii.map(r => r ? 10 : 0),
+                            pointBackgroundColor: stateColors,
+                            pointBorderColor: '#0F172A',
+                            pointBorderWidth: 2,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    ...chartConfig,
+                    plugins: {
+                        ...(chartConfig.plugins || {}),
+                        title: {
+                            display: true,
+                            text: 'Net HKD Revenue Payoff Curves (€1,000,000 Receivable)',
+                            color: '#DAA520',
+                            font: { family: 'Outfit', size: 14, weight: '700' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const val = tooltipItems[0].label;
+                                    if (val === '7.80') return '📉 State 1: ECB Rate Cut (S_T = 7.80)';
+                                    if (val === '8.40') return '↔️ State 2: Baseline Expected (S_T = 8.40)';
+                                    if (val === '9.10') return '📈 State 3: Euro Rally (S_T = 9.10)';
+                                    return `Spot Rate S_T = ${val}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        ...(chartConfig.scales || {}),
+                        x: {
+                            ...((chartConfig.scales && chartConfig.scales.x) || {}),
+                            ticks: {
+                                color: function(ctx) {
+                                    const label = ctx.tick && ctx.tick.label;
+                                    if (isStateHighlightActive) {
+                                        if (label === '7.80') return '#EF4444';
+                                        if (label === '8.40') return '#60A5FA';
+                                        if (label === '9.10') return '#10B981';
+                                        return '#475569';
+                                    }
+                                    return '#94A3B8';
+                                },
+                                font: {
+                                    family: 'JetBrains Mono',
+                                    weight: '700',
+                                    size: 11
+                                }
+                            },
+                            grid: {
+                                color: function(ctx) {
+                                    const label = ctx.tick && ctx.tick.label;
+                                    if (isStateHighlightActive && (label === '7.80' || label === '8.40' || label === '9.10')) {
+                                        return 'rgba(218, 165, 32, 0.4)';
+                                    }
+                                    return 'rgba(255, 255, 255, 0.04)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function submitGameResponse() {
+            const reflection = document.getElementById('reflectionText').value.trim();
+            if (!reflection) {
+                alert('Please enter a 1-sentence reflection before submitting.');
+                return;
+            }
+
+            const sectionEl = document.getElementById('sectionSelect');
+            const sectionVal = sectionEl ? sectionEl.value : (FINA3020Utils.getSection ? FINA3020Utils.getSection() : '');
+
+            const payload = {
+                game: 'CFO_Hedge_Meeting',
+                week: 4,
+                section: sectionVal,
+                exposureType: gameState.exposureType,
+                selectedStrategy: gameState.selectedStrategy,
+                shockChoice: gameState.shockChoice,
+                executedPayoff: calculateExecutedPayoff(),
+                reflection: reflection
+            };
+
+            const saved = FINA3020Utils.recordResponse(payload);
+            const alertBox = document.getElementById('submissionAlert');
+            alertBox.style.display = 'block';
+            alertBox.innerText = 'Submitting response…';
+            saved.deliveryPromise.then(confirmed => {
+                alertBox.innerText = confirmed
+                    ? 'Response confirmed. Participation credit logged.'
+                    : 'Response saved in this tab but NOT confirmed. Leave it open for retry, or export the CSV and contact the TA.';
+            });
+        }
+
+        function updateStage4Payoffs() {
+            const ST = gameState.ST_shock || 7.8000;
+            const premFV = gameState.premium * (1 + gameState.rHKD * (gameState.days / 365));
+
+            const unhedgedVal = ST * gameState.notional;
+            const forwardVal = gameState.F0 * gameState.notional;
+            const mmhVal = 8421000;
+            const optionVal = (Math.max(ST, gameState.strike) - premFV) * gameState.notional;
+
+            const rateSubEl = document.getElementById('stage4-executed-rate');
+            if (rateSubEl) {
+                rateSubEl.innerHTML = `Executed Spot Rate: <strong style="color:${ST > 8.4 ? 'var(--success)' : 'var(--danger)'}; font-family:'JetBrains Mono';"><i>S<sub>T</sub></i> = ${ST.toFixed(4)} HKD/EUR</strong>`;
+            }
+
+            const elUnhedged = document.getElementById('res-val-unhedged');
+            const elForward = document.getElementById('res-val-forward');
+            const elMmh = document.getElementById('res-val-mmh');
+            const elOption = document.getElementById('res-val-option');
+
+            if (elUnhedged) elUnhedged.textContent = `HKD ${Math.round(unhedgedVal).toLocaleString()}`;
+            if (elForward) elForward.textContent = `HKD ${Math.round(forwardVal).toLocaleString()}`;
+            if (elMmh) elMmh.textContent = `HKD ${Math.round(mmhVal).toLocaleString()}`;
+            if (elOption) elOption.textContent = `HKD ${Math.round(optionVal).toLocaleString()}`;
+
+            // Highlight the winning/optimal strategy box for current scenario
+            ['unhedged', 'forward', 'mmh', 'option'].forEach(s => {
+                const box = document.getElementById(`res-box-${s}`);
+                if (box) box.classList.remove('highlight');
+            });
+
+            if (ST > 8.5) {
+                // Euro rally: Option & Unhedged win
+                const optBox = document.getElementById('res-box-option');
+                if (optBox) optBox.classList.add('highlight');
+            } else {
+                // Rate cut / basis drop: Forward wins
+                const fwdBox = document.getElementById('res-box-forward');
+                if (fwdBox) fwdBox.classList.add('highlight');
+            }
+        }
+
+        function calculateExecutedPayoff() {
+            const ST = gameState.ST_shock || 7.8000;
+            const premFV = gameState.premium * (1 + gameState.rHKD * (gameState.days / 365));
+            
+            if (gameState.selectedStrategy === 'unhedged') return ST * gameState.notional;
+            if (gameState.selectedStrategy === 'forward') return gameState.F0 * gameState.notional;
+            if (gameState.selectedStrategy === 'mmh') return 8421000;
+            return (Math.max(ST, gameState.strike) - premFV) * gameState.notional;
+        }
+
+        // Initialize default UI selections
+        document.addEventListener('DOMContentLoaded', () => {
+            selectStrategy('forward');
+            selectShockScenario('ecb_cut');
+            updateStepperUI();
+            const idInput = document.getElementById('studentIdInput');
+            if (idInput) idInput.value = FINA3020Utils.getStudentID();
+        });
+    </script>
+</body>
+</html>

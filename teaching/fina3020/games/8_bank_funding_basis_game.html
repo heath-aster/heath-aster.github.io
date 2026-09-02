@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Bank Funding & Basis Market Game | FINA3020 CUHK</title>
+    <!-- Chart.js -->
+    <script src="vendor/chart.umd-4.4.7.js"></script>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js"></script>
+    <style>
+        .app-container {
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .header-inner {
+            max-width: 1050px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .main-content {
+            max-width: 1050px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 3rem 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .glass-panel {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+
+        .stage-stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            position: relative;
+            background: rgba(19, 24, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+        }
+
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .stepper-step.active {
+            color: var(--cuhk-gold-light);
+        }
+
+        .stepper-step.completed {
+            color: var(--success);
+        }
+
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .stepper-step.active .step-num {
+            background: var(--cuhk-gold);
+            color: #000;
+            border-color: var(--cuhk-gold-light);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed .step-num {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+        }
+
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .param-card {
+            background: rgba(19, 24, 34, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .param-title {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .param-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--cuhk-gold);
+        }
+
+        .choice-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .choice-card {
+            background: rgba(19, 24, 34, 0.9);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+        }
+
+        .choice-card:hover {
+            border-color: var(--cuhk-gold);
+            transform: translateY(-2px);
+        }
+
+        .choice-card.selected {
+            border-color: var(--cuhk-gold);
+            background: rgba(218, 165, 32, 0.08);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .choice-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .choice-card.selected .choice-badge {
+            background: var(--cuhk-gold);
+            color: #000;
+        }
+
+        .calc-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+            font-size: 0.9rem;
+        }
+
+        .calc-row:last-child {
+            border-bottom: none;
+        }
+
+        .calc-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .shock-alert {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .shock-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: #ef4444;
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-inner">
+                <div class="brand-section">
+                    <span class="cuhk-badge">CUHK FINA3020</span>
+                    <div>
+                        <h1 class="app-title">Bank Funding & Basis Market Game</h1>
+                        <p class="app-subtitle">Intermediary Funding Friction & Cross-Currency Basis (CIP Deviations)</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" onclick="if(typeof FINA3020Utils !== 'undefined') FINA3020Utils.exportResponsesCSV()">Export Data (.csv)</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stepper -->
+            <div class="stage-stepper">
+                <div class="stepper-step active" id="step-1">
+                    <div class="step-num">1</div>
+                    <span>ID & Setup</span>
+                </div>
+                <div class="stepper-step" id="step-2">
+                    <div class="step-num">2</div>
+                    <span>Baseline Choice</span>
+                </div>
+                <div class="stepper-step" id="step-3">
+                    <div class="step-num">3</div>
+                    <span>Market Shock</span>
+                </div>
+                <div class="stepper-step" id="step-4">
+                    <div class="step-num">4</div>
+                    <span>Debrief</span>
+                </div>
+                <div class="stepper-step" id="step-5">
+                    <div class="step-num">5</div>
+                    <span>Exit Reflection</span>
+                </div>
+            </div>
+
+            <!-- STAGE 1: ID & Parameters -->
+            <div id="stage-1-panel" class="glass-panel active">
+                <h2 class="section-title">Stage 1: Funding Desk Setup & Initial Prediction</h2>
+                <p class="description">You manage the global funding desk of a major commercial bank. You must fund a <strong>$100,000,000 1-year corporate loan</strong> at the lowest effective interest cost.</p>
+
+                <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">CUHK Student ID(s):</label>
+                        <input type="text" id="student-id-input" placeholder="e.g. 1155123456" class="input-field" required>
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Student Full Name(s) (given name SURNAME; ...):</label>
+                        <input type="text" id="student-name-input" placeholder="e.g. Seon LOU; John CHAN" class="input-field">
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Course Section:</label>
+                        <select id="student-section-input" class="input-field" required>
+                            <option value="">-- Select Section --</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                        </select>
+                    </div>
+                </div>
+
+            <div class="param-grid">
+                <div class="param-card">
+                    <div class="param-title">Loan Principal</div>
+                    <div class="param-value">$100,000,000</div>
+                </div>
+                <div class="param-card">
+                    <div class="param-title">Direct USD Rate (r_USD)</div>
+                    <div class="param-value">4.00%</div>
+                </div>
+                <div class="param-card">
+                    <div class="param-title">Foreign EUR Rate (r_EUR)</div>
+                    <div class="param-value">2.00%</div>
+                </div>
+                <div class="param-card">
+                    <div class="param-title">Spot Rate (S_USD/EUR)</div>
+                    <div class="param-value">1.1000</div>
+                </div>
+                <div class="param-card">
+                    <div class="param-title">1Y FX Forward (<i>F</i><sub>USD/EUR</sub>)</div>
+                    <div class="param-value">1.1110</div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-bottom:1.5rem;">
+                <h3 style="color:var(--cuhk-gold); margin-bottom:0.75rem;">Initial Prediction Challenge</h3>
+                <p style="margin-bottom:1rem;">Before calculating exact cash flows, which funding route do you predict will yield a lower effective borrowing cost?</p>
+                <div class="choice-card-grid">
+                    <div class="choice-card" id="pred-direct" onclick="selectPrediction('direct')">
+                        <div class="choice-badge">Option A</div>
+                        <h4 style="margin-bottom:0.5rem;">Direct USD Borrowing</h4>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Borrow $100M directly in the US cash market at 4.00%.</p>
+                    </div>
+                    <div class="choice-card" id="pred-synthetic" onclick="selectPrediction('synthetic')">
+                        <div class="choice-badge">Option B</div>
+                        <h4 style="margin-bottom:0.5rem;">Synthetic USD Borrowing</h4>
+                        <p style="font-size:0.85rem; color:var(--text-muted);">Borrow EUR at 2.00% and execute a 1Y FX Swap (sell EUR spot, buy EUR forward).</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="goToStage2()">Lock ID & Proceed to Stage 2: Baseline Calculation →</button>
+        </div>
+
+        <!-- STAGE 2: Baseline Calculation -->
+        <div id="stage-2-panel" class="glass-panel" style="display:none;">
+            <h2 class="section-title">Stage 2: Baseline Cash Flow & Funding Choice</h2>
+            <p class="description">Compute exact cash flows for both funding options under current market quotes (<i>S</i> = 1.1000, <i>F</i> = 1.1110).</p>
+
+            <div class="choice-card-grid">
+                <div class="choice-card" id="base-direct" onclick="selectBaselineChoice('direct')">
+                    <div class="choice-badge">Direct USD</div>
+                    <h3 style="margin-bottom:1rem; color:var(--cuhk-gold);">Option A: Direct USD Funding</h3>
+                    <div class="calc-row">
+                        <span>USD Borrowed at <i>t</i> = 0:</span>
+                        <span class="calc-val">$100,000,000</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Direct USD Rate (<i>r</i><sub>USD</sub>):</span>
+                        <span class="calc-val">4.00%</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Total Repayment at <i>t</i> = 1:</span>
+                        <span class="calc-val" style="color:#ef4444;">$104,000,000</span>
+                    </div>
+                    <div class="calc-row" style="margin-top:0.5rem; font-weight:700;">
+                        <span>Effective USD Cost:</span>
+                        <span class="calc-val" style="color:var(--cuhk-gold);">4.00%</span>
+                    </div>
+                </div>
+
+                <div class="choice-card" id="base-synthetic" onclick="selectBaselineChoice('synthetic')">
+                    <div class="choice-badge">Synthetic USD</div>
+                    <h3 style="margin-bottom:1rem; color:var(--cuhk-gold);">Option B: Synthetic USD (EUR + FX Swap)</h3>
+                    <div class="calc-row">
+                        <span>EUR Borrowed at <i>t</i> = 0 ($100M / 1.1000):</span>
+                        <span class="calc-val">€90,909,091</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>EUR Repayment at <i>t</i> = 1 (<i>r</i><sub>EUR</sub> = 2.00%):</span>
+                        <span class="calc-val">€92,727,273</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>USD Cost to Buy EUR Forward (&times; 1.1110):</span>
+                        <span class="calc-val" style="color:var(--success);">$103,020,000</span>
+                    </div>
+                    <div class="calc-row" style="margin-top:0.5rem; font-weight:700;">
+                        <span>Effective Synthetic USD Cost:</span>
+                        <span class="calc-val" style="color:var(--success);">3.02%</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Baseline Cross-Currency Basis (&Delta;):</span>
+                        <span class="calc-val" style="color:var(--cuhk-gold);">-0.98% (-98 bps)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); padding:1rem; border-radius:10px; margin-bottom:1.5rem;">
+                <strong>Key Insight:</strong> At current quotes, synthetic USD borrowing saves <strong>$980,000</strong> compared to direct USD borrowing because of a negative cross-currency basis (&Delta; = -98 bps).
+            </div>
+
+            <button class="btn btn-primary" onclick="goToStage3()">Lock Baseline Choice & Proceed to Stage 3: Market Shock →</button>
+        </div>
+
+        <!-- STAGE 3: Market Shock -->
+        <div id="stage-3-panel" class="glass-panel" style="display:none;">
+            <h2 class="section-title">Stage 3: Exogenous Regulatory Shock</h2>
+
+            <div class="shock-alert">
+                <div class="shock-title">
+                    <span>🚨 EXOGENOUS SHOCK: DEALER LEVERAGE CONSTRAINT TIGHTENS!</span>
+                </div>
+                <p style="font-size:0.95rem; color:#F8FAFC; line-height:1.5;">
+                    Quarter-end regulatory reporting arrives. Supplementary Leverage Ratio (SLR) limits (<i>x</i> &le; <i>X̄</i>) bind across dealer banks. Dealer banks ration scarce balance-sheet space by raising the 1-Year FX Forward ask quote to <strong><i>F</i><sub>shock</sub> = 1.1300 USD/EUR</strong>!
+                </p>
+            </div>
+
+            <h3 style="margin-bottom:1rem;">Repriced Funding Options Under Constraint Shock:</h3>
+            <div class="choice-card-grid">
+                <div class="choice-card" id="shock-direct" onclick="selectShockChoice('direct')">
+                    <div class="choice-badge">Direct USD</div>
+                    <h4 style="margin-bottom:0.5rem;">Option A: Direct USD Borrowing</h4>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">Direct cash market rate remains unchanged at 4.00%.</p>
+                    <div class="calc-row">
+                        <span>Total Repayment at <i>t</i> = 1:</span>
+                        <span class="calc-val" style="color:var(--success);">$104,000,000</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>Effective USD Cost:</span>
+                        <span class="calc-val" style="color:var(--success);">4.00%</span>
+                    </div>
+                </div>
+
+                <div class="choice-card" id="shock-synthetic" onclick="selectShockChoice('synthetic')">
+                    <div class="choice-badge">Synthetic USD</div>
+                    <h4 style="margin-bottom:0.5rem;">Option B: Synthetic USD (Repriced FX Swap)</h4>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.75rem;">Dealer forward ask increases to <i>F</i> = 1.1300 USD/EUR.</p>
+                    <div class="calc-row">
+                        <span>USD Cost to Buy EUR Forward (&times; 1.1300):</span>
+                        <span class="calc-val" style="color:#ef4444;">$104,781,818</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>New Effective Synthetic Cost:</span>
+                        <span class="calc-val" style="color:#ef4444;">4.78%</span>
+                    </div>
+                    <div class="calc-row">
+                        <span>New Cross-Currency Basis (&Delta;):</span>
+                        <span class="calc-val" style="color:#ef4444;">+0.78% (+78 bps)</span>
+                    </div>
+                </div>
+            </div>
+
+            <p style="margin-bottom:1rem; font-weight:600;">Re-evaluate your funding desk position:</p>
+            <button class="btn btn-primary" onclick="goToStage4()">Lock Final Strategy & View Debrief →</button>
+        </div>
+
+        <!-- STAGE 4: Debrief -->
+        <div id="stage-4-panel" class="glass-panel" style="display:none;">
+            <h2 class="section-title">Stage 4: Execution Debrief & Misconception Analysis</h2>
+
+            <div id="outcome-banner" style="padding:1.5rem; border-radius:12px; border:1px solid var(--border-color); margin-bottom:1.5rem;">
+                <div style="font-size:1.4rem; font-weight:700; margin-bottom:0.5rem;" id="outcome-title">Outcome Summary</div>
+                <div id="outcome-desc" style="color:var(--text-muted); line-height:1.5;"></div>
+            </div>
+
+            <div class="param-grid">
+                <div class="param-card">
+                    <div class="param-title">Direct USD Funding Cost</div>
+                    <div class="param-value">$104,000,000</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Rate: 4.00%</div>
+                </div>
+                <div class="param-card">
+                    <div class="param-title">Baseline Synthetic Cost</div>
+                    <div class="param-value" style="color:var(--success);">$103,020,000</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Rate: 3.02% (F=1.1110)</div>
+                </div>
+                <div class="param-card">
+                    <div class="param-title">Post-Shock Synthetic Cost</div>
+                    <div class="param-value" style="color:#ef4444;">$104,781,818</div>
+                    <div style="font-size:0.8rem; color:var(--text-muted);">Rate: 4.78% (F=1.1300)</div>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="fundingChart"></canvas>
+            </div>
+
+            <div class="glass-card" style="border-color:var(--cuhk-gold); margin-bottom:1.5rem;">
+                <h3 style="color:var(--cuhk-gold); margin-bottom:0.5rem;">Core Misconception Debrief</h3>
+                <p style="font-size:0.95rem; line-height:1.5; color:#F8FAFC;">
+                    <strong>Common Misconception:</strong> Students assume any non-zero cross-currency basis represents a frictionless, infinite arbitrage profit.<br><br>
+                    <strong>Market Reality:</strong> Executing a CIP arbitrage or taking the other side of FX swaps expands both sides of dealer balance sheets. When non-risk-weighted leverage ratios ($x \le \bar{X}$) bind, dealer balance-sheet space becomes scarce and costly. Arbitrageurs cannot eliminate a persistent basis without consuming scarce leverage capacity!
+                </p>
+            </div>
+
+            <button class="btn btn-primary" onclick="goToStage5()">Proceed to Stage 5: Exit Reflection →</button>
+        </div>
+
+        <!-- STAGE 5: Exit Reflection -->
+        <div id="stage-5-panel" class="glass-panel" style="display:none;">
+            <h2 class="section-title">Stage 5: Individual Exit Reflection</h2>
+            <p class="description">Submit your 1-sentence analytical exit reflection for participation credit.</p>
+
+            <div class="glass-card" style="margin-bottom:1.5rem;">
+                <h4 style="color:var(--cuhk-gold); margin-bottom:0.75rem;">Reflection Prompt:</h4>
+                <p style="font-size:1.05rem; font-weight:600; margin-bottom:1rem; color:#F8FAFC;">
+                    "Why can't arbitrageurs eliminate a 50 bps basis when balance sheets are constrained?"
+                </p>
+
+                <textarea id="exit-reflection" class="glass-input" rows="4" style="width:100%; font-size:0.95rem;" placeholder="Write your 1-sentence reflection here..."></textarea>
+            </div>
+
+            <button class="btn btn-primary" onclick="submitFinalResponse()">Submit Exit Reflection & Record Score ✓</button>
+        </div>
+        </main>
+    </div>
+
+    <script>
+        let selectedPred = 'synthetic';
+        let selectedBaseline = 'synthetic';
+        let selectedShockChoice = 'direct';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedID = FINA3020Utils.getStudentID();
+            const savedName = FINA3020Utils.getFullName();
+            if (savedID && document.getElementById('student-id-input')) {
+                document.getElementById('student-id-input').value = savedID;
+            }
+            if (savedName && document.getElementById('student-name-input')) {
+                document.getElementById('student-name-input').value = savedName;
+            }
+            selectPrediction('synthetic');
+            selectBaselineChoice('synthetic');
+            selectShockChoice('direct');
+        });
+
+        function selectPrediction(choice) {
+            selectedPred = choice;
+            document.getElementById('pred-direct').classList.toggle('selected', choice === 'direct');
+            document.getElementById('pred-synthetic').classList.toggle('selected', choice === 'synthetic');
+        }
+
+        function selectBaselineChoice(choice) {
+            selectedBaseline = choice;
+            document.getElementById('base-direct').classList.toggle('selected', choice === 'direct');
+            document.getElementById('base-synthetic').classList.toggle('selected', choice === 'synthetic');
+        }
+
+        function selectShockChoice(choice) {
+            selectedShockChoice = choice;
+            document.getElementById('shock-direct').classList.toggle('selected', choice === 'direct');
+            document.getElementById('shock-synthetic').classList.toggle('selected', choice === 'synthetic');
+        }
+
+        function goToStage2() {
+            const idInput = document.getElementById('student-id-input').value.trim();
+            const nameInput = document.getElementById('student-name-input').value.trim();
+            const sectionInput = document.getElementById('student-section-input').value.trim();
+
+            if (!idInput || !nameInput) {
+                alert('Please enter your full name and 10-digit CUHK Student ID before proceeding.');
+                return;
+            }
+            if (!sectionInput || !['A', 'B', 'C'].includes(sectionInput.toUpperCase())) {
+                alert('Please select a valid Course Section (Section A, B, or C).');
+                return;
+            }
+
+            if (!FINA3020Utils.setStudentCredentials(idInput, nameInput, sectionInput)) {
+                alert('Please check your full name, 10-digit CUHK ID, and section.');
+                return;
+            }
+
+            document.getElementById('stage-1-panel').style.display = 'none';
+            document.getElementById('stage-2-panel').style.display = 'block';
+            updateStepper(2);
+        }
+
+        function goToStage3() {
+            document.getElementById('stage-2-panel').style.display = 'none';
+            document.getElementById('stage-3-panel').style.display = 'block';
+            updateStepper(3);
+        }
+
+        function goToStage4() {
+            document.getElementById('stage-3-panel').style.display = 'none';
+            document.getElementById('stage-4-panel').style.display = 'block';
+            updateStepper(4);
+            calculateOutcome();
+        }
+
+        function goToStage5() {
+            document.getElementById('stage-4-panel').style.display = 'none';
+            document.getElementById('stage-5-panel').style.display = 'block';
+            updateStepper(5);
+        }
+
+        function updateStepper(stepNum) {
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById('step-' + i);
+                if (i < stepNum) el.className = 'stepper-step completed';
+                else if (i === stepNum) el.className = 'stepper-step active';
+                else el.className = 'stepper-step';
+            }
+        }
+
+        function calculateOutcome() {
+            const banner = document.getElementById('outcome-banner');
+            const title = document.getElementById('outcome-title');
+            const desc = document.getElementById('outcome-desc');
+
+            if (selectedShockChoice === 'direct') {
+                banner.style.background = 'rgba(16, 185, 129, 0.15)';
+                banner.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                title.innerText = '✅ Optimal Decision: Direct USD Funding Selected!';
+                title.style.color = 'var(--success)';
+                desc.innerText = 'By switching to Direct USD borrowing (4.00%) after the forward ask rose to 1.1300, you saved $781,818 compared to synthetic funding (4.78%).';
+            } else {
+                banner.style.background = 'rgba(239, 68, 68, 0.15)';
+                banner.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                title.innerText = '⚠️ Suboptimal Choice: High Synthetic Cost Incurred!';
+                title.style.color = '#ef4444';
+                desc.innerText = 'Remaining in Synthetic USD funding after the forward ask spiked to 1.1300 increased your total interest expense to $104,781,818 ($781,818 above direct USD borrowing).';
+            }
+
+            renderChart();
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('fundingChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Direct USD (4.00%)', 'Pre-Shock Synthetic (3.02%)', 'Post-Shock Synthetic (4.78%)'],
+                    datasets: [{
+                        label: 'Total USD Interest Expense ($)',
+                        data: [104000000, 103020000, 104781818],
+                        backgroundColor: [
+                            'rgba(218, 165, 32, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(239, 68, 68, 0.7)'
+                        ],
+                        borderColor: [
+                            '#DAA520',
+                            '#10b981',
+                            '#ef4444'
+                        ],
+                        borderWidth: 1.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8' } },
+                        title: { display: true, text: 'Borrowing Cost Comparison Across Funding Routes & Shocks', color: '#f8fafc' }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: {
+                            min: 100000000,
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) { return '$' + (value / 1000000).toFixed(1) + 'M'; }
+                            },
+                            grid: { color: 'rgba(255,255,255,0.05)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function submitFinalResponse() {
+            const reflection = document.getElementById('exit-reflection').value.trim();
+            if (!reflection) {
+                alert('Please enter your 1-sentence exit reflection before submitting.');
+                return;
+            }
+
+            const idInput = document.getElementById('student-id-input').value.trim() || FINA3020Utils.getStudentID();
+            const nameInput = document.getElementById('student-name-input').value.trim() || FINA3020Utils.getFullName();
+            const sectionInput = document.getElementById('student-section-input').value.trim().toUpperCase() || 'A';
+
+            const saved = FINA3020Utils.recordResponse({
+                mode: 'Bank_Funding_Basis',
+                studentId: idInput,
+                studentName: nameInput,
+                section: sectionInput,
+                initialPrediction: selectedPred,
+                baselineChoice: selectedBaseline,
+                shockChoice: selectedShockChoice,
+                reflection: reflection
+            });
+
+            saved.deliveryPromise.then(confirmed => {
+                alert(confirmed
+                    ? 'Thank you! Your participation response was confirmed.'
+                    : 'Your response is saved in this tab but NOT confirmed. Leave it open for retry, or export the CSV and contact the TA.');
+            });
+        }
+    </script>
+</body>
+</html>

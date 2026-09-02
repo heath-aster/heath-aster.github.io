@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Course Survey & Icebreaker | FINA3020</title>
+    <script src="vendor/chart.umd-4.4.7.js"></script>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js"></script>
+    <style>
+        .survey-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(0, 32, 96, 0.6) 0%, rgba(19, 24, 34, 0.9) 100%);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, var(--cuhk-gold-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            max-width: 750px;
+        }
+
+        .survey-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.75rem;
+            margin-bottom: 1.75rem;
+            box-shadow: var(--shadow-md);
+            transition: border-color var(--transition-smooth);
+        }
+
+        .survey-card:hover {
+            border-color: var(--border-gold);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .section-num {
+            background: var(--cuhk-blue);
+            border: 1px solid var(--cuhk-gold);
+            color: var(--cuhk-gold-light);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        /* Option Grid Cards */
+        .option-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1rem;
+        }
+
+        .selectable-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.15rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .selectable-card:hover {
+            background: var(--bg-glass-hover);
+            border-color: rgba(218, 165, 32, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .selectable-card.selected {
+            background: rgba(0, 32, 96, 0.4);
+            border: 2px solid var(--cuhk-gold);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            color: var(--cuhk-gold-light);
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: var(--text-primary);
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Multi-Select Topic List */
+        .topic-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .topic-item {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.85rem 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .topic-item:hover {
+            border-color: var(--cuhk-gold);
+            background: var(--bg-glass-hover);
+        }
+
+        .topic-item.selected {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.08);
+        }
+
+        .topic-name {
+            font-size: 0.92rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .topic-week {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--cuhk-gold-light);
+            background: rgba(218, 165, 32, 0.12);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .checkbox-indicator {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-muted);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+        }
+
+        .topic-item.selected .checkbox-indicator {
+            background: var(--accent-cyan);
+            border-color: var(--accent-cyan);
+            color: #000;
+        }
+
+        /* Slider & Controls */
+        .slider-group {
+            margin-top: 1rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .slider-label {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .slider-val {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--cuhk-gold-light);
+            font-weight: 700;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            accent-color: var(--cuhk-gold);
+        }
+
+        .text-input-field {
+            width: 100%;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.85rem 1rem;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 90px;
+            outline: none;
+            transition: border-color var(--transition-fast);
+        }
+
+        .text-input-field:focus {
+            border-color: var(--cuhk-gold);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--cuhk-gold), #B8860B);
+            color: #000;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 0.9rem 2.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: var(--shadow-gold);
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(218, 165, 32, 0.45);
+        }
+
+        /* Results & Dashboard Section */
+        .results-section {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .summary-box {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid var(--success);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            color: var(--success);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .chart-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .hash-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            color: var(--cuhk-gold-light);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="brand-section">
+            <span class="cuhk-badge">CUHK FINA3020</span>
+            <h1 class="app-title">International Finance</h1>
+        </div>
+        <div style="font-family: 'Outfit', sans-serif; font-size: 0.9rem; color: var(--text-secondary);">
+            Prof. Henry Zhang | Fall 2026
+        </div>
+    </header>
+
+    <main class="survey-container">
+
+        <!-- Hero Intro Banner -->
+        <div class="hero-banner">
+            <h2 class="hero-title">Course Survey & Icebreaker</h2>
+            <p class="hero-subtitle">
+                Welcome to Week 1! This non-graded survey helps customize course examples to your background and tests the in-class game interface.
+            </p>
+        </div>
+
+        <!-- Form Container -->
+        <form id="icebreakerForm" onsubmit="handleSurveySubmit(event)">
+
+            <!-- Section 1: Student Identification -->
+            <div class="survey-card">
+                <div class="section-header">
+                    <span class="section-num">1</span>
+                    <h3 class="section-title">Student Identification</h3>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Please enter your official CUHK registration details for attendance and participation credit:
+                </p>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
+                    <div>
+                        <label class="slider-label" style="display: block; margin-bottom: 0.5rem;">Surname, Given name <span style="color: var(--danger);">*</span></label>
+                        <input type="text" id="inputFullName" class="text-input-field" style="min-height: unset; padding: 0.75rem 1rem;" placeholder="e.g. LOU, Seon" required>
+                    </div>
+                    <div>
+                        <label class="slider-label" style="display: block; margin-bottom: 0.5rem;">CUHK Student ID <span style="color: var(--danger);">*</span></label>
+                        <input type="text" id="inputStudentId" class="text-input-field" style="min-height: unset; padding: 0.75rem 1rem;" placeholder="10-digit Student ID" required>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">Must be exactly 10 digits (e.g. 1155123456)</div>
+                    </div>
+                    <div>
+                        <label class="slider-label" style="display: block; margin-bottom: 0.5rem;">Course Section <span style="color: var(--danger);">*</span></label>
+                        <select id="inputSection" class="text-input-field" style="min-height: unset; padding: 0.75rem 1rem;" required>
+                            <option value="">-- Select Section --</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Career Aspirations -->
+            <div class="survey-card">
+                <div class="section-header">
+                    <span class="section-num">2</span>
+                    <h3 class="section-title">Target Career Path</h3>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Select the field closest to your current post-graduation goal:
+                </p>
+                <div class="option-grid">
+                    <div class="selectable-card" onclick="selectCareer(this, 'Banking')">
+                        <span class="card-icon">🏦</span>
+                        <div class="card-title">Investment Banking (Sell-Side)</div>
+                        <div class="card-desc">M&A, DCM/ECM, Sales & Trading, FX & Derivatives Structuring</div>
+                    </div>
+                    <div class="selectable-card" onclick="selectCareer(this, 'Trading')">
+                        <span class="card-icon">📈</span>
+                        <div class="card-title">Trading</div>
+                        <div class="card-desc">Proprietary Trading, Market Making</div>
+                    </div>
+                    <div class="selectable-card" onclick="selectCareer(this, 'Asset Management)')">
+                        <span class="card-icon">📈</span>
+                        <div class="card-title">Asset Management (Buy-Side)</div>
+                        <div class="card-desc">Hedge Funds, Private Equity, Global Macro, Portfolio Management</div>
+                    </div>
+                    <div class="selectable-card" onclick="selectCareer(this, 'Corporate Finance')">
+                        <span class="card-icon">🏢</span>
+                        <div class="card-title">Corporate</div>
+                        <div class="card-desc">Treasury Management, Cross-Border Capital Budgeting, FX Hedging</div>
+                    </div>
+                    <div class="selectable-card" onclick="selectCareer(this, 'FinTech & Payments')">
+                        <span class="card-icon">⚡</span>
+                        <div class="card-title">FinTech & Payments</div>
+                        <div class="card-desc">NeoBanks, Stablecoins, Crypto</div>
+                    </div>
+                    <div class="selectable-card" onclick="selectCareer(this, 'Entrepreneurship')">
+                        <span class="card-icon">🔍</span>
+                        <div class="card-title">Entrepreneurship</div>
+                        <div class="card-desc"></div>
+                    </div>
+                    <div class="selectable-card" onclick="selectCareer(this, 'Policy & Research')">
+                        <span class="card-icon">🏛️</span>
+                        <div class="card-title">Government & Policy</div>
+                        <div class="card-desc">Government, Central Banks, IMF, World Bank, Policy Research, Academia</div>
+                    </div>
+                    <div class="selectable-card" onclick="selectCareer(this, 'Other')">
+                        <span class="card-icon">🔍</span>
+                        <div class="card-title">Other </div>
+                        <div class="card-desc">Consulting, Commercial Banking, Other</div>
+                    </div>
+                    <div class="selectable-card" onclick="selectCareer(this, 'Unsure')">
+                        <span class="card-icon">🔍</span>
+                        <div class="card-title">Unsure</div>
+                        <div class="card-desc"></div>
+                    </div>
+                </div>
+                <input type="hidden" id="selectedCareer" required>
+            </div>
+
+            <!-- Section 3: Topic Eagerness -->
+            <div class="survey-card">
+                <div class="section-header">
+                    <span class="section-num">3</span>
+                    <h3 class="section-title">Topic Interest (Select up to 3)</h3>
+                </div>
+                <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                    Which international finance topics are you most excited to master?
+                </p>
+                <div class="topic-list">
+                    <div class="topic-item" onclick="toggleTopic(this, 'FX Market Microstructure & Arbitrage')">
+                        <div>
+                            <div class="topic-name">FX Microstructure & Arbitrage</div>
+                            <span class="topic-week">Weeks 1-2</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'FX Expectations')">
+                        <div>
+                            <div class="topic-name">FX Expectations</div>
+                            <span class="topic-week">Week 3</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'Corporate FX Hedging')">
+                        <div>
+                            <div class="topic-name">Corporate FX Exposure & Hedging</div>
+                            <span class="topic-week">Week 4</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'Multinational Capital Budgeting')">
+                        <div>
+                            <div class="topic-name">Multinational Capital Budgeting</div>
+                            <span class="topic-week">Week 5</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'Balance of Payments & Global Cycles')">
+                        <div>
+                            <div class="topic-name">Balance of Payments & Financial Cycles</div>
+                            <span class="topic-week">Week 6</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'International Banking')">
+                        <div>
+                            <div class="topic-name">International Banking</div>
+                            <span class="topic-week">Week 7-8</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'International Capital Markets')">
+                        <div>
+                            <div class="topic-name">International Capital Markets</div>
+                            <span class="topic-week">Week 9</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'Payment Rails & CBDCs')">
+                        <div>
+                            <div class="topic-name">Payment Rails, SWIFT & CBDCs</div>
+                            <span class="topic-week">Week 10</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'USD Dominance')">
+                        <div>
+                            <div class="topic-name">USD Dominance</div>
+                            <span class="topic-week">Weeks 11</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'FinTech')">
+                        <div>
+                            <div class="topic-name">FinTech</div>
+                            <span class="topic-week">Weeks 11</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                    <div class="topic-item" onclick="toggleTopic(this, 'Climate Finance')">
+                        <div>
+                            <div class="topic-name">Climate Finance</div>
+                            <span class="topic-week">Weeks 12</span>
+                        </div>
+                        <div class="checkbox-indicator">✓</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Background & Self-Assessment -->
+            <div class="survey-card">
+                <div class="section-header">
+                    <span class="section-num">4</span>
+                    <h3 class="section-title">Background & Expectations</h3>
+                </div>
+
+                <div class="slider-group" style="margin-bottom: 1.5rem;">
+                    <div class="slider-header">
+                        <span class="slider-label">Comfort with Quantitative / Mathematical Modeling</span>
+                        <span class="slider-val" id="mathVal">3 / 5</span>
+                    </div>
+                    <input type="range" id="mathSlider" min="1" max="5" value="3" oninput="document.getElementById('mathVal').innerText = this.value + ' / 5'">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.3rem;">
+                        <span>Secondary (High) School Algebra</span>
+                        <span>Multi-Variable Calculus, Linear Algebra</span>
+                        <span>Proof-Based Math (Real Analysis)</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="slider-label" style="display: block; margin-bottom: 0.5rem;">Any high-level questions about this course, or information about your background?</label>
+                    <textarea class="text-input-field" id="commentsText" placeholder=""></textarea>
+                </div>
+            </div>
+
+            <!-- Submit Action -->
+            <div style="text-align: center; margin-top: 2rem;">
+                <button type="submit" class="btn-submit">
+                    <span>Submit Icebreaker Survey</span>
+                    <span>→</span>
+                </button>
+            </div>
+        </form>
+
+        <!-- Live Cohort Results Dashboard -->
+        <div class="results-section" id="resultsDashboard">
+            
+            <div class="summary-box">
+                <div class="summary-title" id="receiptTitle">
+                    <span id="receiptIcon">…</span> <span id="receiptHeadline">Submitting your response…</span>
+                </div>
+                <p style="font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.5rem;" id="receiptDetail">
+                    Saved on this device. Waiting for the server to confirm receipt.
+                </p>
+                <div style="font-size: 0.85rem; color: var(--text-secondary);">
+                    Submission reference: <span class="hash-badge" id="receiptHash">&mdash;</span>
+                </div>
+            </div>
+
+            <div class="survey-card">
+                <h3 class="section-title" style="margin-bottom: 1rem;">Personalized Learning Recommendations</h3>
+                <div id="personalizedRecs" style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6;">
+                    Loading custom course path recommendation...
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <button class="btn-submit" style="background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary);" onclick="resetSurvey()">
+                    ✎ Modify Response
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let selectedCareerValue = '';
+        let selectedTopics = [];
+
+        function selectCareer(cardElement, careerName) {
+            document.querySelectorAll('.option-grid .selectable-card').forEach(c => c.classList.remove('selected'));
+            cardElement.classList.add('selected');
+            selectedCareerValue = careerName;
+            document.getElementById('selectedCareer').value = careerName;
+        }
+
+        function toggleTopic(itemElement, topicName) {
+            if (itemElement.classList.contains('selected')) {
+                itemElement.classList.remove('selected');
+                selectedTopics = selectedTopics.filter(t => t !== topicName);
+            } else {
+                if (selectedTopics.length >= 3) {
+                    alert('Please select up to 3 topics.');
+                    return;
+                }
+                itemElement.classList.add('selected');
+                selectedTopics.push(topicName);
+            }
+        }
+
+        function handleSurveySubmit(e) {
+            e.preventDefault();
+
+            const fullName = document.getElementById('inputFullName').value.trim();
+            const studentId = document.getElementById('inputStudentId').value.trim();
+            const section = document.getElementById('inputSection').value.trim();
+
+            if (!fullName) {
+                alert('Please enter your Full Name.');
+                document.getElementById('inputFullName').focus();
+                return;
+            }
+
+            if (!section || !['A', 'B', 'C'].includes(section.toUpperCase())) {
+                alert('Please select a valid Course Section (Section A, B, or C).');
+                document.getElementById('inputSection').focus();
+                return;
+            }
+
+            // CUHK ID Validation: Must be only digits and EXACTLY 10 digits long
+            const cleanId = studentId.replace(/\s+/g, '');
+            if (!/^\d{10}$/.test(cleanId)) {
+                alert('Please enter a valid CUHK Student ID (must be exactly 10 digits).');
+                document.getElementById('inputStudentId').focus();
+                return;
+            }
+
+            if (!selectedCareerValue) {
+                alert('Please select a target career path.');
+                return;
+            }
+
+            // Persist identity across all interactive tools. Section was validated here
+            // but never stored, so every later game re-prompted for it.
+            if (!FINA3020Utils.setStudentCredentials(cleanId, fullName, section)) {
+                alert('Please check your name, 10-digit CUHK ID, and section.');
+                return;
+            }
+
+            const mathSkill = document.getElementById('mathSlider').value;
+            const comments = document.getElementById('commentsText').value;
+
+            // Keep the receipt only for this browser tab; it clears when the tab closes.
+            const surveyData = {
+                fullName: fullName,
+                studentId: cleanId,
+                career: selectedCareerValue,
+                topics: selectedTopics,
+                mathSkill: mathSkill,
+                comments: comments,
+                submittedAt: new Date().toISOString()
+            };
+
+            const saved = FINA3020Utils.recordResponse({
+                mode: 'Course_Survey',
+                ...surveyData
+            });
+
+            // The reference is the real submission id, not a random string. The old
+            // "receipt hash" was invented client-side before anything was sent, so it
+            // looked like proof of submission while proving nothing.
+            surveyData.hash = saved.submissionId;
+            sessionStorage.setItem('fina3020_icebreaker', JSON.stringify(surveyData));
+            document.getElementById('receiptHash').innerText = saved.submissionId;
+
+            saved.deliveryPromise.then(confirmed => {
+                const icon = document.getElementById('receiptIcon');
+                const headline = document.getElementById('receiptHeadline');
+                const detail = document.getElementById('receiptDetail');
+                if (confirmed) {
+                    icon.innerText = '✓';
+                    headline.innerText = 'Survey Response Confirmed';
+                    detail.innerText = 'Your response was received and recorded for Week 1.';
+                } else {
+                    icon.innerText = '!';
+                    headline.innerText = 'Not Yet Confirmed';
+                    detail.innerText = 'Your response is saved on this device but the server has not '
+                        + 'confirmed it. It will keep retrying, so leave this tab open. If it stays '
+                        + 'unconfirmed, tell the TA and quote the submission reference below.';
+                }
+            });
+
+            // Hide Form, Show Results
+            document.getElementById('icebreakerForm').style.display = 'none';
+            const resultsDiv = document.getElementById('resultsDashboard');
+            resultsDiv.style.display = 'block';
+
+            // Generate Recommendations
+            renderRecommendations(selectedCareerValue, selectedTopics);
+
+            // Render Charts
+            renderCohortCharts(selectedCareerValue, selectedTopics);
+        }
+
+        function renderRecommendations(career, topics) {
+            let recHtml = `<p><strong>Career Focus (${career}):</strong> `;
+            if (career === 'Investment Banking') {
+                recHtml += `Pay close attention to <strong>Weeks 1–3</strong> (FX pricing, triangular arbitrage, and CIP/UIP parity) and <strong>Weeks 8–9</strong> (international banking & capital markets).`;
+            } else if (career === 'Asset Management') {
+                recHtml += `Focus on <strong>Weeks 2–3</strong> (carry trade strategies & exchange rate expectation models) and <strong>Week 6</strong> (global financial cycles & balance of payments).`;
+            } else if (career === 'Corporate Finance') {
+                recHtml += `Your core modules are <strong>Weeks 4–5</strong> (measuring & hedging transaction/economic exposure, currency options, and multinational capital budgeting).`;
+            } else if (career === 'FinTech & Payments') {
+                recHtml += `Target <strong>Week 1</strong> (order book mechanics) and <strong>Week 10</strong> (SWIFT payment rails, PIX, CBDCs, and stablecoins).`;
+            } else if (career === 'Policy & Research') {
+                recHtml += `Highlight <strong>Week 6</strong> (Balance of Payments & Twin Deficits), <strong>Week 11</strong> (US Dollar Dominance), and <strong>Week 12</strong> (Climate Finance & RenovaBio/CBIO markets).`;
+            } else {
+                recHtml += `The course builds from cash flow mechanics (Weeks 1–3) to corporate decisions (Weeks 4–5) and macro policy (Weeks 6–12).`;
+            }
+            recHtml += `</p>`;
+
+            if (topics.length > 0) {
+                recHtml += `<p style="margin-top: 0.5rem;"><strong>Selected Priority Topics:</strong> You flagged ${topics.join(', ')}. Problem sets will include targeted extensions on these areas.</p>`;
+            }
+
+            document.getElementById('personalizedRecs').innerHTML = recHtml;
+        }
+
+        function renderCohortCharts(userCareer, userTopics) {
+            // Simulated Cohort Data with user response incremented
+            const careerCounts = {
+                'Investment Banking': 14,
+                'Asset Management': 10,
+                'Corporate Finance': 8,
+                'FinTech & Payments': 6,
+                'Policy & Research': 4,
+                'Exploring Options': 3
+            };
+            if (careerCounts[userCareer]) careerCounts[userCareer]++;
+
+            const topicCounts = {
+                'FX Microstructure': 15,
+                'CIP & Carry Trades': 18,
+                'Corporate Hedging': 12,
+                'Capital Budgeting': 8,
+                'Balance of Payments': 7,
+                'Payment Rails & CBDCs': 11,
+                'Dollar Dominance': 9
+            };
+
+            // Career Chart
+            const ctx1 = document.getElementById('careerChart').getContext('2d');
+            new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(careerCounts),
+                    datasets: [{
+                        data: Object.values(careerCounts),
+                        backgroundColor: [
+                            '#002060', '#DAA520', '#10B981', '#00F2FE', '#9D4EDD', '#64748B'
+                        ],
+                        borderWidth: 1,
+                        borderColor: '#131822'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94A3B8', font: { family: 'Inter', size: 11 } } }
+                    }
+                }
+            });
+
+            // Topic Chart
+            const ctx2 = document.getElementById('topicChart').getContext('2d');
+            new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(topicCounts),
+                    datasets: [{
+                        label: 'Student Interest Count',
+                        data: Object.values(topicCounts),
+                        backgroundColor: 'rgba(218, 165, 32, 0.65)',
+                        borderColor: '#DAA520',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { ticks: { color: '#94A3B8', font: { family: 'Inter', size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#94A3B8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function resetSurvey() {
+            document.getElementById('icebreakerForm').style.display = 'block';
+            document.getElementById('resultsDashboard').style.display = 'none';
+        }
+
+        // Restore if previously submitted
+        window.addEventListener('DOMContentLoaded', () => {
+            let data = null;
+            try {
+                data = JSON.parse(sessionStorage.getItem('fina3020_icebreaker') || 'null');
+            } catch (e) {
+                data = null;
+            }
+
+            // Identity must be confirmed before anything personal is revealed or
+            // pre-filled. On a shared or lab machine this page previously opened
+            // straight onto the previous student's answers, name and CUHK ID.
+            let trusted = FINA3020Utils.isIdentityConfirmedForSession();
+            if (!trusted && data && data.studentId) {
+                trusted = confirm(
+                    `This device has a saved Week 1 survey response from:\n\n` +
+                    `    ${data.fullName}\n    CUHK ID ${data.studentId}\n\n` +
+                    `Click OK if that is you.\nClick Cancel to complete the survey as someone else.`
+                );
+                if (trusted) {
+                    FINA3020Utils.markIdentityConfirmedForSession();
+                } else {
+                    FINA3020Utils.clearSensitiveData();
+                    data = null;
+                }
+            }
+
+            if (!trusted) return; // leave a blank form for the next student
+
+            const savedId = FINA3020Utils.getStudentID();
+            const savedName = FINA3020Utils.getFullName();
+            if (savedId && document.getElementById('inputStudentId')) {
+                document.getElementById('inputStudentId').value = savedId;
+            }
+            if (savedName && document.getElementById('inputFullName')) {
+                document.getElementById('inputFullName').value = savedName;
+            }
+
+            if (data) {
+                selectedCareerValue = data.career;
+                selectedTopics = data.topics || [];
+                document.getElementById('receiptHash').innerText = data.hash || '—';
+                document.getElementById('receiptIcon').innerText = '✓';
+                document.getElementById('receiptHeadline').innerText = 'Survey Already Submitted';
+                document.getElementById('receiptDetail').innerText =
+                    'This device has already recorded your Week 1 survey response.';
+                renderRecommendations(data.career, selectedTopics);
+                renderCohortCharts(data.career, selectedTopics);
+                document.getElementById('icebreakerForm').style.display = 'none';
+                document.getElementById('resultsDashboard').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

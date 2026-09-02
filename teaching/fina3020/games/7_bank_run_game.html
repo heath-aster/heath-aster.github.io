@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Bank Run Coordination Game | FINA3020 CUHK</title>
+    <!-- Chart.js -->
+    <script src="vendor/chart.umd-4.4.7.js"></script>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js"></script>
+    <style>
+        .app-container {
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .header-inner {
+            max-width: 1050px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .main-content {
+            max-width: 1050px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 3rem 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-smooth);
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .stage-stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            position: relative;
+            background: rgba(19, 24, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+        }
+
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .stepper-step.active {
+            color: var(--cuhk-gold-light);
+        }
+
+        .stepper-step.completed {
+            color: var(--success);
+        }
+
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .stepper-step.active .step-num {
+            background: var(--cuhk-gold);
+            color: #000;
+            border-color: var(--cuhk-gold-light);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed .step-num {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition-fast);
+        }
+
+        .input-field:focus {
+            border-color: var(--cuhk-gold);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--cuhk-gold-glow);
+        }
+
+        .bs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .bs-card {
+            background: rgba(19, 24, 34, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+
+        .bs-card.assets {
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .bs-card.liabilities {
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .bs-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bs-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            font-size: 0.9rem;
+        }
+
+        .bs-row.total {
+            border-bottom: none;
+            border-top: 2px solid var(--border-color);
+            font-weight: 700;
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
+        }
+
+        .choice-btn-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .btn-choice {
+            background: rgba(30, 41, 59, 0.7);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-choice:hover {
+            transform: translateY(-2px);
+            border-color: var(--cuhk-gold);
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        .btn-choice.selected {
+            border-color: var(--cuhk-gold);
+            background: rgba(224, 168, 0, 0.15);
+            box-shadow: 0 0 15px rgba(224, 168, 0, 0.3);
+        }
+
+        .choice-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .choice-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .signal-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .signal-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--cuhk-gold-light);
+        }
+
+        .shock-alert {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .shock-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .reflection-textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 90px;
+            margin-top: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin: 1.5rem 0;
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .waiting-box {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow-gold);
+        }
+
+        .timer-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--cuhk-gold-light);
+            text-shadow: 0 0 20px rgba(218, 165, 32, 0.4);
+            margin: 1rem 0;
+        }
+
+        .pulse-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--cuhk-gold);
+            animation: pulse 1.5s infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(218, 165, 32, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(218, 165, 32, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(218, 165, 32, 0); }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 14, 20, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .modal-content {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-inner">
+                <div class="brand-section">
+                    <span class="cuhk-badge">CUHK FINA3020</span>
+                    <div>
+                        <h1 class="app-title">Week 7 Participation Game: Bank Run Coordination</h1>
+                        <p class="app-subtitle">Intermediary Fragility & Global Games (Goldstein-Pauzner Model)</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-gold" onclick="openInstructorModal()">📊 Class Aggregation & Excel Sheet</button>
+                    <button class="btn btn-secondary" onclick="if(typeof FINA3020Utils !== 'undefined') FINA3020Utils.exportResponsesCSV()">Export Data (.csv)</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stepper -->
+            <div class="stage-stepper">
+                <div class="stepper-step active" id="step-1">
+                    <div class="step-num">1</div>
+                    <span>Identification</span>
+                </div>
+                <div class="stepper-step" id="step-2">
+                    <div class="step-num">2</div>
+                    <span>Private Signal</span>
+                </div>
+                <div class="stepper-step" id="step-3">
+                    <div class="step-num">3</div>
+                    <span>Liquidity Shock</span>
+                </div>
+                <div class="stepper-step" id="step-4">
+                    <div class="step-num">4</div>
+                    <span>Execution & Payoff</span>
+                </div>
+                <div class="stepper-step" id="step-5">
+                    <div class="step-num">5</div>
+                    <span>Exit Reflection</span>
+                </div>
+            </div>
+
+            <!-- STAGE 1: Identification & Balance Sheet Setup -->
+            <section id="stage-1-panel" class="card">
+                <h2 class="card-title">Stage 1: Team Registration & Bank Balance Sheet</h2>
+                <p class="section-desc">
+                    You manage deposits at <strong>First International Bank</strong>. The bank performs maturity transformation by using short-term demand deposits to fund long-term corporate loans.
+                </p>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="cuhk-id">CUHK Student ID(s):</label>
+                        <input type="text" id="cuhk-id" placeholder="e.g. 1155123456, 1155654321" required class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label for="student-name">Student Full Name(s) (given name SURNAME; ...):</label>
+                        <input type="text" id="student-name" placeholder="e.g. Seon LOU; John CHAN" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label for="student-section">Course Section:</label>
+                        <select id="student-section" class="input-field" required>
+                            <option value="">-- Select Section --</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bs-grid">
+                    <div class="bs-card assets">
+                        <div class="bs-title"><span style="color: var(--success);">ASSETS</span> <span>Value</span></div>
+                        <div class="bs-row">
+                            <span>Cash & Central Bank Reserves (Liquid)</span>
+                            <strong>$100M</strong>
+                        </div>
+                        <div class="bs-row">
+                            <span>Long-Term Corporate Loans (Matures t=2, R=$1.35)</span>
+                            <strong>$900M</strong>
+                        </div>
+                        <div class="bs-row">
+                            <span><em>Early Fire-Sale Liquidation Value (t=1)</em></span>
+                            <span style="color: #ef4444;">$0.70 per $1.00</span>
+                        </div>
+                        <div class="bs-row total">
+                            <span>Total Assets</span>
+                            <strong>$1,000M</strong>
+                        </div>
+                    </div>
+
+                    <div class="bs-card liabilities">
+                        <div class="bs-title"><span style="color: #ef4444;">LIABILITIES & EQUITY</span> <span>Contract</span></div>
+                        <div class="bs-row">
+                            <span>Short-Term Demand Deposits</span>
+                            <strong>$900M</strong>
+                        </div>
+                        <div class="bs-row">
+                            <span>Early Withdrawal Promised Payoff (t=1)</span>
+                            <strong>c1 = $1.00</strong>
+                        </div>
+                        <div class="bs-row">
+                            <span>Maturity Withdrawal Promised Payoff (t=2)</span>
+                            <strong>c2 = $1.35</strong>
+                        </div>
+                        <div class="bs-row total">
+                            <span>Bank Equity Capital (10% Ratio)</span>
+                            <strong>$100M</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-gold" onclick="goToStage2()">Lock Registration & Receive Signal &rarr;</button>
+            </section>
+
+            <!-- STAGE 2: Private Signal & Baseline Choice -->
+            <section id="stage-2-panel" class="card" style="display: none;">
+                <h2 class="card-title">Stage 2: Receive Private Signal & Make Initial Choice</h2>
+                <p class="section-desc">
+                    Each depositor receives a private, noisy signal <i>x<sub>i</sub></i> = &theta; + &epsilon;<sub>i</sub> about the bank's underlying loan portfolio strength &theta; &in; [0, 100%].
+                </p>
+
+                <div class="signal-box">
+                    <div style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Your Private Asset Signal (<i>x<sub>i</sub></i>)</div>
+                    <div class="signal-val" id="signal-display">64%</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.4rem;">
+                        Signal Interpretation: A higher signal indicates stronger underlying bank loan fundamentals (&theta;).
+                    </div>
+                </div>
+
+                <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Select Initial Depositor Strategy:</h3>
+                <div class="choice-btn-group">
+                    <div class="btn-choice" id="choice-withdraw" onclick="selectChoice('withdraw')">
+                        <div class="choice-title">🚨 Withdraw Early (<i>t</i> = 1)</div>
+                        <div class="choice-desc">Demand immediate cash payout <i>c</i><sub>1</sub> = $1.00. Subject to sequential service if liquid reserves run dry.</div>
+                    </div>
+                    <div class="btn-choice" id="choice-hold" onclick="selectChoice('hold')">
+                        <div class="choice-title">⏳ Hold Deposit to Maturity (<i>t</i> = 2)</div>
+                        <div class="choice-desc">Wait until period 2 to earn promised payout <i>c</i><sub>2</sub> = $1.35, provided the bank survives early withdrawals.</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-gold" id="btn-stage2-submit" disabled onclick="goToStage3()">Confirm Initial Decision &rarr;</button>
+            </section>
+
+            <!-- STAGE 3: Liquidity Shock / Rumor Shift -->
+            <section id="stage-3-panel" class="card" style="display: none;">
+                <h2 class="card-title">Stage 3: Exogenous Liquidity Shock</h2>
+                
+                <div class="shock-alert">
+                    <div class="shock-icon">⚡</div>
+                    <div>
+                        <strong style="color: #ef4444; font-size: 1.05rem;">MARKET SHOCK: Wholesale Interbank Freeze!</strong>
+                        <p style="font-size: 0.9rem; margin-top: 0.25rem; color: var(--text-primary);">
+                            Interbank credit spreads widen by 120 bps and asset valuation uncertainty increases. Revised market expectation shifts the underlying fundamental state downward by 15 percentage points.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="signal-box" style="border-color: rgba(239, 68, 68, 0.5); background: rgba(239, 68, 68, 0.1);">
+                    <div style="font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase;">Updated Post-Shock Signal (<i>x<sub>i</sub>'</i>)</div>
+                    <div class="signal-val" id="updated-signal-display" style="color: #ef4444;">49%</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.4rem;">
+                        Will you maintain your baseline position, or switch strategies under shock pressure?
+                    </div>
+                </div>
+
+                <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Confirm or Adjust Final Position:</h3>
+                <div class="choice-btn-group">
+                    <div class="btn-choice" id="shock-choice-withdraw" onclick="selectShockChoice('withdraw')">
+                        <div class="choice-title">🚨 Withdraw Early (<i>t</i> = 1)</div>
+                        <div class="choice-desc">Lock in early cash queue before bank reserves deplete.</div>
+                    </div>
+                    <div class="btn-choice" id="shock-choice-hold" onclick="selectShockChoice('hold')">
+                        <div class="choice-title">⏳ Hold Deposit to Maturity (<i>t</i> = 2)</div>
+                        <div class="choice-desc">Maintain confidence and wait for full maturity payoff <i>c</i><sub>2</sub> = $1.35.</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-gold" id="btn-stage3-submit" disabled onclick="submitStage3AndWait()">Lock Position & Submit to Market Clearinghouse &rarr;</button>
+            </section>
+
+            <!-- STAGE 3.5: Waiting Room (Synchronized 3-Minute Deadline) -->
+            <section id="stage-waiting-panel" class="card" style="display: none;">
+                <h2 class="card-title">⏳ Waiting Room: Interbank Settlement Window</h2>
+                <div class="waiting-box">
+                    <div style="font-size: 0.95rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">
+                        <span class="pulse-dot"></span>Submissions Open across All Trading Desks
+                    </div>
+                    <div class="timer-display" id="waiting-timer">03:00</div>
+                    <p style="font-size: 0.95rem; color: var(--text-secondary); max-width: 600px; margin: 0 auto 1.5rem auto;">
+                        Your final position is locked: <strong id="locked-choice-display" style="color: var(--cuhk-gold-light);">[WITHDRAW EARLY]</strong>.<br>
+                        Market resolution will execute automatically when the 3-minute submission window closes.
+                    </p>
+                    <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                        <button class="btn btn-gold" onclick="forceResolveMarket()">⚡ Resolve Market Immediately (Instructor / Fast-Forward)</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- STAGE 4: Execution & Payoff Debrief -->
+            <section id="stage-4-panel" class="card" style="display: none;">
+                <h2 class="card-title">Stage 4: Market Result & Payoff Execution</h2>
+                
+                <div id="outcome-banner" class="shock-alert" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.5);">
+                    <div class="shock-icon" id="outcome-icon">✅</div>
+                    <div>
+                        <strong id="outcome-title" style="font-size: 1.1rem; color: var(--success);">Bank Survived!</strong>
+                        <p id="outcome-desc" style="font-size: 0.9rem; margin-top: 0.25rem;">
+                            Total early withdrawals reached 28%, below the run cutoff threshold <i>&alpha;̄</i>(&theta;) = 45%.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bs-grid" style="margin-top: 1.5rem;">
+                    <div class="bs-card">
+                        <div class="bs-title">Market Execution Summary</div>
+                        <div class="bs-row">
+                            <span>True Fundamental State (&theta;)</span>
+                            <strong id="res-true-theta">52%</strong>
+                        </div>
+                        <div class="bs-row">
+                            <span>Market Run Threshold (&theta;*)</span>
+                            <strong>42%</strong>
+                        </div>
+                        <div class="bs-row">
+                            <span>Total Market Early Withdrawals (&alpha;)</span>
+                            <strong id="res-withdraw-pct">28%</strong>
+                        </div>
+                        <div class="bs-row total">
+                            <span>System Status</span>
+                            <span id="res-status" style="color: var(--success);">SOLVENT & STABLE</span>
+                        </div>
+                    </div>
+
+                    <div class="bs-card">
+                        <div class="bs-title">Your Team's Payoff</div>
+                        <div class="bs-row">
+                            <span>Your Final Choice</span>
+                            <strong id="res-user-choice">Hold (t=2)</strong>
+                        </div>
+                        <div class="bs-row">
+                            <span>Executed Unit Payoff</span>
+                            <strong id="res-user-payoff" style="color: var(--cuhk-gold-light); font-size: 1.2rem;">$1.35</strong>
+                        </div>
+                        <div class="bs-row">
+                            <span>Net Strategy Return</span>
+                            <strong id="res-user-return">+35.0%</strong>
+                        </div>
+                        <div class="bs-row total">
+                            <span>Participation Points</span>
+                            <span style="color: var(--success);">100 / 100</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="thresholdChart"></canvas>
+                </div>
+
+                <button class="btn btn-gold" onclick="goToStage5()">Proceed to Individual Exit Reflection &rarr;</button>
+            </section>
+
+            <!-- STAGE 5: Exit Reflection -->
+            <section id="stage-5-panel" class="card" style="display: none;">
+                <h2 class="card-title">Stage 5: Individual Exit Reflection</h2>
+                <p class="section-desc">
+                    To receive full participation credit, submit a 1-sentence analytical reflection explaining your strategy under uncertainty.
+                </p>
+
+                <div class="form-group" style="margin: 1.5rem 0;">
+                    <label for="exit-reflection"><strong>Exit Reflection Prompt:</strong></label>
+                    <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                        <em>"What changed your decision during the liquidity shock, or why did you maintain your initial position?"</em>
+                    </div>
+                    <textarea id="exit-reflection" class="reflection-textarea" placeholder="Type your 1-sentence response here..."></textarea>
+                </div>
+
+                <button class="btn btn-gold" onclick="submitFinalResponse()">Submit Participation & Finish Game</button>
+            </section>
+        </main>
+    </div>
+
+    <!-- Instructor Aggregation Modal -->
+    <div id="instructor-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                <h2 style="font-family: 'Outfit', sans-serif; color: var(--cuhk-gold-light); font-size: 1.35rem; display: flex; align-items: center; gap: 0.5rem;">
+                    📊 Class-Wide Bank Run Aggregation & Excel Export
+                </h2>
+                <button class="btn btn-secondary" onclick="closeInstructorModal()" style="padding: 0.35rem 0.75rem;">✕ Close</button>
+            </div>
+
+            <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); margin-bottom: 1.5rem;">
+                <div class="stat-card neutral">
+                    <div class="stat-label">Total Student Desks</div>
+                    <div class="stat-number" id="dash-total-desks">0</div>
+                </div>
+                <div class="stat-card loss">
+                    <div class="stat-label">Early Withdrawals (t=1)</div>
+                    <div class="stat-number loss" id="dash-withdraw-desks">0 (0%)</div>
+                </div>
+                <div class="stat-card profit">
+                    <div class="stat-label">Holds to Maturity (t=2)</div>
+                    <div class="stat-number profit" id="dash-hold-desks">0 (0%)</div>
+                </div>
+                <div class="stat-card gold">
+                    <div class="stat-label">Bank System Outcome</div>
+                    <div class="stat-number gold" id="dash-system-outcome" style="font-size: 1.1rem;">PENDING</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                <button class="btn btn-gold" onclick="exportClassExcelCSV()">📥 Export Excel Sheet (.csv)</button>
+                <button class="btn btn-secondary" onclick="seedSimulatedClassData(20)">🎲 Add 20 Demo Desks</button>
+                <button class="btn btn-danger" onclick="clearClassData()">🗑️ Clear All Submissions</button>
+            </div>
+
+            <h3 style="font-size: 1rem; margin-bottom: 0.75rem;">Submissions Ledger</h3>
+            <div class="table-container" style="max-height: 250px; overflow-y: auto; margin-bottom: 1.5rem;">
+                <table class="financial-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Initial Signal</th>
+                            <th>Shock Signal</th>
+                            <th>Baseline Choice</th>
+                            <th>Final Position</th>
+                            <th>Return</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dash-submissions-tbody">
+                        <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No submissions recorded yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Import / Paste Class Data (JSON or CSV):</h3>
+            <textarea id="import-data-input" class="reflection-textarea" style="min-height: 70px;" placeholder="Paste CSV or JSON array of student responses here to aggregate class data across devices..."></textarea>
+            <button class="btn btn-secondary" onclick="importClassData()" style="margin-top: 0.5rem;">Import & Merge Data</button>
+        </div>
+    </div>
+
+    <script>
+        // State variables
+        let selectedChoice = null;
+        let selectedShockChoice = null;
+        let baseSignal = 0;
+        let shockSignal = 0;
+        let trueTheta = 0;
+        let cutoffTheta = 42;
+        let waitingTimerInterval = null;
+        let remainingSeconds = 180;
+
+        window.onload = function() {
+            // Generate random fundamental theta between 35% and 75%
+            trueTheta = Math.floor(Math.random() * 41) + 35;
+            let noise = Math.floor(Math.random() * 11) - 5;
+            baseSignal = Math.min(99, Math.max(1, trueTheta + noise));
+            shockSignal = Math.max(1, baseSignal - 15);
+
+            document.getElementById('signal-display').innerText = baseSignal + '%';
+            document.getElementById('updated-signal-display').innerText = shockSignal + '%';
+
+            if (typeof FINA3020Utils !== 'undefined') {
+                const savedId = FINA3020Utils.getStudentID();
+                const savedName = FINA3020Utils.getFullName();
+                if (savedId && document.getElementById('cuhk-id')) document.getElementById('cuhk-id').value = savedId;
+                if (savedName && document.getElementById('student-name')) document.getElementById('student-name').value = savedName;
+            }
+
+            updateDashboardUI();
+        };
+
+        function selectChoice(choice) {
+            selectedChoice = choice;
+            document.getElementById('choice-withdraw').classList.remove('selected');
+            document.getElementById('choice-hold').classList.remove('selected');
+            document.getElementById('choice-' + choice).classList.add('selected');
+            document.getElementById('btn-stage2-submit').disabled = false;
+        }
+
+        function selectShockChoice(choice) {
+            selectedShockChoice = choice;
+            document.getElementById('shock-choice-withdraw').classList.remove('selected');
+            document.getElementById('shock-choice-hold').classList.remove('selected');
+            document.getElementById('shock-choice-' + choice).classList.add('selected');
+            document.getElementById('btn-stage3-submit').disabled = false;
+        }
+
+        function goToStage2() {
+            const cuhkId = document.getElementById('cuhk-id').value.trim();
+            const studentName = document.getElementById('student-name').value.trim();
+            const section = document.getElementById('student-section').value.trim();
+
+            if (!cuhkId || !studentName) {
+                alert('Please enter your full name and 10-digit CUHK Student ID before proceeding.');
+                return;
+            }
+            if (!section || !['A', 'B', 'C'].includes(section.toUpperCase())) {
+                alert('Please select a valid Course Section (Section A, B, or C).');
+                return;
+            }
+
+            if (typeof FINA3020Utils !== 'undefined') {
+                if (!FINA3020Utils.setStudentCredentials(cuhkId, studentName, section)) {
+                    alert('Please check your full name, 10-digit CUHK ID, and section.');
+                    return;
+                }
+            }
+            document.getElementById('stage-1-panel').style.display = 'none';
+            document.getElementById('stage-2-panel').style.display = 'block';
+            updateStepper(2);
+        }
+
+        function goToStage3() {
+            document.getElementById('stage-2-panel').style.display = 'none';
+            document.getElementById('stage-3-panel').style.display = 'block';
+            selectShockChoice(selectedChoice);
+            updateStepper(3);
+            startStage3Timer();
+        }
+
+        function startStage3Timer() {
+            remainingSeconds = 180;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(remainingSeconds / 60);
+            const secs = remainingSeconds % 60;
+            const timeStr = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            const el = document.getElementById('waiting-timer');
+            if (el) el.innerText = timeStr;
+        }
+
+        function submitStage3AndWait() {
+            recordCurrentSubmission();
+            
+            const isHold = selectedShockChoice === 'hold';
+            document.getElementById('locked-choice-display').innerText = isHold ? '[HOLD TO MATURITY (t=2)]' : '[WITHDRAW EARLY (t=1)]';
+            document.getElementById('locked-choice-display').style.color = isHold ? 'var(--success)' : '#ef4444';
+
+            document.getElementById('stage-3-panel').style.display = 'none';
+            document.getElementById('stage-waiting-panel').style.display = 'block';
+
+            if (waitingTimerInterval) clearInterval(waitingTimerInterval);
+            waitingTimerInterval = setInterval(() => {
+                remainingSeconds--;
+                updateTimerDisplay();
+                if (remainingSeconds <= 0) {
+                    clearInterval(waitingTimerInterval);
+                    goToStage4();
+                }
+            }, 1000);
+        }
+
+        function forceResolveMarket() {
+            if (waitingTimerInterval) clearInterval(waitingTimerInterval);
+            goToStage4();
+        }
+
+        function recordCurrentSubmission() {
+            const studentId = document.getElementById('cuhk-id').value.trim() || (typeof FINA3020Utils !== 'undefined' ? FINA3020Utils.getStudentID() : 'ANONYMOUS');
+            const studentName = document.getElementById('student-name').value.trim() || (typeof FINA3020Utils !== 'undefined' ? FINA3020Utils.getFullName() : 'NOT_PROVIDED');
+            const section = document.getElementById('student-section').value.trim() || 'A';
+
+            const sub = {
+                studentId: studentId,
+                studentName: studentName,
+                section: section.toUpperCase(),
+                baseSignal: baseSignal,
+                shockSignal: shockSignal,
+                initialChoice: selectedChoice,
+                shockChoice: selectedShockChoice,
+                trueTheta: trueTheta,
+                timestamp: new Date().toISOString()
+            };
+
+            let classSubs = JSON.parse(sessionStorage.getItem('fina3020_bankrun_submissions') || '[]');
+            classSubs = classSubs.filter(s => s.studentId !== sub.studentId || s.studentId === 'ANONYMOUS');
+            classSubs.push(sub);
+            sessionStorage.setItem('fina3020_bankrun_submissions', JSON.stringify(classSubs.slice(-100)));
+
+            if (typeof FINA3020Utils !== 'undefined' && FINA3020Utils.recordResponse) {
+                return FINA3020Utils.recordResponse({
+                    mode: 'Bank_Run_Game',
+                    ...sub
+                });
+            }
+        }
+
+        function goToStage4() {
+            document.getElementById('stage-3-panel').style.display = 'none';
+            document.getElementById('stage-waiting-panel').style.display = 'none';
+            document.getElementById('stage-4-panel').style.display = 'block';
+            updateStepper(4);
+            calculateOutcome();
+        }
+
+        function goToStage5() {
+            document.getElementById('stage-4-panel').style.display = 'none';
+            document.getElementById('stage-5-panel').style.display = 'block';
+            updateStepper(5);
+        }
+
+        function updateStepper(stepNum) {
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById('step-' + i);
+                if (!el) continue;
+                if (i < stepNum) {
+                    el.className = 'stepper-step completed';
+                } else if (i === stepNum) {
+                    el.className = 'stepper-step active';
+                } else {
+                    el.className = 'stepper-step';
+                }
+            }
+        }
+
+        function calculateOutcome() {
+            let classSubs = JSON.parse(sessionStorage.getItem('fina3020_bankrun_submissions') || '[]');
+            
+            if (classSubs.length === 0) {
+                recordCurrentSubmission();
+                classSubs = JSON.parse(sessionStorage.getItem('fina3020_bankrun_submissions') || '[]');
+            }
+
+            let totalDesks = classSubs.length;
+            let withdrawDesks = classSubs.filter(s => s.shockChoice === 'withdraw').length;
+            
+            // If single player test mode (N=1), supplement with 15 realistic simulated peer desks
+            if (totalDesks === 1) {
+                for (let i = 0; i < 15; i++) {
+                    let peerSignal = Math.max(1, Math.min(99, trueTheta + (Math.floor(Math.random() * 20) - 10)));
+                    let peerChoice = peerSignal < cutoffTheta ? 'withdraw' : 'hold';
+                    classSubs.push({
+                        studentId: `115500${1000 + i}`,
+                        studentName: `Desk Peer ${i + 1}`,
+                        baseSignal: peerSignal + 15,
+                        shockSignal: peerSignal,
+                        initialChoice: peerChoice,
+                        shockChoice: peerChoice,
+                        trueTheta: trueTheta,
+                        timestamp: new Date().toISOString()
+                    });
+                }
+                totalDesks = classSubs.length;
+                withdrawDesks = classSubs.filter(s => s.shockChoice === 'withdraw').length;
+            }
+
+            const withdrawPct = Math.round((withdrawDesks / totalDesks) * 100);
+            const bankSurvives = withdrawPct <= cutoffTheta && trueTheta >= cutoffTheta;
+
+            document.getElementById('res-true-theta').innerText = trueTheta + '%';
+            document.getElementById('res-withdraw-pct').innerText = `${withdrawPct}% (${withdrawDesks}/${totalDesks} desks)`;
+
+            const outcomeBanner = document.getElementById('outcome-banner');
+            const outcomeIcon = document.getElementById('outcome-icon');
+            const outcomeTitle = document.getElementById('outcome-title');
+            const outcomeDesc = document.getElementById('outcome-desc');
+            const resStatus = document.getElementById('res-status');
+
+            if (bankSurvives) {
+                outcomeBanner.style.background = 'rgba(16, 185, 129, 0.15)';
+                outcomeBanner.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                outcomeIcon.innerText = '✅';
+                outcomeTitle.innerText = 'Bank Survived Solvent!';
+                outcomeTitle.style.color = 'var(--success)';
+                outcomeDesc.innerText = `Class early withdrawals reached ${withdrawPct}% (${withdrawDesks}/${totalDesks} desks), remaining below the critical run cutoff threshold θ* (${cutoffTheta}%).`;
+                resStatus.innerText = 'SOLVENT & STABLE';
+                resStatus.style.color = 'var(--success)';
+            } else {
+                outcomeBanner.style.background = 'rgba(239, 68, 68, 0.15)';
+                outcomeBanner.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+                outcomeIcon.innerText = '🚨';
+                outcomeTitle.innerText = 'Bank Run Triggered! Intermediary Collapse!';
+                outcomeTitle.style.color = '#ef4444';
+                outcomeDesc.innerText = `Class early withdrawals reached ${withdrawPct}% (${withdrawDesks}/${totalDesks} desks), exceeding the critical cutoff θ* (${cutoffTheta}%). Fire sales wiped out liquid reserves and equity capital.`;
+                resStatus.innerText = 'BANK COLLAPSED (RUN)';
+                resStatus.style.color = '#ef4444';
+            }
+
+            const isHold = selectedShockChoice === 'hold';
+            document.getElementById('res-user-choice').innerText = isHold ? 'Hold Deposit (t=2)' : 'Withdraw Early (t=1)';
+
+            let payoff = 0;
+            let retStr = '';
+            if (isHold) {
+                if (bankSurvives) {
+                    payoff = 1.35;
+                    retStr = '+35.0%';
+                } else {
+                    payoff = 0.45;
+                    retStr = '-55.0% (Liquidation Recovery)';
+                }
+            } else {
+                payoff = 1.00;
+                retStr = '0.0% (Capital Preserved)';
+            }
+
+            document.getElementById('res-user-payoff').innerText = '$' + payoff.toFixed(2);
+            document.getElementById('res-user-return').innerText = retStr;
+
+            renderChart();
+            updateDashboardUI();
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('thresholdChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['0%', '10%', '20%', '30%', '40% (θ*)', '50%', '60%', '70%', '80%', '90%', '100%'],
+                    datasets: [{
+                        label: 'Depositor Run Probability',
+                        data: [100, 100, 100, 100, 100, 0, 0, 0, 0, 0, 0],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.1
+                    }, {
+                        label: 'Bank Survival Probability',
+                        data: [0, 0, 0, 0, 0, 100, 100, 100, 100, 100, 100],
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8' } },
+                        title: { display: true, text: 'Goldstein-Pauzner Threshold Selection Curve (θ* = 42%)', color: '#f8fafc' }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                        y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                    }
+                }
+            });
+        }
+
+        function submitFinalResponse() {
+            const text = document.getElementById('exit-reflection').value.trim();
+            if (!text) {
+                alert('Please enter your 1-sentence exit reflection.');
+                return;
+            }
+            if (typeof FINA3020Utils !== 'undefined' && FINA3020Utils.recordResponse) {
+                const saved = FINA3020Utils.recordResponse({
+                    mode: 'Bank_Run_Game',
+                    studentId: document.getElementById('cuhk-id').value.trim() || FINA3020Utils.getStudentID(),
+                    studentName: document.getElementById('student-name').value.trim() || FINA3020Utils.getFullName(),
+                    baseSignal: baseSignal,
+                    shockSignal: shockSignal,
+                    initialChoice: selectedChoice,
+                    shockChoice: selectedShockChoice,
+                    trueTheta: trueTheta,
+                    reflection: text,
+                    submittedAt: new Date().toISOString()
+                });
+                saved.deliveryPromise.then(confirmed => {
+                    alert(confirmed
+                        ? 'Thank you! Your participation response was confirmed.'
+                        : 'Your response is saved in this tab but NOT confirmed. Leave it open for retry, or export the CSV and contact the TA.');
+                });
+            }
+        }
+
+        // Instructor Dashboard Controls
+        function openInstructorModal() {
+            updateDashboardUI();
+            document.getElementById('instructor-modal').style.display = 'flex';
+        }
+
+        function closeInstructorModal() {
+            document.getElementById('instructor-modal').style.display = 'none';
+        }
+
+        function updateDashboardUI() {
+            const classSubs = JSON.parse(sessionStorage.getItem('fina3020_bankrun_submissions') || '[]');
+            const total = classSubs.length;
+            const withdraws = classSubs.filter(s => s.shockChoice === 'withdraw').length;
+            const holds = total - withdraws;
+            const withdrawPct = total > 0 ? Math.round((withdraws / total) * 100) : 0;
+            const holdPct = total > 0 ? (100 - withdrawPct) : 0;
+
+            const dashTotal = document.getElementById('dash-total-desks');
+            if (dashTotal) dashTotal.innerText = total;
+
+            const dashWithdraw = document.getElementById('dash-withdraw-desks');
+            if (dashWithdraw) dashWithdraw.innerText = `${withdraws} (${withdrawPct}%)`;
+
+            const dashHold = document.getElementById('dash-hold-desks');
+            if (dashHold) dashHold.innerText = `${holds} (${holdPct}%)`;
+
+            const outcomeEl = document.getElementById('dash-system-outcome');
+            if (outcomeEl) {
+                if (total === 0) {
+                    outcomeEl.innerText = 'PENDING';
+                    outcomeEl.style.color = 'var(--text-muted)';
+                } else if (withdrawPct > cutoffTheta) {
+                    outcomeEl.innerText = 'BANK COLLAPSED (RUN)';
+                    outcomeEl.style.color = '#ef4444';
+                } else {
+                    outcomeEl.innerText = 'SOLVENT & STABLE';
+                    outcomeEl.style.color = 'var(--success)';
+                }
+            }
+
+            const tbody = document.getElementById('dash-submissions-tbody');
+            if (tbody) {
+                tbody.replaceChildren();
+                if (total === 0) {
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td');
+                    cell.colSpan = 7;
+                    cell.style.textAlign = 'center';
+                    cell.style.color = 'var(--text-muted)';
+                    cell.textContent = 'No submissions recorded yet.';
+                    row.appendChild(cell);
+                    tbody.appendChild(row);
+                } else {
+                    classSubs.forEach(s => {
+                        const isHold = s.shockChoice === 'hold';
+                        const bankSurvives = withdrawPct <= cutoffTheta;
+                        const ret = isHold ? (bankSurvives ? '+35.0%' : '-55.0%') : '0.0%';
+                        const row = document.createElement('tr');
+                        [
+                            s.studentId || '-', s.studentName || '-', `${s.baseSignal || ''}%`,
+                            `${s.shockSignal || ''}%`,
+                            s.initialChoice ? String(s.initialChoice).toUpperCase() : '-'
+                        ].forEach(value => {
+                            const cell = document.createElement('td');
+                            cell.textContent = String(value);
+                            row.appendChild(cell);
+                        });
+                        const choiceCell = document.createElement('td');
+                        const choiceBadge = document.createElement('span');
+                        choiceBadge.className = s.shockChoice === 'withdraw'
+                            ? 'badge badge-danger' : 'badge badge-success';
+                        choiceBadge.textContent = s.shockChoice === 'withdraw' ? 'WITHDRAW' : 'HOLD';
+                        choiceCell.appendChild(choiceBadge);
+                        row.appendChild(choiceCell);
+                        const returnCell = document.createElement('td');
+                        returnCell.textContent = ret;
+                        row.appendChild(returnCell);
+                        tbody.appendChild(row);
+                    });
+                }
+            }
+        }
+
+        function exportClassExcelCSV() {
+            const classSubs = JSON.parse(sessionStorage.getItem('fina3020_bankrun_submissions') || '[]');
+            if (classSubs.length === 0) {
+                alert('No class submissions found to export.');
+                return;
+            }
+
+            const withdraws = classSubs.filter(s => s.shockChoice === 'withdraw').length;
+            const withdrawPct = Math.round((withdraws / classSubs.length) * 100);
+            const bankSurvives = withdrawPct <= cutoffTheta;
+            const outcomeStr = bankSurvives ? 'SOLVENT_AND_STABLE' : 'BANK_COLLAPSED_RUN';
+
+            const headers = ['StudentID', 'StudentName', 'BaseSignal', 'ShockSignal', 'BaselineChoice', 'FinalChoice', 'UnitPayoff', 'NetReturn', 'SystemOutcome', 'Timestamp'];
+            
+            const rows = [headers.join(',')];
+            classSubs.forEach(s => {
+                const isHold = s.shockChoice === 'hold';
+                let payoff = isHold ? (bankSurvives ? 1.35 : 0.45) : 1.00;
+                let ret = isHold ? (bankSurvives ? '35.0%' : '-55.0%') : '0.0%';
+
+                const rowValues = [
+                    `"${String(s.studentId || '').replace(/^[\s]*([=+\-@])/, "'$1").replace(/"/g, '""')}"`,
+                    `"${String(s.studentName || '').replace(/^[\s]*([=+\-@])/, "'$1").replace(/"/g, '""')}"`,
+                    s.baseSignal || '',
+                    s.shockSignal || '',
+                    s.initialChoice || '',
+                    s.shockChoice || '',
+                    payoff.toFixed(2),
+                    `"${ret}"`,
+                    outcomeStr,
+                    `"${s.timestamp || ''}"`
+                ];
+                rows.push(rowValues.join(','));
+            });
+
+            const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `CUHK_FINA3020_BankRunGame_ClassResults_${Date.now()}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function seedSimulatedClassData(count = 20) {
+            let classSubs = JSON.parse(sessionStorage.getItem('fina3020_bankrun_submissions') || '[]');
+            for (let i = 0; i < count; i++) {
+                let sig = Math.max(1, Math.min(99, trueTheta + (Math.floor(Math.random() * 26) - 13)));
+                let choice = sig < cutoffTheta ? 'withdraw' : (Math.random() > 0.3 ? 'hold' : 'withdraw');
+                classSubs.push({
+                    studentId: `1155${Math.floor(100000 + Math.random() * 900000)}`,
+                    studentName: `Desk Student ${classSubs.length + 1}`,
+                    baseSignal: sig + 15,
+                    shockSignal: sig,
+                    initialChoice: choice,
+                    shockChoice: choice,
+                    trueTheta: trueTheta,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            sessionStorage.setItem('fina3020_bankrun_submissions', JSON.stringify(classSubs.slice(-100)));
+            updateDashboardUI();
+            alert(`Added ${count} simulated class desk submissions!`);
+        }
+
+        function clearClassData() {
+            if (confirm('Are you sure you want to reset and clear all class submissions?')) {
+                sessionStorage.removeItem('fina3020_bankrun_submissions');
+                updateDashboardUI();
+            }
+        }
+
+        function importClassData() {
+            const raw = document.getElementById('import-data-input').value.trim();
+            if (!raw) {
+                alert('Please paste CSV or JSON data to import.');
+                return;
+            }
+            try {
+                let imported = [];
+                if (raw.startsWith('[')) {
+                    imported = JSON.parse(raw);
+                    if (!Array.isArray(imported)) throw new Error('JSON import must be an array.');
+                } else {
+                    const lines = raw.split('\n');
+                    const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+                    for (let i = 1; i < lines.length; i++) {
+                        if (!lines[i].trim()) continue;
+                        const cols = lines[i].split(',').map(c => c.trim().replace(/^"|"$/g, ''));
+                        let obj = {};
+                        headers.forEach((h, idx) => { obj[h] = cols[idx] || ''; });
+                        imported.push(obj);
+                    }
+                }
+                imported = imported.filter(row => row && typeof row === 'object').slice(0, 100);
+                let existing = JSON.parse(sessionStorage.getItem('fina3020_bankrun_submissions') || '[]');
+                let merged = existing.concat(imported).slice(-100);
+                sessionStorage.setItem('fina3020_bankrun_submissions', JSON.stringify(merged));
+                updateDashboardUI();
+                alert(`Successfully imported and merged ${imported.length} responses!`);
+                document.getElementById('import-data-input').value = '';
+            } catch (e) {
+                alert('Error parsing imported data. Make sure it is valid JSON array or CSV.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>FX Arbitrage & Microstructure Lab | FINA3020</title>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js"></script>
+    <style>
+        .order-book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1rem;
+        }
+
+        .quote-box {
+            background: rgba(19, 24, 34, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .quote-pair {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--cuhk-gold-light);
+            margin-bottom: 0.75rem;
+        }
+
+        .quote-prices {
+            display: flex;
+            justify-content: space-around;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .bid-ask-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bid-ask-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .bid-ask-val {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .bid-ask-val.bid { color: var(--success); }
+        .bid-ask-val.ask { color: var(--danger); }
+
+        .game-panel {
+            border-color: var(--border-gold);
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(340px, 0.8fr);
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .game-prompt {
+            color: var(--text-primary);
+            margin-top: 0.5rem;
+        }
+
+        .game-actions {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 0.75rem;
+        }
+
+        .game-feedback {
+            min-height: 1.5rem;
+            margin-top: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .game-actions select { min-width: 0; }
+
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            transform: none;
+        }
+
+        .round-pending .answer-area {
+            filter: blur(7px);
+            opacity: 0.45;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        /* Order Book Microstructure Table */
+        .depth-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+        }
+
+        /* Progressive Step-by-Step Math Guide Styles */
+        .hint-stepper-container {
+            background: rgba(11, 14, 20, 0.9);
+            border: 1px solid var(--border-gold);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-top: 1rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .hint-stepper-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .hint-step-badge {
+            background: rgba(218, 165, 32, 0.15);
+            color: var(--cuhk-gold-light);
+            border: 1px solid var(--cuhk-gold);
+            border-radius: 20px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+        }
+
+        .formula-card {
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .formula-line {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            margin: 0.4rem 0;
+            flex-wrap: wrap;
+        }
+
+        .formula-var {
+            color: var(--cuhk-gold-light);
+            font-weight: 700;
+        }
+
+        .formula-op {
+            color: var(--info);
+            font-weight: 700;
+        }
+
+        .formula-val {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .formula-bid {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        .formula-ask {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        .formula-box {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px dashed var(--border-color);
+            border-radius: 6px;
+            padding: 0.2rem 0.4rem;
+            margin: 0 0.2rem;
+        }
+
+        .hint-nav-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 0.75rem;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .depth-table th {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .depth-table td {
+            padding: 0.45rem 0.5rem;
+            position: relative;
+        }
+
+        .bid-row { color: var(--success); }
+        .ask-row { color: var(--danger); }
+
+        .depth-bar-bid {
+            position: absolute;
+            top: 2px; right: 0; bottom: 2px;
+            background: rgba(16, 185, 129, 0.15);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .depth-bar-ask {
+            position: absolute;
+            top: 2px; left: 0; bottom: 2px;
+            background: rgba(239, 68, 68, 0.15);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .table-cell-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .nav-tabs-wrapper {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .nav-tab-btn {
+            background: var(--bg-glass);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-tab-btn:hover {
+            border-color: var(--cuhk-gold);
+            color: var(--text-primary);
+        }
+
+        .nav-tab-btn.active {
+            background: var(--cuhk-blue);
+            border-color: var(--cuhk-gold);
+            color: var(--cuhk-gold-light);
+            box-shadow: var(--shadow-gold);
+        }
+
+        @media (max-width: 900px) {
+            .game-grid { grid-template-columns: 1fr; }
+            .order-book-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="app-header">
+        <div class="brand-section">
+            <span class="cuhk-badge">FINA3020 &middot; Weeks 1&ndash;2</span>
+            <div>
+                <h1 class="app-title">FX Microstructure & Arbitrage Lab</h1>
+                <p class="app-subtitle">Predict market dynamics before executing trades</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-gold" id="btn-student-id" onclick="switchStudent()">CUHK ID: Not Set</button>
+            <span id="delivery-status" class="badge" style="display:none;" aria-live="polite"></span>
+            <button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export Responses (.csv)</button>
+            <button class="btn btn-secondary" onclick="resetDefaults()">Reset Market</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <!-- Sidebar Controls -->
+        <aside class="controls-panel glass-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Market Inputs</h2>
+                <span class="badge badge-warning">Live Quotes</span>
+            </div>
+
+            <!-- 3 Mode Tabs -->
+            <div class="nav-tabs-wrapper">
+                <button class="nav-tab-btn" data-mode="locational" onclick="setMode('locational')">1. Locational</button>
+                <button class="nav-tab-btn" data-mode="orderbook" onclick="setMode('orderbook')">2. Order Book</button>
+                <button class="nav-tab-btn" data-mode="triangular" onclick="setMode('triangular')">3. Triangular</button>
+            </div>
+
+            <!-- Mode 1: Locational Arbitrage Controls -->
+            <div id="ctrl-locational" class="control-section">
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Dealer A GBP/USD Spot Quote</span>
+                        <span class="control-value" id="val-loc-dealerA">1.3333</span>
+                    </div>
+                    <input type="range" id="input-loc-dealerA" min="1.3200" max="1.3600" step="0.0001" value="1.3333">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Dealer B USD/GBP Reciprocal Quote</span>
+                        <span class="control-value" id="val-loc-dealerB">0.7500</span>
+                    </div>
+                    <!-- step must stay well below the no-arbitrage band (~4 bps of 1.33,
+                         i.e. ~0.0003 here). A coarser step snaps generated quotes across
+                         the threshold and turns intended no-arbitrage rounds into real ones. -->
+                    <input type="range" id="input-loc-dealerB" min="0.7300" max="0.7700" step="0.0001" value="0.7500">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Bid-Ask Spread (basis points)</span>
+                        <span class="control-value" id="val-loc-spread">10 bps</span>
+                    </div>
+                    <input type="range" id="input-loc-spread" min="0" max="50" step="2" value="10">
+                </div>
+            </div>
+
+            <!-- Mode 2: Order Book Market-Making Controls -->
+            <div id="ctrl-orderbook" class="control-section" style="display: none;">
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>USD/HKD Mid Spot Rate</span>
+                        <span class="control-value" id="val-ob-mid">7.8000</span>
+                    </div>
+                    <input type="range" id="input-ob-mid" min="7.7500" max="7.8500" step="0.0001" value="7.8000">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Top of Book Spread (pips)</span>
+                        <span class="control-value" id="val-ob-spread">2 pips</span>
+                    </div>
+                    <!-- USD/HKD trades in low single-digit pips. Quoting the touch spread
+                         in bps put it near 78 pips, far wider than the depth ladder. -->
+                    <input type="range" id="input-ob-spread" min="1" max="3" step="1" value="2">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Market Order Size</span>
+                        <span class="control-value" id="val-ob-ordersize">$1,500,000</span>
+                    </div>
+                    <!-- Labels must not describe the outcome: naming a size "Exceeds Bid
+                         Depth" hands the student the answer before they read the book. -->
+                    <select id="input-ob-ordersize" style="margin-top: 0.25rem;">
+                        <option value="250000">$250,000 USD</option>
+                        <option value="500000">$500,000 USD</option>
+                        <option value="750000">$750,000 USD</option>
+                        <option value="1000000">$1,000,000 USD</option>
+                        <option value="1500000" selected>$1,500,000 USD</option>
+                        <option value="2000000">$2,000,000 USD</option>
+                        <option value="3000000">$3,000,000 USD</option>
+                        <option value="4000000">$4,000,000 USD</option>
+                        <option value="6000000">$6,000,000 USD</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Market Order Direction</span>
+                        <span class="control-value" id="val-ob-direction">Market Sell USD</span>
+                    </div>
+                    <select id="input-ob-direction" style="margin-top: 0.25rem;">
+                        <option value="sell" selected>Market Sell USD (Hit Bids)</option>
+                        <option value="buy">Market Buy USD (Lift Asks)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Mode 3: Triangular Arbitrage Controls -->
+            <div id="ctrl-triangular" class="control-section" style="display: none;">
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>EUR/USD spot mid-rate</span>
+                        <span class="control-value" id="val-eurusd">1.0850</span>
+                    </div>
+                    <input type="range" id="input-eurusd" min="1.0200" max="1.1500" step="0.0010" value="1.0850">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>USD/JPY spot mid-rate</span>
+                        <span class="control-value" id="val-usdjpy">155.20</span>
+                    </div>
+                    <input type="range" id="input-usdjpy" min="140.00" max="165.00" step="0.10" value="155.20">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>EUR/JPY cross mid-rate</span>
+                        <span class="control-value" id="val-eurjpy">168.00</span>
+                    </div>
+                    <input type="range" id="input-eurjpy" min="145.00" max="190.00" step="0.10" value="168.00">
+                </div>
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Bid-ask spread (basis points)</span>
+                        <span class="control-value" id="val-tri-spread">10 bps</span>
+                    </div>
+                    <input type="range" id="input-tri-spread" min="0" max="50" step="2" value="10">
+                </div>
+            </div>
+
+
+
+            <div class="edu-callout">
+                <div class="edu-callout-title">Game Rule</div>
+                <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                    Lock your prediction before revealing full calculations. Participation is recorded upon completion.
+                </p>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <section class="workspace-area">
+            
+            <!-- Prediction Game Header Panel -->
+            <div class="glass-panel game-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title" id="round-title">Round 1: Make a Prediction</h2>
+                    <span class="badge badge-gold" id="round-mode">Locational Arbitrage</span>
+                </div>
+                <div class="game-grid">
+                    <div>
+                        <p class="game-prompt" id="round-prompt">Examine quotes. Is there a riskless arbitrage opportunity?</p>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">Calculate expected cash flows before locking your choice.</p>
+                    </div>
+                    <div>
+                        <label class="control-label" for="prediction-select"><span>Your Prediction</span></label>
+                        <div class="game-actions">
+                            <select id="prediction-select"></select>
+                            <button class="btn btn-gold" id="lock-prediction">Lock Choice</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="reflection-section" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+                    <label class="control-label" for="reflection-input"><span>Exit Reflection (1 sentence): What changed your decision, or why did you keep it?</span></label>
+                    <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                        <input type="text" id="reflection-input" placeholder="e.g. Executing against Dealer B's bid yielded $250,000 profit..." style="flex: 1; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
+                        <button class="btn btn-gold" id="submit-reflection">Record Response</button>
+                    </div>
+                </div>
+                <div class="game-feedback" id="round-feedback" aria-live="polite">Record one choice before you reveal the result.</div>
+                
+                <div style="display: flex; gap: 0.75rem; margin-top: 0.75rem;">
+                    <button class="btn btn-secondary" id="new-round" style="flex: 1;">New Round</button>
+                    <button class="btn btn-secondary" id="toggle-lab-hint" onclick="toggleLabHint()" style="flex: 1;">💡 Show Calculation Hint & Formulas</button>
+                </div>
+
+                <!-- COLLAPSIBLE PROGRESSIVE CALCULATION HINT PANEL -->
+                <div id="lab-hint-panel" style="display: none;" class="hint-stepper-container">
+                    <div class="hint-stepper-header">
+                        <h4 style="color:var(--cuhk-gold-light); font-family:'Outfit'; margin:0;" id="hint-title">Step-by-Step Calculation Guide</h4>
+                        <span class="hint-step-badge" id="hint-step-badge">Step 1 of 4</span>
+                    </div>
+
+                    <div id="hint-step-content" style="min-height: 120px;">
+                        <!-- Rendered dynamically by updateLabHintStep() -->
+                    </div>
+
+                    <div class="hint-nav-row">
+                        <button class="btn" id="btn-prev-hint" onclick="changeHintStep(-1)" style="background:rgba(255,255,255,0.08); color:var(--text-primary); font-size:0.8rem;" disabled>&larr; Previous Step</button>
+                        <span style="font-size:0.8rem; color:var(--text-secondary);" id="hint-progress-text">Uncover hints one step at a time</span>
+                        <button class="btn btn-gold" id="btn-next-hint" onclick="changeHintStep(1)" style="font-size:0.8rem;">Next Step &rarr;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workspace Views -->
+            <div class="glass-panel">
+
+                <!-- Mode 1 View: Locational Arbitrage -->
+                <div id="view-locational" class="tab-content">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Locational FX Quotes Comparison</h3>
+                        <span class="badge badge-success">Two Bank Dealers</span>
+                    </div>
+
+                    <div class="order-book-grid">
+                        <div class="quote-box">
+                            <div class="quote-pair">Dealer A (GBP / USD)</div>
+                            <div class="quote-prices">
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Bid (Sell GBP)</span>
+                                    <span class="bid-ask-val bid" id="loc-dealerA-bid">1.3326</span>
+                                </div>
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Ask (Buy GBP)</span>
+                                    <span class="bid-ask-val ask" id="loc-dealerA-ask">1.3340</span>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                                Implied Inverse (USD/GBP): <span id="loc-dealerA-inv" style="color: var(--cuhk-gold-light); font-weight:700;">&mdash;</span>
+                            </div>
+                        </div>
+
+                        <div class="quote-box">
+                            <div class="quote-pair">Dealer B (USD / GBP)</div>
+                            <div class="quote-prices">
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Bid (Sell USD)</span>
+                                    <span class="bid-ask-val bid" id="loc-dealerB-bid">0.7496</span>
+                                </div>
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Ask (Buy USD)</span>
+                                    <span class="bid-ask-val ask" id="loc-dealerB-ask">0.7504</span>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                                Implied Direct (GBP/USD): <span id="loc-dealerB-inv" style="color: var(--cuhk-gold-light); font-weight:700;">&mdash;</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid answer-area" style="margin-top: 1.5rem;">
+                        <div class="stat-card neutral">
+                            <div class="stat-label">Reciprocal Product (S_A x S_B)</div>
+                            <div class="stat-number gold" id="stat-loc-product">&mdash;</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">No-arbitrage benchmark = 1.0000</div>
+                        </div>
+                        <div class="stat-card" id="card-loc-profit">
+                            <div class="stat-label">Net Profit on $1,000,000 USD</div>
+                            <div class="stat-number" id="stat-loc-profit">&mdash;</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);" id="stat-loc-desc">Awaiting quotes</div>
+                        </div>
+                    </div>
+
+                    <div class="answer-area" style="margin-top: 1.5rem;">
+                        <h3 class="panel-title" style="margin-bottom: 0.75rem;">Arbitrage Execution Cash Flows</h3>
+                        <div class="table-container">
+                            <table class="financial-table">
+                                <thead>
+                                    <tr>
+                                        <th>Step</th>
+                                        <th>Action</th>
+                                        <th>Rate Executed</th>
+                                        <th>Resulting Cash Flow</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loc-ledger-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mode 2 View: Order Book Market-Making -->
+                <div id="view-orderbook" class="tab-content" style="display: none;">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Limit Order Book (USD / HKD)</h3>
+                        <span class="badge badge-gold">Microstructure Depth Ladder</span>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr); gap: 1.5rem; margin-top: 1rem;">
+                        <!-- Depth Ladder -->
+                        <div>
+                            <table class="depth-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 25%; text-align: left;">Bids Size (USD)</th>
+                                        <th style="width: 25%; text-align: right;">Bid Price</th>
+                                        <th style="width: 25%; text-align: left;">Ask Price</th>
+                                        <th style="width: 25%; text-align: right;">Asks Size (USD)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ob-depth-body">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Execution Summary -->
+                        <div style="background: var(--bg-glass); border: 1px solid var(--border-color); border-radius: 10px; padding: 1.25rem;">
+                            <h4 style="font-family: 'Outfit', sans-serif; color: var(--cuhk-gold-light); margin-bottom: 0.75rem;">Market Order Simulation</h4>
+                            <div class="stat-card neutral" style="margin-bottom: 0.75rem;">
+                                <div class="stat-label">Order Details</div>
+                                <div style="font-size: 1rem; font-weight: 700;" id="ob-sim-details">Sell $2,000,000 USD</div>
+                            </div>
+                            <div class="stats-grid answer-area" style="grid-template-columns: 1fr; gap: 0.75rem;">
+                                <div class="stat-card neutral">
+                                    <div class="stat-label">Volume Weighted Avg Price (VWAP)</div>
+                                    <div class="stat-number gold" id="ob-vwap">&mdash;</div>
+                                </div>
+                                <div class="stat-card neutral" id="card-ob-slippage">
+                                    <div class="stat-label">Execution Slippage</div>
+                                    <div class="stat-number" id="ob-slippage">&mdash;</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-secondary);" id="ob-slippage-desc">Compared to top of book</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fills Breakdown Table -->
+                    <div class="answer-area" style="margin-top: 1.5rem;">
+                        <h3 class="panel-title" style="margin-bottom: 0.75rem;">Order Book Fill Breakdown ("Walking the Book")</h3>
+                        <div class="table-container">
+                            <table class="financial-table">
+                                <thead>
+                                    <tr>
+                                        <th>Level</th>
+                                        <th>Price Level</th>
+                                        <th>Volume Filled</th>
+                                        <th>HKD Amount</th>
+                                        <th>Cumulative Fill %</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ob-fills-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mode 3 View: Triangular Arbitrage -->
+                <div id="view-triangular" class="tab-content" style="display: none;">
+                    <div class="panel-header">
+                        <h3 class="panel-title">Executable Bid and Ask Quotes</h3>
+                        <span class="badge badge-success">All rates include spread</span>
+                    </div>
+
+                    <div class="order-book-grid">
+                        <div class="quote-box">
+                            <div class="quote-pair">EUR / USD</div>
+                            <div class="quote-prices">
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Bid (Sell EUR)</span>
+                                    <span class="bid-ask-val bid" id="eurusd-bid">1.0845</span>
+                                </div>
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Ask (Buy EUR)</span>
+                                    <span class="bid-ask-val ask" id="eurusd-ask">1.0855</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="quote-box">
+                            <div class="quote-pair">USD / JPY</div>
+                            <div class="quote-prices">
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Bid (Sell USD)</span>
+                                    <span class="bid-ask-val bid" id="usdjpy-bid">155.12</span>
+                                </div>
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Ask (Buy USD)</span>
+                                    <span class="bid-ask-val ask" id="usdjpy-ask">155.28</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="quote-box">
+                            <div class="quote-pair">EUR / JPY (Cross)</div>
+                            <div class="quote-prices">
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Bid (Sell EUR)</span>
+                                    <span class="bid-ask-val bid" id="eurjpy-bid">167.92</span>
+                                </div>
+                                <div class="bid-ask-item">
+                                    <span class="bid-ask-label">Ask (Buy EUR)</span>
+                                    <span class="bid-ask-val ask" id="eurjpy-ask">168.08</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid answer-area" style="margin-top: 1.5rem;">
+                        <div class="stat-card neutral">
+                            <div class="stat-label">Synthetic Cross Rate</div>
+                            <div class="stat-number gold" id="stat-synth-eurjpy">&mdash;</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">EUR/USD multiplied by USD/JPY</div>
+                        </div>
+                        <div class="stat-card" id="card-tri-profit">
+                            <div class="stat-label">Result on EUR 1 Million</div>
+                            <div class="stat-number" id="stat-tri-result">&mdash;</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);" id="stat-tri-path">Awaiting quotes</div>
+                        </div>
+                    </div>
+
+                    <div class="answer-area" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button class="btn btn-gold tri-execute" style="flex: 1;" onclick="executeTriangular('clockwise')">
+                            Execute Clockwise: EUR &rarr; USD &rarr; JPY &rarr; EUR
+                        </button>
+                        <button class="btn btn-secondary tri-execute" style="flex: 1;" onclick="executeTriangular('counter')">
+                            Execute Counter-Clockwise: EUR &rarr; JPY &rarr; USD &rarr; EUR
+                        </button>
+                    </div>
+
+                    <div class="answer-area" style="margin-top: 2rem;">
+                        <h3 class="panel-title" style="margin-bottom: 1rem;">Execution Steps</h3>
+                        <div class="table-container">
+                            <table class="financial-table">
+                                <thead>
+                                    <tr>
+                                        <th>Leg</th>
+                                        <th>Trade Action</th>
+                                        <th>Rate Used</th>
+                                        <th>Resulting Balance</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tri-ledger-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+
+
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        FINA3020: International Finance &middot; CUHK Business School &middot; Prof. Henry Zhang
+    </footer>
+
+    <script>
+        let cipChartInstance = null;
+        let activeMode = 'locational';
+        let roundNumber = 0;
+        let predictionLocked = false;
+        let currentRoundResponse = null;
+
+        let currentHintStep = 0;
+
+        /* ----------------------------------------------------------------
+         * Order book state
+         *
+         * Level sizes are drawn once per round and held here. The rendered book
+         * and the graded answer must come from the SAME ladder: the two were
+         * previously built from separate copies of a hardcoded array, so any
+         * change to one would silently diverge from the other.
+         *
+         * Sizes are randomised because a fixed ladder made the answer a pure
+         * function of order size -- students could score full marks by memorising
+         * three sizes without ever computing a VWAP.
+         * ---------------------------------------------------------------- */
+        const OB_LEVELS = 5;
+        let currentBookSizes = { bids: [], asks: [] };
+
+        function randomLevelSizes() {
+            const sizes = [];
+            for (let i = 0; i < OB_LEVELS; i++) {
+                sizes.push((3 + Math.floor(Math.random() * 18)) * 100000); // 300k .. 2.0M
+            }
+            return sizes;
+        }
+
+        function regenerateBookSizes() {
+            currentBookSizes = { bids: randomLevelSizes(), asks: randomLevelSizes() };
+        }
+
+        /**
+         * Build the ladder from the current controls plus this round's sizes.
+         * Level spacing scales with the touch spread, so a wider, thinner market
+         * genuinely costs more to cross -- which is what makes the spread control
+         * decision-relevant rather than decorative.
+         */
+        function buildBook() {
+            const mid = parseFloat(document.getElementById('input-ob-mid').value);
+            const spreadPips = parseFloat(document.getElementById('input-ob-spread').value);
+            const pip = 0.0001;
+            const half = (spreadPips * pip) / 2;
+            const gap = spreadPips * pip;
+
+            if (currentBookSizes.bids.length === 0) regenerateBookSizes();
+
+            const bids = [];
+            const asks = [];
+            for (let i = 0; i < OB_LEVELS; i++) {
+                bids.push({ price: mid - half - i * gap, size: currentBookSizes.bids[i] });
+                asks.push({ price: mid + half + i * gap, size: currentBookSizes.asks[i] });
+            }
+            return { bids, asks, pip, spreadPips };
+        }
+
+        /** Walk a market order through one side of the book. */
+        function walkBook(bookSide, orderSize) {
+            let remaining = orderSize;
+            let totalCashHKD = 0;
+            let cumFilled = 0;
+            const fills = [];
+
+            for (let i = 0; i < bookSide.length && remaining > 0; i++) {
+                const level = bookSide[i];
+                const fillVol = Math.min(remaining, level.size);
+                totalCashHKD += fillVol * level.price;
+                remaining -= fillVol;
+                cumFilled += fillVol;
+                fills.push({ index: i, price: level.price, volume: fillVol });
+            }
+            return { fills, remaining, totalCashHKD, cumFilled };
+        }
+
+        function toggleLabHint() {
+            const panel = document.getElementById('lab-hint-panel');
+            const btn = document.getElementById('toggle-lab-hint');
+            if (panel.style.display === 'none') {
+                currentHintStep = 0;
+                updateLabHintStep();
+                panel.style.display = 'block';
+                btn.innerText = '💡 Hide Calculation Hint';
+            } else {
+                panel.style.display = 'none';
+                btn.innerText = '💡 Show Calculation Hint & Formulas';
+            }
+        }
+
+        function changeHintStep(delta) {
+            currentHintStep += delta;
+            updateLabHintStep();
+        }
+
+        function getLabHintSteps() {
+            if (activeMode === 'locational') {
+                const dealerA = parseFloat(document.getElementById('input-loc-dealerA').value) || 1.3333;
+                const dealerB = parseFloat(document.getElementById('input-loc-dealerB').value) || 0.9375;
+                const spreadBps = parseFloat(document.getElementById('input-loc-spread').value) || 10;
+                const spreadPct = spreadBps / 10000;
+
+                const dealerA_bid = dealerA * (1 - spreadPct/2);
+                const dealerA_ask = dealerA * (1 + spreadPct/2);
+                const dealerB_bid = dealerB * (1 - spreadPct/2);
+                const dealerB_ask = dealerB * (1 + spreadPct/2);
+
+                const profitA = (1000000 / dealerA_ask) * (1 / dealerB_ask) - 1000000;
+                const profitB = (1000000 * dealerB_bid) * dealerA_bid - 1000000;
+
+                return [
+                    {
+                        title: "Step 1: Identify 2-Way Quotes (Hit Bid vs Lift Ask Rule)",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                Do NOT use mid rates. To buy base currency, you must <strong>Lift the Ask</strong>. To sell base currency, you must <strong>Hit the Bid</strong>.
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">Dealer A (GBP/USD)</span> <span class="formula-op">:</span> Bid (Traders Sell) <span class="formula-op">=</span> <span class="formula-bid">${dealerA_bid.toFixed(4)}</span> | Ask (Traders Buy) <span class="formula-op">=</span> <span class="formula-ask">${dealerA_ask.toFixed(4)}</span></div>
+                                <div class="formula-line"><span class="formula-var">Dealer B (USD/GBP)</span> <span class="formula-op">:</span> Bid (Traders Sell USD) <span class="formula-op">=</span> <span class="formula-bid">${dealerB_bid.toFixed(4)}</span> | Ask (Traders Buy USD) <span class="formula-op">=</span> <span class="formula-ask">${dealerB_ask.toFixed(4)}</span></div>
+                            </div>`
+                    },
+                    {
+                        title: "Step 2: Test Direction A (Lift Dealer A Ask, Pay Dealer B Ask)",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                1. <strong>Lift Dealer A's Ask</strong> (<span class="formula-ask">${dealerA_ask.toFixed(4)}</span>) to buy GBP.<br>
+                                2. Pay Dealer B's Ask (<span class="formula-ask">${dealerB_ask.toFixed(4)}</span> USD/GBP) to convert GBP back to USD:
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">1. GBP Purchased</span> <span class="formula-op">=</span> $1,000,000 &divide; <span class="formula-ask">${dealerA_ask.toFixed(4)}</span> (Dealer A Ask) <span class="formula-op">=</span> <span class="formula-val">&pound;${Math.round(1000000/dealerA_ask).toLocaleString()}</span></div>
+                                <div class="formula-line"><span class="formula-var">2. USD Received</span> <span class="formula-op">=</span> GBP Purchased &divide; <span class="formula-ask">${dealerB_ask.toFixed(4)}</span> (Dealer B Ask) <span class="formula-op">=</span> <span class="formula-val">$${((1000000/dealerA_ask)/dealerB_ask).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>
+                                <div class="formula-line"><span class="formula-var">3. Net Cash Flow</span> <span class="formula-op">=</span> USD Received &minus; $1,000,000 <span class="formula-op">=</span> <span class="formula-val" style="color:${profitA > 1 ? 'var(--success)' : 'var(--text-muted)'};">${profitA > 0 ? '+$' + profitA.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2}) : '-$' + Math.abs(profitA).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>
+                            </div>`
+                    },
+                    {
+                        title: "Step 3: Test Direction B (Hit Dealer B Bid, Hit Dealer A Bid)",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                1. <strong>Hit Dealer B's Bid</strong> (<span class="formula-bid">${dealerB_bid.toFixed(4)}</span> USD/GBP) to convert USD to GBP.<br>
+                                2. <strong>Hit Dealer A's Bid</strong> (<span class="formula-bid">${dealerA_bid.toFixed(4)}</span> GBP/USD) to sell GBP for USD:
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">1. GBP Purchased</span> <span class="formula-op">=</span> $1,000,000 &times; <span class="formula-bid">${dealerB_bid.toFixed(4)}</span> (Dealer B Bid) <span class="formula-op">=</span> <span class="formula-val">&pound;${Math.round(1000000*dealerB_bid).toLocaleString()}</span></div>
+                                <div class="formula-line"><span class="formula-var">2. USD Received</span> <span class="formula-op">=</span> GBP Purchased &times; <span class="formula-bid">${dealerA_bid.toFixed(4)}</span> (Dealer A Bid) <span class="formula-op">=</span> <span class="formula-val">$${((1000000*dealerB_bid)*dealerA_bid).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>
+                                <div class="formula-line"><span class="formula-var">3. Net Cash Flow</span> <span class="formula-op">=</span> USD Received &minus; $1,000,000 <span class="formula-op">=</span> <span class="formula-val" style="color:${profitB > 1 ? 'var(--success)' : 'var(--text-muted)'};">${profitB > 0 ? '+$' + profitB.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2}) : '-$' + Math.abs(profitB).toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})}</span></div>
+                            </div>`
+                    },
+                    {
+                        title: "Step 4: Arbitrage Decision Rule",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                Arbitrage exists only if Net Cash Flow after bid-ask spreads exceeds $1.00 USD.
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">Profit Direction A</span> <span class="formula-op">:</span> $${profitA.toFixed(2)} USD</div>
+                                <div class="formula-line"><span class="formula-var">Profit Direction B</span> <span class="formula-op">:</span> $${profitB.toFixed(2)} USD</div>
+                                <div class="formula-line"><span class="formula-var">Conclusion</span> <span class="formula-op">:</span> <span class="formula-val" style="color:var(--cuhk-gold-light);">${profitA > 1 && profitA > profitB ? 'Direction A is profitable' : (profitB > 1 ? 'Direction B is profitable' : 'No profitable trade after bid-ask spreads')}</span></div>
+                            </div>`
+                    }
+                ];
+            } else if (activeMode === 'orderbook') {
+                const orderSize = parseFloat(document.getElementById('input-ob-ordersize').value) || 1500000;
+                const direction = document.getElementById('input-ob-direction').value || 'sell';
+                // Capacities are computed from this round's ladder. They used to be
+                // hardcoded to the totals of a fixed book, which no longer exists.
+                const hintBook = buildBook();
+                const bidCapacity = hintBook.bids.reduce((sum, l) => sum + l.size, 0);
+                const askCapacity = hintBook.asks.reduce((sum, l) => sum + l.size, 0);
+
+                return [
+                    {
+                        title: "Step 1: Hit Bid vs Lift Ask Rule for Market Orders",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                You are submitting a <strong>${direction.toUpperCase()} market order</strong> for $${orderSize.toLocaleString()} USD:
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">Market Sell Order</span> <span class="formula-op">&rarr;</span> <strong>Hits the Bids</strong> (fills against buy orders from market makers)</div>
+                                <div class="formula-line"><span class="formula-var">Market Buy Order</span> <span class="formula-op">&rarr;</span> <strong>Lifts the Asks</strong> (fills against sell orders from market makers)</div>
+                            </div>`
+                    },
+                    {
+                        title: "Step 2: Check Total Book Depth Capacity",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                Verify if available depth on the target side of the book can absorb your order size:
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">Total Bid Capacity</span> <span class="formula-op">=</span> <span class="formula-bid">$${bidCapacity.toLocaleString('en-US')} USD</span></div>
+                                <div class="formula-line"><span class="formula-var">Total Ask Capacity</span> <span class="formula-op">=</span> <span class="formula-ask">$${askCapacity.toLocaleString('en-US')} USD</span></div>
+                                <div class="formula-line"><span class="formula-var">Rule</span> <span class="formula-op">:</span> If Order Size &gt; Total Capacity &rarr; <span class="formula-val" style="color:var(--warning);">Insufficient Depth</span></div>
+                            </div>`
+                    },
+                    {
+                        title: "Step 3: Walk the Ladder to Compute VWAP",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                Walk down the order book levels to fill the order and divide total cash HKD by order size USD:
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">VWAP</span> <span class="formula-op">=</span> Total HKD Cash Collected or Paid &divide; Total Order Size USD</div>
+                                <div class="formula-line"><span class="formula-var">Level 1 Top-of-Book</span> <span class="formula-op">=</span> ${direction === 'sell' ? 'Level 1 Bid Price' : 'Level 1 Ask Price'}</div>
+                            </div>`
+                    },
+                    {
+                        title: "Step 4: Compute Slippage in Pips & Classify",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                Measure execution slippage against top of book in pips ($0.0001$):
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">Sell Slippage (pips)</span> <span class="formula-op">=</span> (Top Bid &minus; VWAP) &divide; 0.0001</div>
+                                <div class="formula-line"><span class="formula-var">Buy Slippage (pips)</span> <span class="formula-op">=</span> (VWAP &minus; Top Ask) &divide; 0.0001</div>
+                                <div class="formula-line"><span class="formula-var">Rule</span> <span class="formula-op">:</span> Slippage &ge; 0.50 pips &rarr; <span class="formula-val" style="color:var(--danger);">High Slippage</span> | &lt; 0.50 pips &rarr; <span class="formula-val" style="color:var(--success);">Low Slippage</span></div>
+                            </div>`
+                    }
+                ];
+            } else {
+                // Triangular Arbitrage
+                const eurusd = parseFloat(document.getElementById('input-eurusd').value) || 1.0850;
+                const usdjpy = parseFloat(document.getElementById('input-usdjpy').value) || 155.20;
+                const eurjpy = parseFloat(document.getElementById('input-eurjpy').value) || 168.00;
+                const spreadBps = parseFloat(document.getElementById('input-tri-spread').value) || 10;
+                const spreadPct = spreadBps / 10000;
+
+                const eurusd_bid = eurusd * (1 - spreadPct/2);
+                const eurusd_ask = eurusd * (1 + spreadPct/2);
+                const usdjpy_bid = usdjpy * (1 - spreadPct/2);
+                const usdjpy_ask = usdjpy * (1 + spreadPct/2);
+                const eurjpy_bid = eurjpy * (1 - spreadPct/2);
+                const eurjpy_ask = eurjpy * (1 + spreadPct/2);
+
+                return [
+                    {
+                        title: "Step 1: Identify 2-Way Quotes for All 3 Pairs",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                Apply bid-ask spreads to determine exact 2-way execution rates (Hit Bid vs Lift Ask):
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">EUR/USD</span> <span class="formula-op">:</span> Bid <span class="formula-op">=</span> <span class="formula-bid">${eurusd_bid.toFixed(4)}</span> | Ask <span class="formula-op">=</span> <span class="formula-ask">${eurusd_ask.toFixed(4)}</span></div>
+                                <div class="formula-line"><span class="formula-var">USD/JPY</span> <span class="formula-op">:</span> Bid <span class="formula-op">=</span> <span class="formula-bid">${usdjpy_bid.toFixed(2)}</span> | Ask <span class="formula-op">=</span> <span class="formula-ask">${usdjpy_ask.toFixed(2)}</span></div>
+                                <div class="formula-line"><span class="formula-var">EUR/JPY</span> <span class="formula-op">:</span> Bid <span class="formula-op">=</span> <span class="formula-bid">${eurjpy_bid.toFixed(2)}</span> | Ask <span class="formula-op">=</span> <span class="formula-ask">${eurjpy_ask.toFixed(2)}</span></div>
+                            </div>`
+                    },
+                    {
+                        title: "Step 2: Test Clockwise Arbitrage Path (EUR &rarr; USD &rarr; JPY &rarr; EUR)",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                1. Sell EUR for USD &rarr; <strong>Hit EUR/USD Bid</strong> (<span class="formula-bid">${eurusd_bid.toFixed(4)}</span>).<br>
+                                2. Sell USD for JPY &rarr; <strong>Hit USD/JPY Bid</strong> (<span class="formula-bid">${usdjpy_bid.toFixed(2)}</span>).<br>
+                                3. Buy EUR with JPY &rarr; <strong>Lift EUR/JPY Ask</strong> (<span class="formula-ask">${eurjpy_ask.toFixed(2)}</span>).
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">1. USD Received</span> <span class="formula-op">=</span> &euro;1,000,000 &times; <span class="formula-bid">${eurusd_bid.toFixed(4)}</span> <span class="formula-op">=</span> $${(1000000*eurusd_bid).toLocaleString('en-US',{maximumFractionDigits:2})}</div>
+                                <div class="formula-line"><span class="formula-var">2. JPY Received</span> <span class="formula-op">=</span> USD Received &times; <span class="formula-bid">${usdjpy_bid.toFixed(2)}</span> <span class="formula-op">=</span> &yen;${Math.round((1000000*eurusd_bid)*usdjpy_bid).toLocaleString()}</div>
+                                <div class="formula-line"><span class="formula-var">3. Final EUR Returned</span> <span class="formula-op">=</span> JPY Received &divide; <span class="formula-ask">${eurjpy_ask.toFixed(2)}</span> <span class="formula-op">=</span> <span class="formula-val">&euro;${Math.round(((1000000*eurusd_bid)*usdjpy_bid)/eurjpy_ask).toLocaleString()}</span></div>
+                            </div>`
+                    },
+                    {
+                        title: "Step 3: Test Counter-Clockwise Path (EUR &rarr; JPY &rarr; USD &rarr; EUR)",
+                        content: `
+                            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:0.5rem;">
+                                1. Sell EUR for JPY &rarr; <strong>Hit EUR/JPY Bid</strong> (<span class="formula-bid">${eurjpy_bid.toFixed(2)}</span>).<br>
+                                2. Buy USD with JPY &rarr; <strong>Lift USD/JPY Ask</strong> (<span class="formula-ask">${usdjpy_ask.toFixed(2)}</span>).<br>
+                                3. Buy EUR with USD &rarr; <strong>Lift EUR/USD Ask</strong> (<span class="formula-ask">${eurusd_ask.toFixed(4)}</span>).
+                            </p>
+                            <div class="formula-card">
+                                <div class="formula-line"><span class="formula-var">1. JPY Received</span> <span class="formula-op">=</span> &euro;1,000,000 &times; <span class="formula-bid">${eurjpy_bid.toFixed(2)}</span> <span class="formula-op">=</span> &yen;${(1000000*eurjpy_bid).toLocaleString()}</div>
+                                <div class="formula-line"><span class="formula-var">2. USD Received</span> <span class="formula-op">=</span> JPY Received &divide; <span class="formula-ask">${usdjpy_ask.toFixed(2)}</span> <span class="formula-op">=</span> $${((1000000*eurjpy_bid)/usdjpy_ask).toLocaleString('en-US',{maximumFractionDigits:2})}</div>
+                                <div class="formula-line"><span class="formula-var">3. Final EUR Returned</span> <span class="formula-op">=</span> USD Received &divide; <span class="formula-ask">${eurusd_ask.toFixed(4)}</span> <span class="formula-op">=</span> <span class="formula-val">&euro;${Math.round(((1000000*eurjpy_bid)/usdjpy_ask)/eurusd_ask).toLocaleString()}</span></div>
+                            </div>`
+                    }
+                ];
+            }
+        }
+
+        function updateLabHintStep() {
+            const steps = getLabHintSteps();
+            if (currentHintStep < 0) currentHintStep = 0;
+            if (currentHintStep >= steps.length) currentHintStep = steps.length - 1;
+
+            const step = steps[currentHintStep];
+
+            document.getElementById('hint-title').innerText = step.title;
+            document.getElementById('hint-step-badge').innerText = `Step ${currentHintStep + 1} of ${steps.length}`;
+            document.getElementById('hint-step-content').innerHTML = step.content;
+
+            const prevBtn = document.getElementById('btn-prev-hint');
+            const nextBtn = document.getElementById('btn-next-hint');
+
+            prevBtn.disabled = (currentHintStep === 0);
+            nextBtn.disabled = (currentHintStep === steps.length - 1);
+
+            document.getElementById('hint-progress-text').innerText = (currentHintStep === steps.length - 1)
+                ? 'All steps uncovered! Make your prediction.'
+                : 'Click Next Step to uncover the next calculation step.';
+        }
+
+        const VALID_MODES = ['locational', 'orderbook', 'triangular'];
+
+        function setMode(mode, startRound = true) {
+            if (mode === 'tri') mode = 'triangular';
+            if (mode === 'loc') mode = 'locational';
+            if (mode === 'book') mode = 'orderbook';
+
+            // An unrecognised ?mode= hid every control panel and generated no round,
+            // leaving a blank page. Students share these URLs, so fall back instead.
+            if (!VALID_MODES.includes(mode)) mode = 'locational';
+
+            activeMode = mode;
+
+            // Hide all controls and views
+            ['locational', 'orderbook', 'triangular'].forEach(m => {
+                document.getElementById(`ctrl-${m}`).style.display = (m === mode) ? 'block' : 'none';
+                document.getElementById(`view-${m}`).style.display = (m === mode) ? 'block' : 'none';
+            });
+
+            // Update Tab Buttons
+            document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-mode') === mode);
+            });
+
+            const modeTitles = {
+                locational: 'Locational Arbitrage',
+                orderbook: 'Order Book Market-Making',
+                triangular: 'Triangular Arbitrage'
+            };
+            document.getElementById('round-mode').innerText = modeTitles[mode] || mode;
+
+            currentHintStep = 0;
+            updateLabHintStep();
+            if (startRound) newRound();
+        }
+
+        function updateStudentIDDisplay() {
+            const id = FINA3020Utils.getStudentID();
+            const name = FINA3020Utils.getFullName();
+            const btn = document.getElementById('btn-student-id');
+            if (btn) {
+                if (id && name) {
+                    btn.innerText = `ID: ${id} | ${name}`;
+                } else if (id) {
+                    btn.innerText = `CUHK ID: ${id}`;
+                } else {
+                    btn.innerText = 'Set Name & CUHK ID';
+                }
+            }
+        }
+
+        function initApp() {
+            updateStudentIDDisplay();
+            if (!FINA3020Utils.getStudentID()) {
+                // Collect name, ID and section together. The old auto-prompt asked only
+                // for the ID, so the other two were demanded again mid-round and the
+                // stored identity was incomplete until then.
+                setTimeout(() => {
+                    FINA3020Utils.ensureStudentCredentials(true);
+                    updateStudentIDDisplay();
+                }, 400);
+            }
+
+            // Bind Locational Controls
+            ['loc-dealerA', 'loc-dealerB', 'loc-spread'].forEach(id => {
+                document.getElementById(`input-${id}`).addEventListener('input', updateLocational);
+            });
+
+            // Bind Order Book Controls
+            ['ob-mid', 'ob-spread', 'ob-ordersize', 'ob-direction'].forEach(id => {
+                document.getElementById(`input-${id}`).addEventListener('change', updateOrderBook);
+                document.getElementById(`input-${id}`).addEventListener('input', updateOrderBook);
+            });
+
+            // Bind Triangular Controls
+            ['eurusd', 'usdjpy', 'eurjpy', 'tri-spread'].forEach(id => {
+                document.getElementById(`input-${id}`).addEventListener('input', updateTriangular);
+            });
+
+            updateLocational();
+            updateOrderBook();
+            updateTriangular();
+
+            document.getElementById('lock-prediction').addEventListener('click', lockPrediction);
+            document.getElementById('submit-reflection').addEventListener('click', submitReflection);
+            document.getElementById('new-round').addEventListener('click', newRound);
+
+            initDeliveryStatus();
+
+            const requestedMode = new URLSearchParams(window.location.search).get('mode');
+            if (requestedMode) {
+                setMode(requestedMode);
+            } else {
+                setMode('locational');
+            }
+        }
+
+        function setPredictionOptions() {
+            const select = document.getElementById('prediction-select');
+            const promptEl = document.getElementById('round-prompt');
+
+            if (activeMode === 'locational') {
+                select.innerHTML = `
+                    <option value="">Choose direction</option>
+                    <option value="buyA-sellB">Buy GBP from Dealer A, Sell to Dealer B</option>
+                    <option value="buyB-sellA">Buy GBP from Dealer B, Sell to Dealer A</option>
+                    <option value="none">No profitable arbitrage</option>`;
+                promptEl.innerText = 'Compare Dealer A (GBP/USD) and Dealer B (USD/GBP) quotes. Which trade direction is profitable?';
+            } else if (activeMode === 'orderbook') {
+                select.innerHTML = `
+                    <option value="">Choose slippage outcome</option>
+                    <option value="slippage-low">Low Slippage (&lt; 0.50 pips; filled near top of book)</option>
+                    <option value="slippage-high">High Slippage (&ge; 0.50 pips; order walks depth levels)</option>
+                    <option value="insufficient-depth">Insufficient Depth (Order exceeds book capacity)</option>`;
+                promptEl.innerText = 'Examine order book depth. Will the submitted market order experience significant slippage?';
+            } else if (activeMode === 'triangular') {
+                select.innerHTML = `
+                    <option value="">Choose direction</option>
+                    <option value="clockwise">Clockwise (EUR &rarr; USD &rarr; JPY &rarr; EUR)</option>
+                    <option value="counter">Counter-Clockwise (EUR &rarr; JPY &rarr; USD &rarr; EUR)</option>
+                    <option value="none">No profitable trade</option>`;
+                promptEl.innerText = 'Read all three bid and ask quotes. Which direction, if any, is profitable?';
+            }
+        }
+
+        function newRound() {
+            roundNumber += 1;
+            predictionLocked = false;
+            currentRoundResponse = null;
+            document.body.classList.add('round-pending');
+            document.getElementById('round-title').innerText = `Round ${roundNumber}: Make a Prediction`;
+            document.getElementById('round-feedback').innerText = 'Record one choice before you reveal the result.';
+            document.getElementById('lock-prediction').disabled = false;
+            document.getElementById('reflection-section').style.display = 'none';
+            document.getElementById('reflection-input').value = '';
+            setPredictionOptions();
+
+            if (activeMode === 'locational') {
+                const quoteA = 1.3300 + (Math.random() * 0.015);
+                const isArb = Math.random() > 0.3;
+                // The sign must be randomised. The old generator only ever made Dealer B's
+                // GBP cheaper, so 'Buy from A, sell to B' was never the correct answer and
+                // a student could safely never pick it.
+                const sign = Math.random() < 0.5 ? -1 : 1;
+                // Arbitrage rounds dislocate 30-80 bps, clearly above the 5-15 bps round-trip
+                // spread cost. No-arbitrage rounds stay inside 4 bps, clearly below it. The
+                // old bands straddled the cost threshold, so the answer turned on rounding.
+                const dislocation = isArb
+                    ? sign * (0.0030 + Math.random() * 0.0050)
+                    : sign * (Math.random() * 0.0004);
+                const quoteB_inv = quoteA * (1 + dislocation);
+                const quoteB = 1 / quoteB_inv;
+
+                document.getElementById('input-loc-dealerA').value = quoteA.toFixed(4);
+                document.getElementById('input-loc-dealerB').value = quoteB.toFixed(4);
+                document.getElementById('input-loc-spread').value = String([5, 10, 15][Math.floor(Math.random()*3)]);
+                updateLocational();
+            } else if (activeMode === 'orderbook') {
+                const mid = 7.7950 + Math.random() * 0.010;
+                const sizes = [250000, 500000, 750000, 1000000, 1500000, 2000000, 3000000, 4000000, 6000000];
+                const randomSize = sizes[Math.floor(Math.random() * sizes.length)];
+                const randomDir = Math.random() < 0.5 ? 'sell' : 'buy';
+                const randomSpread = [1, 2, 3][Math.floor(Math.random() * 3)];
+
+                // Fresh ladder each round, so the answer depends on reading this book.
+                regenerateBookSizes();
+
+                document.getElementById('input-ob-mid').value = mid.toFixed(4);
+                document.getElementById('input-ob-spread').value = String(randomSpread);
+                document.getElementById('input-ob-ordersize').value = String(randomSize);
+                document.getElementById('input-ob-direction').value = randomDir;
+                updateOrderBook();
+            } else if (activeMode === 'triangular') {
+                const eurusd = 1.05 + Math.random() * 0.07;
+                const usdjpy = 145 + Math.random() * 15;
+                const spread = [4, 8, 12, 16][Math.floor(Math.random() * 4)];
+                const shockBps = [-90, -45, 0, 45, 90][Math.floor(Math.random() * 5)];
+                const cross = eurusd * usdjpy * (1 + shockBps / 10000);
+
+                document.getElementById('input-eurusd').value = eurusd.toFixed(4);
+                document.getElementById('input-usdjpy').value = usdjpy.toFixed(2);
+                document.getElementById('input-eurjpy').value = cross.toFixed(2);
+                document.getElementById('input-tri-spread').value = String(spread);
+                updateTriangular();
+            }
+        }
+
+        function getCorrectPrediction() {
+            if (activeMode === 'locational') {
+                const dealerA = parseFloat(document.getElementById('input-loc-dealerA').value);
+                const dealerB = parseFloat(document.getElementById('input-loc-dealerB').value);
+                const spreadBps = parseFloat(document.getElementById('input-loc-spread').value);
+                const spreadPct = spreadBps / 10000;
+
+                const dealerA_bid = dealerA * (1 - spreadPct/2);
+                const dealerA_ask = dealerA * (1 + spreadPct/2);
+                const dealerB_bid = dealerB * (1 - spreadPct/2);
+                const dealerB_ask = dealerB * (1 + spreadPct/2);
+
+                const profitA_to_B = (1000000 / dealerA_ask) * (1 / dealerB_ask) - 1000000;
+                const profitB_to_A = (1000000 * dealerB_bid) * dealerA_bid - 1000000;
+
+                if (profitA_to_B > 1.0 && profitA_to_B > profitB_to_A) return 'buyA-sellB';
+                if (profitB_to_A > 1.0) return 'buyB-sellA';
+                return 'none';
+            }
+
+            if (activeMode === 'orderbook') {
+                const orderSize = parseFloat(document.getElementById('input-ob-ordersize').value);
+                const direction = document.getElementById('input-ob-direction').value;
+                const book = buildBook();
+
+                const bookSide = direction === 'sell' ? book.bids : book.asks;
+                const walk = walkBook(bookSide, orderSize);
+
+                if (walk.remaining > 0) return 'insufficient-depth';
+
+                const vwap = walk.totalCashHKD / orderSize;
+                const topPrice = bookSide[0].price;
+                const slippagePips = direction === 'sell'
+                    ? ((topPrice - vwap) / book.pip)
+                    : ((vwap - topPrice) / book.pip);
+
+                if (slippagePips >= 0.50) return 'slippage-high';
+                return 'slippage-low';
+            }
+
+            if (activeMode === 'triangular') {
+                const spreadPct = parseFloat(document.getElementById('input-tri-spread').value) / 10000;
+                const eurusd = parseFloat(document.getElementById('input-eurusd').value);
+                const usdjpy = parseFloat(document.getElementById('input-usdjpy').value);
+                const eurjpy = parseFloat(document.getElementById('input-eurjpy').value);
+                const clockwise = (eurusd * (1 - spreadPct / 2)) * (usdjpy * (1 - spreadPct / 2)) / (eurjpy * (1 + spreadPct / 2)) - 1;
+                const counter = (eurjpy * (1 - spreadPct / 2)) / (usdjpy * (1 + spreadPct / 2)) / (eurusd * (1 + spreadPct / 2)) - 1;
+                if (clockwise > 1e-6 && clockwise > counter) return 'clockwise';
+                if (counter > 1e-6) return 'counter';
+                return 'none';
+            }
+        }
+
+        function predictionLabel(val) {
+            const map = {
+                'buyA-sellB': 'Buy GBP from Dealer A, Sell to Dealer B',
+                'buyB-sellA': 'Buy GBP from Dealer B, Sell to Dealer A',
+                'slippage-low': 'Low Slippage (< 0.50 pips)',
+                'slippage-high': 'High Slippage (≥ 0.50 pips)',
+                'insufficient-depth': 'Insufficient Depth',
+                'clockwise': 'Clockwise',
+                'counter': 'Counter-clockwise',
+                'none': 'No profitable trade'
+            };
+            return map[val] || val;
+        }
+
+        function lockPrediction() {
+            // Confirms a stored identity once per browser session before the first
+            // submission, so a shared machine cannot silently attribute this round
+            // to whoever used it last.
+            if (!FINA3020Utils.confirmIdentityForSession()) return;
+            updateStudentIDDisplay();
+
+            const prediction = document.getElementById('prediction-select').value;
+            if (!prediction) {
+                document.getElementById('round-feedback').innerText = 'Choose one answer before you lock the round.';
+                return;
+            }
+
+            predictionLocked = true;
+            document.body.classList.remove('round-pending');
+            document.getElementById('lock-prediction').disabled = true;
+
+            const correct = getCorrectPrediction();
+            const matched = prediction === correct;
+
+            currentRoundResponse = {
+                mode: activeMode,
+                roundNumber: roundNumber,
+                prediction: prediction,
+                correctAnswer: correct,
+                matched: matched
+            };
+
+            document.getElementById('round-title').innerText = `Round ${roundNumber}: Result Revealed`;
+            document.getElementById('round-feedback').innerText = matched
+                ? `Correct! Result matches your choice: ${predictionLabel(correct)}. Now enter your exit reflection below.`
+                : `Executable result: ${predictionLabel(correct)}. Your attempt counts; enter your exit reflection below.`;
+            document.getElementById('reflection-section').style.display = 'block';
+        }
+
+        function submitReflection() {
+            if (!currentRoundResponse) return;
+            const reflection = document.getElementById('reflection-input').value.trim();
+            if (!reflection) {
+                alert('Please enter a short exit reflection before submitting.');
+                return;
+            }
+            currentRoundResponse.exitReflection = reflection;
+            const saved = FINA3020Utils.recordResponse(currentRoundResponse);
+
+            document.getElementById('reflection-section').style.display = 'none';
+            const feedbackEl = document.getElementById('round-feedback');
+            feedbackEl.innerText = `Submitting response for CUHK ID ${saved.studentId}...`;
+
+            // Never claim a response was recorded before the server confirms it.
+            // Participation is graded from these submissions, so a submission that
+            // silently failed would cost a student a mark they had earned.
+            saved.deliveryPromise.then(confirmed => {
+                if (confirmed) {
+                    feedbackEl.innerText = `Response confirmed for CUHK ID ${saved.studentId}. Click "New Round" for the next scenario.`;
+                } else {
+                    feedbackEl.innerText = `Saved on this device but NOT yet confirmed by the server. `
+                        + `It will keep retrying, so leave this tab open. If it stays unconfirmed, click `
+                        + `"Export Responses (.csv)" and send the file to the TA before the deadline.`;
+                }
+            });
+        }
+
+        function switchStudent() {
+            // Clear first so nothing is pre-filled. On a shared or lab machine the next
+            // student would otherwise inherit the previous student's name and ID.
+            FINA3020Utils.clearSensitiveData();
+            FINA3020Utils.ensureStudentCredentials(true);
+            updateStudentIDDisplay();
+        }
+
+        function initDeliveryStatus() {
+            const el = document.getElementById('delivery-status');
+            if (!el) return;
+            FINA3020Utils.onDeliveryChange(detail => {
+                el.style.display = '';
+                if (detail.state === 'sending') {
+                    el.className = 'badge badge-warning';
+                    el.innerText = 'Submitting...';
+                } else if (detail.pending === 0) {
+                    el.className = 'badge badge-success';
+                    el.innerText = 'All responses confirmed';
+                } else {
+                    el.className = 'badge badge-danger';
+                    el.innerText = `${detail.pending} response${detail.pending === 1 ? '' : 's'} not confirmed`;
+                }
+            });
+            const pending = FINA3020Utils.getPendingCount();
+            if (pending > 0) {
+                el.style.display = '';
+                el.className = 'badge badge-danger';
+                el.innerText = `${pending} response${pending === 1 ? '' : 's'} not confirmed`;
+            }
+        }
+
+        /* Update Mode 1: Locational Arbitrage */
+        function updateLocational() {
+            const dealerA = parseFloat(document.getElementById('input-loc-dealerA').value);
+            const dealerB = parseFloat(document.getElementById('input-loc-dealerB').value);
+            const spreadBps = parseFloat(document.getElementById('input-loc-spread').value);
+            const spreadPct = spreadBps / 10000;
+
+            document.getElementById('val-loc-dealerA').innerText = dealerA.toFixed(4);
+            document.getElementById('val-loc-dealerB').innerText = dealerB.toFixed(4);
+            document.getElementById('val-loc-spread').innerText = `${spreadBps} bps`;
+
+            const dealerA_bid = dealerA * (1 - spreadPct/2);
+            const dealerA_ask = dealerA * (1 + spreadPct/2);
+            const dealerB_bid = dealerB * (1 - spreadPct/2);
+            const dealerB_ask = dealerB * (1 + spreadPct/2);
+
+            const dealerA_inv = 1 / dealerA;
+            const dealerB_inv = 1 / dealerB;
+
+            document.getElementById('loc-dealerA-bid').innerText = dealerA_bid.toFixed(4);
+            document.getElementById('loc-dealerA-ask').innerText = dealerA_ask.toFixed(4);
+            document.getElementById('loc-dealerA-inv').innerText = dealerA_inv.toFixed(4);
+
+            document.getElementById('loc-dealerB-bid').innerText = dealerB_bid.toFixed(4);
+            document.getElementById('loc-dealerB-ask').innerText = dealerB_ask.toFixed(4);
+            document.getElementById('loc-dealerB-inv').innerText = dealerB_inv.toFixed(4);
+
+            const product = dealerA * dealerB;
+            document.getElementById('stat-loc-product').innerText = product.toFixed(4);
+
+            // Calculations for $1M USD
+            const notionalUSD = 1000000;
+            // Option 1: Convert USD to GBP at Dealer A (Divide by Ask), convert GBP to USD at Dealer B (Multiply by Bid)
+            const gbpFromA = notionalUSD / dealerA_ask;
+            const usdFromB = gbpFromA * (1 / dealerB_ask); // Dealer B quotes USD/GBP ask
+            const profitA_to_B = usdFromB - notionalUSD;
+
+            // Option 2: Buy GBP at Dealer B, sell at Dealer A
+            const gbpFromB = notionalUSD * dealerB_bid;
+            const usdFromA = gbpFromB * dealerA_bid;
+            const profitB_to_A = usdFromA - notionalUSD;
+
+            const cardProfit = document.getElementById('card-loc-profit');
+            const statProfit = document.getElementById('stat-loc-profit');
+            const statDesc = document.getElementById('stat-loc-desc');
+            let ledgerHtml = '';
+
+            // Same $1 threshold the graded answer uses, so the panel and the result can
+            // never disagree on a sub-dollar rounding artefact.
+            if (profitA_to_B > 1.0 && profitA_to_B > profitB_to_A) {
+                cardProfit.className = 'stat-card profit';
+                statProfit.className = 'stat-number profit';
+                statProfit.innerText = `+${FINA3020Utils.formatCurrency(profitA_to_B, '$', 2)}`;
+                statDesc.innerText = 'Buy GBP from Dealer A, Sell to Dealer B';
+                ledgerHtml = `
+                    <tr><td>1</td><td>Buy GBP from Dealer A at Ask = ${dealerA_ask.toFixed(4)} GBP/USD</td><td>Receive ${gbpFromA.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} GBP</td></tr>
+                    <tr><td>2</td><td>Sell GBP to Dealer B at USD/GBP Ask = ${dealerB_ask.toFixed(4)}</td><td>Receive $${usdFromB.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} USD</td></tr>
+                    <tr style="background:rgba(16,185,129,0.15); font-weight:700;"><td colspan="2">Net Locational Arbitrage Profit</td><td style="color:var(--success);">+${FINA3020Utils.formatCurrency(profitA_to_B, '$', 2)}</td></tr>
+                `;
+            } else if (profitB_to_A > 1.0) {
+                cardProfit.className = 'stat-card profit';
+                statProfit.className = 'stat-number profit';
+                statProfit.innerText = `+${FINA3020Utils.formatCurrency(profitB_to_A, '$', 2)}`;
+                statDesc.innerText = 'Buy GBP from Dealer B, Sell to Dealer A';
+                ledgerHtml = `
+                    <tr><td>1</td><td>Buy GBP from Dealer B at USD/GBP Bid = ${dealerB_bid.toFixed(4)}</td><td>Receive ${gbpFromB.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} GBP</td></tr>
+                    <tr><td>2</td><td>Sell GBP to Dealer A at Bid = ${dealerA_bid.toFixed(4)} GBP/USD</td><td>Receive $${usdFromA.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} USD</td></tr>
+                    <tr style="background:rgba(16,185,129,0.15); font-weight:700;"><td colspan="2">Net Locational Arbitrage Profit</td><td style="color:var(--success);">+${FINA3020Utils.formatCurrency(profitB_to_A, '$', 2)}</td></tr>
+                `;
+            } else {
+                cardProfit.className = 'stat-card neutral';
+                statProfit.className = 'stat-number gold';
+                statProfit.innerText = '$0.00';
+                statDesc.innerText = 'Spread eliminates locational profit';
+                ledgerHtml = `<tr><td colspan="3" style="text-align:center; color:var(--text-secondary);">No locational arbitrage available after bid-ask spreads.</td></tr>`;
+            }
+            document.getElementById('loc-ledger-body').innerHTML = ledgerHtml;
+
+            const hintPanel = document.getElementById('lab-hint-panel');
+            if (hintPanel && hintPanel.style.display !== 'none') {
+                updateLabHintStep();
+            }
+        }
+
+        /* Update Mode 2: Order Book Market-Making */
+        function updateOrderBook() {
+            const mid = parseFloat(document.getElementById('input-ob-mid').value);
+            const spreadPips = parseFloat(document.getElementById('input-ob-spread').value);
+            const orderSize = parseFloat(document.getElementById('input-ob-ordersize').value);
+            const direction = document.getElementById('input-ob-direction').value;
+
+            document.getElementById('val-ob-mid').innerText = mid.toFixed(4);
+            document.getElementById('val-ob-spread').innerText = `${spreadPips} pip${spreadPips === 1 ? '' : 's'}`;
+            document.getElementById('val-ob-ordersize').innerText = `$${orderSize.toLocaleString('en-US')}`;
+            document.getElementById('val-ob-direction').innerText = direction === 'sell' ? 'Market Sell USD' : 'Market Buy USD';
+
+            // Same ladder the graded answer uses.
+            const book = buildBook();
+            const pip = book.pip;
+            const bids = book.bids;
+            const asks = book.asks;
+
+            // Render Depth Table
+            let depthHtml = '';
+            for (let i = 0; i < OB_LEVELS; i++) {
+                const b = bids[i];
+                const a = asks[i];
+                const maxVol = 2000000;
+                const bWidth = Math.min(100, (b.size / maxVol) * 100);
+                const aWidth = Math.min(100, (a.size / maxVol) * 100);
+
+                depthHtml += `
+                    <tr>
+                        <td class="bid-row">
+                            <div class="depth-bar-bid" style="width: ${bWidth}%;"></div>
+                            <span class="table-cell-content">$${b.size.toLocaleString('en-US')}</span>
+                        </td>
+                        <td style="text-align: right; font-weight: 700;" class="bid-row">${b.price.toFixed(4)}</td>
+                        <td style="text-align: left; font-weight: 700;" class="ask-row">${a.price.toFixed(4)}</td>
+                        <td class="ask-row" style="text-align: right;">
+                            <div class="depth-bar-ask" style="width: ${aWidth}%;"></div>
+                            <span class="table-cell-content">$${a.size.toLocaleString('en-US')}</span>
+                        </td>
+                    </tr>
+                `;
+            }
+            document.getElementById('ob-depth-body').innerHTML = depthHtml;
+
+            // Simulate Market Order Fill Walking the Book
+            document.getElementById('ob-sim-details').innerText = `${direction === 'sell' ? 'Market Sell' : 'Market Buy'} $${orderSize.toLocaleString('en-US')} USD`;
+
+            const bookSide = direction === 'sell' ? bids : asks;
+            let remaining = orderSize;
+            let totalCashHKD = 0;
+            let fillsHtml = '';
+            let cumFilled = 0;
+
+            for (let i = 0; i < bookSide.length; i++) {
+                if (remaining <= 0) break;
+                const level = bookSide[i];
+                const fillVol = Math.min(remaining, level.size);
+                const hkdVol = fillVol * level.price;
+                totalCashHKD += hkdVol;
+                remaining -= fillVol;
+                cumFilled += fillVol;
+                const pct = ((cumFilled / orderSize) * 100).toFixed(0);
+
+                fillsHtml += `
+                    <tr>
+                        <td>Level ${i+1}</td>
+                        <td style="font-weight:700;">${level.price.toFixed(4)}</td>
+                        <td>$${fillVol.toLocaleString('en-US')} USD</td>
+                        <td>HK$${hkdVol.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td>
+                        <td>${pct}%</td>
+                    </tr>
+                `;
+            }
+
+            if (remaining > 0) {
+                fillsHtml += `
+                    <tr style="background: rgba(239, 68, 68, 0.15); font-weight:700;">
+                        <td>Unfilled</td>
+                        <td>--</td>
+                        <td style="color:var(--danger);">$${remaining.toLocaleString('en-US')} USD</td>
+                        <td style="color:var(--danger);">Exceeds Book Depth</td>
+                        <td>${((cumFilled / orderSize) * 100).toFixed(0)}%</td>
+                    </tr>
+                `;
+            }
+
+            document.getElementById('ob-fills-body').innerHTML = fillsHtml;
+
+            const vwap = cumFilled > 0 ? totalCashHKD / cumFilled : 0;
+            document.getElementById('ob-vwap').innerText = vwap.toFixed(4);
+
+            const topPrice = direction === 'sell' ? bids[0].price : asks[0].price;
+            const slippagePips = direction === 'sell'
+                ? ((topPrice - vwap) / pip)
+                : ((vwap - topPrice) / pip);
+
+            const statSlippage = document.getElementById('ob-slippage');
+            const cardSlippage = document.getElementById('card-ob-slippage');
+
+            if (remaining > 0) {
+                cardSlippage.className = 'stat-card loss';
+                statSlippage.innerText = 'UNFILLED';
+                document.getElementById('ob-slippage-desc').innerText = 'Order size exceeds total available order book depth!';
+            } else {
+                statSlippage.innerText = `${slippagePips > 0 ? '-' : '+'}${Math.abs(slippagePips).toFixed(2)} pips`;
+                if (slippagePips >= 0.50) {
+                    cardSlippage.className = 'stat-card loss';
+                    document.getElementById('ob-slippage-desc').innerText = 'Significant execution slippage (walked multiple book levels)';
+                } else {
+                    cardSlippage.className = 'stat-card neutral';
+                    document.getElementById('ob-slippage-desc').innerText = 'Minimal slippage (filled near top bid/ask)';
+                }
+            }
+
+            const hintPanel = document.getElementById('lab-hint-panel');
+            if (hintPanel && hintPanel.style.display !== 'none') {
+                updateLabHintStep();
+            }
+        }
+
+        /* Update Mode 3: Triangular */
+        function updateTriangular() {
+            const eurusd = parseFloat(document.getElementById('input-eurusd').value);
+            const usdjpy = parseFloat(document.getElementById('input-usdjpy').value);
+            const eurjpy = parseFloat(document.getElementById('input-eurjpy').value);
+            const spreadBps = parseFloat(document.getElementById('input-tri-spread').value);
+
+            document.getElementById('val-eurusd').innerText = eurusd.toFixed(4);
+            document.getElementById('val-usdjpy').innerText = usdjpy.toFixed(2);
+            document.getElementById('val-eurjpy').innerText = eurjpy.toFixed(2);
+            document.getElementById('val-tri-spread').innerText = `${spreadBps} bps`;
+
+            const spreadPct = spreadBps / 10000;
+            document.getElementById('eurusd-bid').innerText = (eurusd * (1 - spreadPct/2)).toFixed(4);
+            document.getElementById('eurusd-ask').innerText = (eurusd * (1 + spreadPct/2)).toFixed(4);
+            document.getElementById('usdjpy-bid').innerText = (usdjpy * (1 - spreadPct/2)).toFixed(2);
+            document.getElementById('usdjpy-ask').innerText = (usdjpy * (1 + spreadPct/2)).toFixed(2);
+            document.getElementById('eurjpy-bid').innerText = (eurjpy * (1 - spreadPct/2)).toFixed(2);
+            document.getElementById('eurjpy-ask').innerText = (eurjpy * (1 + spreadPct/2)).toFixed(2);
+
+            const synthEurJpy = eurusd * usdjpy;
+            document.getElementById('stat-synth-eurjpy').innerText = synthEurJpy.toFixed(2);
+
+            const hintPanel = document.getElementById('lab-hint-panel');
+            if (hintPanel && hintPanel.style.display !== 'none') {
+                updateLabHintStep();
+            }
+        }
+
+        function executeTriangular(direction) {
+            const notionalEUR = 1000000;
+            const spreadPct = parseFloat(document.getElementById('input-tri-spread').value) / 10000;
+            const eurusd = parseFloat(document.getElementById('input-eurusd').value);
+            const usdjpy = parseFloat(document.getElementById('input-usdjpy').value);
+            const eurjpy = parseFloat(document.getElementById('input-eurjpy').value);
+
+            const eurusdBid = eurusd * (1 - spreadPct/2);
+            const eurusdAsk = eurusd * (1 + spreadPct/2);
+            const usdjpyBid = usdjpy * (1 - spreadPct/2);
+            const usdjpyAsk = usdjpy * (1 + spreadPct/2);
+            const eurjpyBid = eurjpy * (1 - spreadPct/2);
+            const eurjpyAsk = eurjpy * (1 + spreadPct/2);
+
+            let resultEUR = 0;
+            let html = '';
+            const cardProfit = document.getElementById('card-tri-profit');
+            const statResult = document.getElementById('stat-tri-result');
+            const statPath = document.getElementById('stat-tri-path');
+
+            if (direction === 'clockwise') {
+                const usdProceeds = notionalEUR * eurusdBid;
+                const jpyProceeds = usdProceeds * usdjpyBid;
+                const finalEUR = jpyProceeds / eurjpyAsk;
+                resultEUR = finalEUR - notionalEUR;
+
+                html = `
+                    <tr><td>Leg 1</td><td>Sell 1,000,000 EUR for USD</td><td>${eurusdBid.toFixed(4)} USD per EUR</td><td>+$${usdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} USD</td></tr>
+                    <tr><td>Leg 2</td><td>Sell USD for JPY</td><td>${usdjpyBid.toFixed(2)} JPY per USD</td><td>+¥${jpyProceeds.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0})} JPY</td></tr>
+                    <tr><td>Leg 3</td><td>Buy EUR with JPY</td><td>${eurjpyAsk.toFixed(2)} JPY per EUR</td><td>€${finalEUR.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} EUR</td></tr>
+                    <tr style="background: ${resultEUR > 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.1)'}; font-weight:700;">
+                        <td colspan="3">Net result after all three trades</td>
+                        <td style="color:${resultEUR > 0 ? 'var(--success)' : 'var(--danger)'};">${resultEUR > 0 ? '+' : ''}€${resultEUR.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} EUR</td>
+                    </tr>
+                `;
+            } else {
+                const jpyProceeds = notionalEUR * eurjpyBid;
+                const usdProceeds = jpyProceeds / usdjpyAsk;
+                const finalEUR = usdProceeds / eurusdAsk;
+                resultEUR = finalEUR - notionalEUR;
+
+                html = `
+                    <tr><td>Leg 1</td><td>Sell 1,000,000 EUR for JPY</td><td>${eurjpyBid.toFixed(2)} JPY per EUR</td><td>+¥${jpyProceeds.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0})} JPY</td></tr>
+                    <tr><td>Leg 2</td><td>Buy USD with JPY</td><td>${usdjpyAsk.toFixed(2)} JPY per USD</td><td>+$${usdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} USD</td></tr>
+                    <tr><td>Leg 3</td><td>Buy EUR with USD</td><td>${eurusdAsk.toFixed(4)} USD per EUR</td><td>€${finalEUR.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} EUR</td></tr>
+                    <tr style="background: ${resultEUR > 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.1)'}; font-weight:700;">
+                        <td colspan="3">Net result after all three trades</td>
+                        <td style="color:${resultEUR > 0 ? 'var(--success)' : 'var(--danger)'};">${resultEUR > 0 ? '+' : ''}€${resultEUR.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} EUR</td>
+                    </tr>
+                `;
+            }
+
+            if (resultEUR > 0) {
+                cardProfit.className = 'stat-card profit';
+                statResult.className = 'stat-number profit';
+                statResult.innerText = `+€${FINA3020Utils.formatNumber(resultEUR, 2)}`;
+                statPath.innerText = direction === 'clockwise' ? 'Clockwise is profitable' : 'Counter-clockwise is profitable';
+            } else {
+                cardProfit.className = 'stat-card loss';
+                statResult.className = 'stat-number loss';
+                statResult.innerText = `€${FINA3020Utils.formatNumber(resultEUR, 2)}`;
+                statPath.innerText = 'This direction loses money after the spread';
+            }
+
+            document.getElementById('tri-ledger-body').innerHTML = html;
+        }
+
+        function resetDefaults() {
+            // Dealer B's reciprocal is the exact inverse of Dealer A, so the reset state
+            // is a clean no-arbitrage market. The old default (0.9375 against 1.3333)
+            // implied a 25% riskless FX arbitrage.
+            document.getElementById('input-loc-dealerA').value = 1.3333;
+            document.getElementById('input-loc-dealerB').value = 0.7500;
+            document.getElementById('input-loc-spread').value = 10;
+
+            document.getElementById('input-ob-mid').value = 7.8000;
+            document.getElementById('input-ob-spread').value = 2;
+            document.getElementById('input-ob-ordersize').value = "1500000";
+            document.getElementById('input-ob-direction').value = "sell";
+
+            document.getElementById('input-eurusd').value = 1.0850;
+            document.getElementById('input-usdjpy').value = 155.20;
+            document.getElementById('input-eurjpy').value = 168.00;
+            document.getElementById('input-tri-spread').value = 10;
+
+            updateLocational();
+            updateOrderBook();
+            updateTriangular();
+        }
+
+        window.addEventListener('load', initApp);
+    </script>
+</body>
+</html>
