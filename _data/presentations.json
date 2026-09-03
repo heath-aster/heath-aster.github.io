@@ -200,16 +200,16 @@
           "website_selected": true,
           "include_in_cv": false,
           "cv_label": "EEA",
-          "upcoming": true,
+          "upcoming": false,
           "presenter": "coauthor",
           "note": "by Victor Orestes"
         },
         {
           "date": "2027-01",
-          "venue": "IBEFA",
+          "venue": "IBEFA (ASSA)",
           "website_selected": true,
           "include_in_cv": false,
-          "cv_label": "IBEFA",
+          "cv_label": "IBEFA (ASSA)",
           "upcoming": true,
           "presenter": "coauthor",
           "note": "by Victor Orestes"
