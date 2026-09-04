@@ -2,6 +2,7 @@
 {% assign selected_talks = project.talks | where: "website_selected", true %}
 {% assign selected_past = selected_talks | where: "upcoming", false %}
 {% assign selected_upcoming = selected_talks | where: "upcoming", true %}
+{% assign selected_coauthor = selected_talks | where: "presenter", "coauthor" %}
 {% if selected_talks.size > 0 %}
-<p><small><strong>Selected presentations:</strong>{% if selected_past.size > 0 %} {% for talk in selected_past %}{{ talk.website_label | default: talk.venue }}{% unless forloop.last %}, {% endunless %}{% endfor %}{% endif %}{% if selected_upcoming.size > 0 %}{% if selected_past.size > 0 %}. {% else %} {% endif %}<strong>Upcoming:</strong> {% for talk in selected_upcoming %}{{ talk.website_label | default: talk.venue }}{% unless forloop.last %}, {% endunless %}{% endfor %}{% endif %}.</small></p>
+<p><small><strong>Selected presentations:</strong>{% if selected_past.size > 0 %} {% for talk in selected_past %}{{ talk.website_label | default: talk.venue }}{% if talk.presenter == "coauthor" %}*{% endif %}{% unless forloop.last %}, {% endunless %}{% endfor %}{% endif %}{% if selected_upcoming.size > 0 %}{% if selected_past.size > 0 %}. {% else %} {% endif %}<strong>Upcoming:</strong> {% for talk in selected_upcoming %}{{ talk.website_label | default: talk.venue }}{% if talk.presenter == "coauthor" %}*{% endif %}{% unless forloop.last %}, {% endunless %}{% endfor %}{% endif %}.{% if selected_coauthor.size > 0 %} (* presented by co-author){% endif %}</small></p>
 {% endif %}
