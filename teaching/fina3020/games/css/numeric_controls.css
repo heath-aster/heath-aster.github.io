@@ -1,0 +1,26 @@
+.exact-value-control {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    align-items: center;
+    margin: .4rem 0 .75rem;
+    font-size: .875rem;
+    color: var(--text-secondary, var(--muted, inherit));
+}
+.exact-value-control input[type="number"], .fx-midpoint-input {
+    box-sizing: border-box;
+    width: 10rem;
+    max-width: 100%;
+    min-width: 0;
+    padding: .5rem .65rem;
+    font: inherit;
+    font-size: 16px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary, var(--ink, inherit));
+    background: var(--bg-secondary, var(--panel, transparent));
+    border: 1px solid var(--border-color, var(--line, currentColor));
+    border-radius: 6px;
+}
+.exact-value-control input[aria-invalid="true"], .fx-midpoint-input:invalid {
+    outline: 2px solid var(--danger, #c54b46);
+}
