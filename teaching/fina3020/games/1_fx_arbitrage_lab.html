@@ -1319,6 +1319,18 @@
                 matched: matched
             };
 
+            if (activeMode === 'orderbook') {
+                const orderSize = Number(document.getElementById('input-ob-ordersize').value);
+                const direction = document.getElementById('input-ob-direction').value;
+                const book = buildBook();
+                const side = direction === 'sell' ? book.bids : book.asks;
+                const walk = walkBook(side, orderSize);
+                const vwap = walk.cumFilled > 0 ? walk.totalCashHKD / walk.cumFilled : 0;
+                const slippagePips = (direction === 'sell' ? side[0].price - vwap : vwap - side[0].price) / book.pip;
+                Object.assign(currentRoundResponse, { orderSize, direction, vwap, slippagePips,
+                    filledSize: walk.cumFilled, unfilledSize: walk.remaining });
+            }
+
             document.getElementById('round-title').innerText = `Round ${roundNumber}: Result Revealed`;
             document.getElementById('round-feedback').innerText = matched
                 ? `Correct! Result matches your choice: ${predictionLabel(correct)}. Now enter your exit reflection below.`
@@ -1335,6 +1347,7 @@
             }
             currentRoundResponse.exitReflection = reflection;
             const saved = FINA3020Utils.recordResponse(currentRoundResponse);
+            const submittedRound = currentRoundResponse;
 
             document.getElementById('reflection-section').style.display = 'none';
             const feedbackEl = document.getElementById('round-feedback');
@@ -1344,6 +1357,7 @@
             // Participation is graded from these submissions, so a submission that
             // silently failed would cost a student a mark they had earned.
             saved.deliveryPromise.then(confirmed => {
+                if (currentRoundResponse !== submittedRound) return;
                 if (confirmed) {
                     feedbackEl.innerText = `Response confirmed for CUHK ID ${saved.studentId}. Click "New Round" for the next scenario.`;
                 } else {

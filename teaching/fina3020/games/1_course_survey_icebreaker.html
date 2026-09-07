@@ -709,7 +709,11 @@
             sessionStorage.setItem('fina3020_icebreaker', JSON.stringify(surveyData));
             document.getElementById('receiptHash').innerText = saved.submissionId;
 
+            document.getElementById('receiptIcon').innerText = '…';
+            document.getElementById('receiptHeadline').innerText = 'Submitting your response…';
+            document.getElementById('receiptDetail').innerText = 'Waiting for the server to confirm receipt.';
             saved.deliveryPromise.then(confirmed => {
+                if (document.getElementById('receiptHash').innerText !== saved.submissionId) return;
                 const icon = document.getElementById('receiptIcon');
                 const headline = document.getElementById('receiptHeadline');
                 const detail = document.getElementById('receiptDetail');
@@ -734,8 +738,7 @@
             // Generate Recommendations
             renderRecommendations(selectedCareerValue, selectedTopics);
 
-            // Render Charts
-            renderCohortCharts(selectedCareerValue, selectedTopics);
+
         }
 
         function renderRecommendations(career, topics) {
@@ -878,16 +881,27 @@
                 document.getElementById('inputFullName').value = savedName;
             }
 
+            document.getElementById('inputSection').value = FINA3020Utils.getSection() || '';
+
             if (data) {
                 selectedCareerValue = data.career;
                 selectedTopics = data.topics || [];
                 document.getElementById('receiptHash').innerText = data.hash || '—';
-                document.getElementById('receiptIcon').innerText = '✓';
-                document.getElementById('receiptHeadline').innerText = 'Survey Already Submitted';
-                document.getElementById('receiptDetail').innerText =
-                    'This device has already recorded your Week 1 survey response.';
+                const updateReceipt = () => {
+                    const entry = FINA3020Utils._readHistory().find(item => item.submissionId === data.hash);
+                    const confirmed = !!(entry && entry.delivered);
+                    document.getElementById('receiptIcon').innerText = confirmed ? '✓' : '!';
+                    document.getElementById('receiptHeadline').innerText = confirmed ? 'Survey Response Confirmed' : 'Not Yet Confirmed';
+                    document.getElementById('receiptDetail').innerText = confirmed
+                        ? 'Your response was received and recorded for Week 1.'
+                        : 'Your saved response has not been confirmed by the server. Reload to retry, or contact the TA with the submission reference.';
+                };
+                updateReceipt();
+                FINA3020Utils.onDeliveryChange(() => {
+                    if (document.getElementById('receiptHash').innerText === data.hash) updateReceipt();
+                });
                 renderRecommendations(data.career, selectedTopics);
-                renderCohortCharts(data.career, selectedTopics);
+
                 document.getElementById('icebreakerForm').style.display = 'none';
                 document.getElementById('resultsDashboard').style.display = 'block';
             }

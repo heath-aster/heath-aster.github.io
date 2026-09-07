@@ -458,12 +458,12 @@ const FINA3020Utils = {
             return res.text();
         }).then(text => {
             const cleanText = String(text || '').trim();
-            if (cleanText === 'Success' || /success/i.test(cleanText)) {
+            if (cleanText === 'Success') {
                 return {
                     ok: true,
                     submissionId: payload.submissionId,
                     receiptId: payload.submissionId,
-                    serverTimestamp: new Date().toISOString()
+                    serverTimestamp: null // Legacy receiver supplies no server timestamp.
                 };
             }
             let ack;
@@ -473,11 +473,14 @@ const FINA3020Utils = {
             if (!ack || ack.ok !== true) {
                 throw new Error(ack && ack.error ? `Submission rejected: ${ack.error}` : 'Submission endpoint returned an invalid receipt.');
             }
+            if (ack.submissionId && ack.submissionId !== payload.submissionId) {
+                throw new Error('Submission endpoint returned a receipt for a different submission.');
+            }
             return {
                 ok: true,
                 submissionId: ack.submissionId || payload.submissionId,
                 receiptId: ack.receiptId || payload.submissionId,
-                serverTimestamp: ack.serverTimestamp || new Date().toISOString()
+                serverTimestamp: ack.serverTimestamp || null
             };
         });
     },
