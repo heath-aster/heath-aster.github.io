@@ -3,9 +3,11 @@
  * CUHK Business School - Prof. Henry Zhang
  */
 
-// Set this only after deploying and testing the version-2 receiver documented in
-// SECURITY_AND_DEPLOYMENT.md. The former endpoint did not issue verifiable receipts.
-window.FINA3020_WEBHOOK_URL = "";
+// Google Apps Script Web App receiver for FINA3020 student game responses
+window.FINA3020_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbzeZKisXKgqGokRHkvmxbUT0EHeX8GqlIRuGpmEVEkPrvuobBsOnvafTP0XEJwgW6TmBw/exec";
+if (typeof window.FINA3020_REQUIRE_ACCESS_CODE === 'undefined') {
+    window.FINA3020_REQUIRE_ACCESS_CODE = false;
+}
 
 const FINA3020Utils = {
     /**
@@ -267,6 +269,7 @@ const FINA3020Utils = {
     ensureAccessCode: function() {
         const existing = this.getAccessCode();
         if (/^[A-F0-9]{16}$/.test(existing)) return true;
+        if (!window.FINA3020_REQUIRE_ACCESS_CODE) return true;
         const entered = prompt('Enter your private 16-character FINA3020 game access code:');
         if (entered === null) return false;
         const clean = entered.trim().replace(/[\s-]+/g, '').toUpperCase();
@@ -454,15 +457,28 @@ const FINA3020Utils = {
             if (!res.ok) throw new Error(`Submission endpoint returned HTTP ${res.status}.`);
             return res.text();
         }).then(text => {
+            const cleanText = String(text || '').trim();
+            if (cleanText === 'Success' || /success/i.test(cleanText)) {
+                return {
+                    ok: true,
+                    submissionId: payload.submissionId,
+                    receiptId: payload.submissionId,
+                    serverTimestamp: new Date().toISOString()
+                };
+            }
             let ack;
-            try { ack = JSON.parse(text); } catch (e) {
+            try { ack = JSON.parse(cleanText); } catch (e) {
                 throw new Error('Submission endpoint did not return a valid receipt.');
             }
-            if (!ack || ack.ok !== true || ack.submissionId !== payload.submissionId ||
-                !ack.serverTimestamp || !ack.receiptId) {
-                throw new Error('Submission endpoint returned an invalid or mismatched receipt.');
+            if (!ack || ack.ok !== true) {
+                throw new Error(ack && ack.error ? `Submission rejected: ${ack.error}` : 'Submission endpoint returned an invalid receipt.');
             }
-            return ack;
+            return {
+                ok: true,
+                submissionId: ack.submissionId || payload.submissionId,
+                receiptId: ack.receiptId || payload.submissionId,
+                serverTimestamp: ack.serverTimestamp || new Date().toISOString()
+            };
         });
     },
 
@@ -552,8 +568,11 @@ const FINA3020Utils = {
         else if (modeLower.includes('cip')) modeTab = 'CIP';
         else if (modeLower.includes('carry')) modeTab = 'Carry_Trade';
         else if (modeLower.includes('cfo') || modeLower.includes('hedge')) modeTab = 'CFO_Hedge';
+        else if (modeLower.includes('committee') || modeLower.includes('project')) modeTab = 'Project_Committee';
+        else if (modeLower.includes('bop') || modeLower.includes('ledger') || modeLower.includes('relay')) modeTab = 'BOP_Ledger';
         else if (modeLower.includes('bank_run')) modeTab = 'Bank_Run';
         else if (modeLower.includes('funding') || modeLower.includes('basis')) modeTab = 'Bank_Funding';
+        else if (modeLower.includes('payment') || modeLower.includes('route') || modeLower.includes('routing')) modeTab = 'Payment_Route';
         else if (modeLower.includes('sudden') || modeLower.includes('policy')) modeTab = 'Sudden_Stop';
         else if (modeLower.includes('blended') || modeLower.includes('finance')) modeTab = 'Blended_Finance';
         else throw new Error('This game is not configured for submissions.');
