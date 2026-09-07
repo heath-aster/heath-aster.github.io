@@ -6,6 +6,7 @@
 
     function attach(slider) {
         if (attached.has(slider)) return;
+        if (slider.parentElement?.querySelector?.('.control-value-input')) return;
         attached.add(slider);
         const row = document.createElement('label');
         row.className = 'exact-value-control';

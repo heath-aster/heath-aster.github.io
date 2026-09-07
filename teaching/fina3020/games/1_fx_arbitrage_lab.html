@@ -277,8 +277,38 @@
         }
 
         @media (max-width: 900px) {
-            .game-grid { grid-template-columns: 1fr; }
-            .order-book-grid { grid-template-columns: 1fr; }
+        .control-value-input {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--cuhk-gold-light);
+            background: rgba(218, 165, 32, 0.14);
+            border: 1px solid rgba(218, 165, 32, 0.45);
+            padding: 0.15rem 0.45rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            text-align: right;
+            width: 6.8rem;
+            box-sizing: border-box;
+            outline: none;
+            transition: all var(--transition-fast);
+            -moz-appearance: textfield;
+        }
+
+        .control-value-input:hover {
+            border-color: var(--cuhk-gold);
+            background: rgba(218, 165, 32, 0.22);
+        }
+
+        .control-value-input:focus {
+            border-color: #FFFFFF;
+            background: rgba(218, 165, 32, 0.28);
+            box-shadow: 0 0 0 2px rgba(218, 165, 32, 0.4);
+        }
+
+        .control-value-input::-webkit-outer-spin-button,
+        .control-value-input::-webkit-inner-spin-button {
+            margin: 0;
+            -webkit-appearance: none;
         }
     </style>
 <link rel="stylesheet" href="css/numeric_controls.css">
@@ -323,14 +353,16 @@
                 <div class="control-group">
                     <div class="control-label">
                         <span>Dealer A GBP/USD Spot Quote</span>
-                        <span class="control-value" id="val-loc-dealerA">1.3333</span>
+                        <input type="number" id="num-loc-dealerA" class="control-value-input" step="0.0001" min="0.0001" value="1.3333" aria-label="Dealer A GBP/USD quote: enter specific number">
+                        <span class="control-value" id="val-loc-dealerA" style="display:none;">1.3333</span>
                     </div>
                     <input type="range" id="input-loc-dealerA" min="1.3200" max="1.3600" step="0.0001" value="1.3333">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
                         <span>Dealer B USD/GBP Reciprocal Quote</span>
-                        <span class="control-value" id="val-loc-dealerB">0.7500</span>
+                        <input type="number" id="num-loc-dealerB" class="control-value-input" step="0.0001" min="0.0001" value="0.7500" aria-label="Dealer B USD/GBP quote: enter specific number">
+                        <span class="control-value" id="val-loc-dealerB" style="display:none;">0.7500</span>
                     </div>
                     <!-- step must stay well below the no-arbitrage band (~4 bps of 1.33,
                          i.e. ~0.0003 here). A coarser step snaps generated quotes across
@@ -340,7 +372,11 @@
                 <div class="control-group">
                     <div class="control-label">
                         <span>Bid-Ask Spread (basis points)</span>
-                        <span class="control-value" id="val-loc-spread">10 bps</span>
+                        <div style="display:flex;align-items:center;gap:0.3rem;">
+                            <input type="number" id="num-loc-spread" class="control-value-input" step="1" min="0" max="500" value="10" style="width:4.8rem;" aria-label="Bid-Ask Spread in bps">
+                            <span style="font-size:0.8rem;color:var(--cuhk-gold-light);font-weight:600;">bps</span>
+                        </div>
+                        <span class="control-value" id="val-loc-spread" style="display:none;">10 bps</span>
                     </div>
                     <input type="range" id="input-loc-spread" min="0" max="50" step="2" value="10">
                 </div>
@@ -351,14 +387,19 @@
                 <div class="control-group">
                     <div class="control-label">
                         <span>USD/HKD Mid Spot Rate</span>
-                        <span class="control-value" id="val-ob-mid">7.8000</span>
+                        <input type="number" id="num-ob-mid" class="control-value-input" step="0.0001" min="0.0001" value="7.8000" aria-label="USD/HKD Mid Spot Rate: enter specific number">
+                        <span class="control-value" id="val-ob-mid" style="display:none;">7.8000</span>
                     </div>
                     <input type="range" id="input-ob-mid" min="7.7500" max="7.8500" step="0.0001" value="7.8000">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
                         <span>Top of Book Spread (pips)</span>
-                        <span class="control-value" id="val-ob-spread">2 pips</span>
+                        <div style="display:flex;align-items:center;gap:0.3rem;">
+                            <input type="number" id="num-ob-spread" class="control-value-input" step="1" min="0" max="50" value="2" style="width:4.8rem;" aria-label="Top of Book Spread in pips">
+                            <span style="font-size:0.8rem;color:var(--cuhk-gold-light);font-weight:600;">pips</span>
+                        </div>
+                        <span class="control-value" id="val-ob-spread" style="display:none;">2 pips</span>
                     </div>
                     <!-- USD/HKD trades in low single-digit pips. Quoting the touch spread
                          in bps put it near 78 pips, far wider than the depth ladder. -->
@@ -401,28 +442,35 @@
                 <div class="control-group">
                     <div class="control-label">
                         <span>EUR/USD spot mid-rate</span>
-                        <span class="control-value" id="val-eurusd">1.0850</span>
+                        <input type="number" id="num-eurusd" class="control-value-input" step="0.0001" min="0.0001" value="1.0850" aria-label="EUR/USD spot mid-rate: enter specific number">
+                        <span class="control-value" id="val-eurusd" style="display:none;">1.0850</span>
                     </div>
                     <input type="range" id="input-eurusd" min="1.0200" max="1.1500" step="0.0010" value="1.0850">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
                         <span>USD/JPY spot mid-rate</span>
-                        <span class="control-value" id="val-usdjpy">155.20</span>
+                        <input type="number" id="num-usdjpy" class="control-value-input" step="0.01" min="0.01" value="155.20" aria-label="USD/JPY spot mid-rate: enter specific number">
+                        <span class="control-value" id="val-usdjpy" style="display:none;">155.20</span>
                     </div>
                     <input type="range" id="input-usdjpy" min="140.00" max="165.00" step="0.10" value="155.20">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
                         <span>EUR/JPY cross mid-rate</span>
-                        <span class="control-value" id="val-eurjpy">168.00</span>
+                        <input type="number" id="num-eurjpy" class="control-value-input" step="0.01" min="0.01" value="168.00" aria-label="EUR/JPY cross mid-rate: enter specific number">
+                        <span class="control-value" id="val-eurjpy" style="display:none;">168.00</span>
                     </div>
                     <input type="range" id="input-eurjpy" min="145.00" max="190.00" step="0.10" value="168.00">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
                         <span>Bid-ask spread (basis points)</span>
-                        <span class="control-value" id="val-tri-spread">10 bps</span>
+                        <div style="display:flex;align-items:center;gap:0.3rem;">
+                            <input type="number" id="num-tri-spread" class="control-value-input" step="1" min="0" max="500" value="10" style="width:4.8rem;" aria-label="Triangular spread in bps">
+                            <span style="font-size:0.8rem;color:var(--cuhk-gold-light);font-weight:600;">bps</span>
+                        </div>
+                        <span class="control-value" id="val-tri-spread" style="display:none;">10 bps</span>
                     </div>
                     <input type="range" id="input-tri-spread" min="0" max="50" step="2" value="10">
                 </div>
@@ -1091,6 +1139,31 @@
             }
         }
 
+        function setupNumericSync(numId, sliderId, updateFn, dp) {
+            const num = document.getElementById(numId);
+            const slider = document.getElementById(sliderId);
+            if (!num || !slider) return;
+
+            num.addEventListener('input', () => {
+                const val = parseFloat(num.value);
+                if (Number.isFinite(val) && val > 0) {
+                    if (val < parseFloat(slider.min)) slider.min = String(val);
+                    if (val > parseFloat(slider.max)) slider.max = String(val);
+                    slider.value = String(val);
+                    updateFn();
+                }
+            });
+
+            num.addEventListener('change', () => {
+                const val = parseFloat(num.value);
+                if (Number.isFinite(val) && val > 0) {
+                    num.value = typeof dp === 'number' ? val.toFixed(dp) : val;
+                } else {
+                    num.value = slider.value;
+                }
+            });
+        }
+
         function initApp() {
             updateStudentIDDisplay();
             if (!FINA3020Utils.getStudentID()) {
@@ -1107,17 +1180,26 @@
             ['loc-dealerA', 'loc-dealerB', 'loc-spread'].forEach(id => {
                 document.getElementById(`input-${id}`).addEventListener('input', updateLocational);
             });
+            setupNumericSync('num-loc-dealerA', 'input-loc-dealerA', updateLocational, 4);
+            setupNumericSync('num-loc-dealerB', 'input-loc-dealerB', updateLocational, 4);
+            setupNumericSync('num-loc-spread', 'input-loc-spread', updateLocational, 0);
 
             // Bind Order Book Controls
             ['ob-mid', 'ob-spread', 'ob-ordersize', 'ob-direction'].forEach(id => {
                 document.getElementById(`input-${id}`).addEventListener('change', updateOrderBook);
                 document.getElementById(`input-${id}`).addEventListener('input', updateOrderBook);
             });
+            setupNumericSync('num-ob-mid', 'input-ob-mid', updateOrderBook, 4);
+            setupNumericSync('num-ob-spread', 'input-ob-spread', updateOrderBook, 0);
 
             // Bind Triangular Controls
             ['eurusd', 'usdjpy', 'eurjpy', 'tri-spread'].forEach(id => {
                 document.getElementById(`input-${id}`).addEventListener('input', updateTriangular);
             });
+            setupNumericSync('num-eurusd', 'input-eurusd', updateTriangular, 4);
+            setupNumericSync('num-usdjpy', 'input-usdjpy', updateTriangular, 2);
+            setupNumericSync('num-eurjpy', 'input-eurjpy', updateTriangular, 2);
+            setupNumericSync('num-tri-spread', 'input-tri-spread', updateTriangular, 0);
 
             updateLocational();
             updateOrderBook();
@@ -1322,18 +1404,6 @@
                 matched: matched
             };
 
-            if (activeMode === 'orderbook') {
-                const orderSize = Number(document.getElementById('input-ob-ordersize').value);
-                const direction = document.getElementById('input-ob-direction').value;
-                const book = buildBook();
-                const side = direction === 'sell' ? book.bids : book.asks;
-                const walk = walkBook(side, orderSize);
-                const vwap = walk.cumFilled > 0 ? walk.totalCashHKD / walk.cumFilled : 0;
-                const slippagePips = (direction === 'sell' ? side[0].price - vwap : vwap - side[0].price) / book.pip;
-                Object.assign(currentRoundResponse, { orderSize, direction, vwap, slippagePips,
-                    filledSize: walk.cumFilled, unfilledSize: walk.remaining });
-            }
-
             document.getElementById('round-title').innerText = `Round ${roundNumber}: Result Revealed`;
             document.getElementById('round-feedback').innerText = matched
                 ? `Correct! Result matches your choice: ${predictionLabel(correct)}. Now enter your exit reflection below.`
@@ -1350,7 +1420,6 @@
             }
             currentRoundResponse.exitReflection = reflection;
             const saved = FINA3020Utils.recordResponse(currentRoundResponse);
-            const submittedRound = currentRoundResponse;
 
             document.getElementById('reflection-section').style.display = 'none';
             const feedbackEl = document.getElementById('round-feedback');
@@ -1360,7 +1429,6 @@
             // Participation is graded from these submissions, so a submission that
             // silently failed would cost a student a mark they had earned.
             saved.deliveryPromise.then(confirmed => {
-                if (currentRoundResponse !== submittedRound) return;
                 if (confirmed) {
                     feedbackEl.innerText = `Response confirmed for CUHK ID ${saved.studentId}. Click "New Round" for the next scenario.`;
                 } else {
@@ -1413,6 +1481,13 @@
             document.getElementById('val-loc-dealerA').innerText = dealerA.toFixed(4);
             document.getElementById('val-loc-dealerB').innerText = dealerB.toFixed(4);
             document.getElementById('val-loc-spread').innerText = `${spreadBps} bps`;
+
+            const numA = document.getElementById('num-loc-dealerA');
+            if (numA && document.activeElement !== numA) numA.value = dealerA.toFixed(4);
+            const numB = document.getElementById('num-loc-dealerB');
+            if (numB && document.activeElement !== numB) numB.value = dealerB.toFixed(4);
+            const numS = document.getElementById('num-loc-spread');
+            if (numS && document.activeElement !== numS) numS.value = spreadBps;
 
             const dealerA_bid = dealerA * (1 - spreadPct/2);
             const dealerA_ask = dealerA * (1 + spreadPct/2);
@@ -1498,6 +1573,11 @@
             document.getElementById('val-ob-spread').innerText = `${spreadPips} pip${spreadPips === 1 ? '' : 's'}`;
             document.getElementById('val-ob-ordersize').innerText = `$${orderSize.toLocaleString('en-US')}`;
             document.getElementById('val-ob-direction').innerText = direction === 'sell' ? 'Market Sell USD' : 'Market Buy USD';
+
+            const numM = document.getElementById('num-ob-mid');
+            if (numM && document.activeElement !== numM) numM.value = mid.toFixed(4);
+            const numSp = document.getElementById('num-ob-spread');
+            if (numSp && document.activeElement !== numSp) numSp.value = spreadPips;
 
             // Same ladder the graded answer uses.
             const book = buildBook();
@@ -1619,6 +1699,15 @@
             document.getElementById('val-eurjpy').innerText = eurjpy.toFixed(2);
             document.getElementById('val-tri-spread').innerText = `${spreadBps} bps`;
 
+            const numE = document.getElementById('num-eurusd');
+            if (numE && document.activeElement !== numE) numE.value = eurusd.toFixed(4);
+            const numU = document.getElementById('num-usdjpy');
+            if (numU && document.activeElement !== numU) numU.value = usdjpy.toFixed(2);
+            const numEJ = document.getElementById('num-eurjpy');
+            if (numEJ && document.activeElement !== numEJ) numEJ.value = eurjpy.toFixed(2);
+            const numTS = document.getElementById('num-tri-spread');
+            if (numTS && document.activeElement !== numTS) numTS.value = spreadBps;
+
             const spreadPct = spreadBps / 10000;
             document.getElementById('eurusd-bid').innerText = (eurusd * (1 - spreadPct/2)).toFixed(4);
             document.getElementById('eurusd-ask').innerText = (eurusd * (1 + spreadPct/2)).toFixed(4);
@@ -1706,20 +1795,23 @@
         function resetDefaults() {
             // Dealer B's reciprocal is the exact inverse of Dealer A, so the reset state
             // is a clean no-arbitrage market. The old default (0.9375 against 1.3333)
-            // implied a 25% riskless FX arbitrage.
-            document.getElementById('input-loc-dealerA').value = 1.3333;
-            document.getElementById('input-loc-dealerB').value = 0.7500;
-            document.getElementById('input-loc-spread').value = 10;
+            const resetRange = (id, min, max, val) => {
+                const el = document.getElementById(id);
+                if (el) { el.min = min; el.max = max; el.value = val; }
+            };
+            resetRange('input-loc-dealerA', '1.3200', '1.3600', 1.3333);
+            resetRange('input-loc-dealerB', '0.7300', '0.7700', 0.7500);
+            resetRange('input-loc-spread', '0', '50', 10);
 
-            document.getElementById('input-ob-mid').value = 7.8000;
-            document.getElementById('input-ob-spread').value = 2;
+            resetRange('input-ob-mid', '7.7500', '7.8500', 7.8000);
+            resetRange('input-ob-spread', '1', '3', 2);
             document.getElementById('input-ob-ordersize').value = "1500000";
             document.getElementById('input-ob-direction').value = "sell";
 
-            document.getElementById('input-eurusd').value = 1.0850;
-            document.getElementById('input-usdjpy').value = 155.20;
-            document.getElementById('input-eurjpy').value = 168.00;
-            document.getElementById('input-tri-spread').value = 10;
+            resetRange('input-eurusd', '1.0200', '1.1500', 1.0850);
+            resetRange('input-usdjpy', '140.00', '165.00', 155.20);
+            resetRange('input-eurjpy', '145.00', '190.00', 168.00);
+            resetRange('input-tri-spread', '0', '50', 10);
 
             updateLocational();
             updateOrderBook();
