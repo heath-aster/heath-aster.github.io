@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Conceptual Q&amp;A Clearinghouse | FINA3020</title>
+    <!-- Custom Design System -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <style>
+        :root {
+            --cuhk-gold-dim: rgba(218, 165, 32, 0.15);
+            --math-color: #fce79c;
+            --code-bg: rgba(0, 0, 0, 0.35);
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-glass: rgba(255, 255, 255, 0.9);
+            --bg-glass-hover: #f1f5f9;
+            --border-color: #e2e8f0;
+            --border-gold: rgba(180, 130, 10, 0.4);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --text-gold: #b45309;
+            --math-color: #92400e;
+            --code-bg: #f1f5f9;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.1);
+        }
+
+        .qa-container {
+            max-width: 1120px;
+            margin: 1.5rem auto 3rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .search-panel {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .search-box-row {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+
+        .search-icon-svg {
+            position: absolute;
+            left: 1.1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .search-input-field {
+            width: 100%;
+            padding: 0.85rem 3rem 0.85rem 3rem;
+            font-size: 1.05rem;
+            font-family: inherit;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            transition: var(--transition-fast);
+        }
+
+        .search-input-field:focus {
+            outline: none;
+            border-color: var(--cuhk-gold);
+            box-shadow: 0 0 0 3px var(--cuhk-gold-glow);
+        }
+
+        .search-shortcut-hint {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .filters-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filters-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-right: 0.25rem;
+        }
+
+        .filter-chip-btn {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.825rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .filter-chip-btn:hover {
+            border-color: var(--cuhk-gold);
+            color: var(--text-primary);
+        }
+
+        .filter-chip-btn.active {
+            background: linear-gradient(135deg, var(--cuhk-blue), #003399);
+            color: #ffffff;
+            border-color: var(--cuhk-gold);
+            box-shadow: 0 2px 8px rgba(0, 32, 96, 0.4);
+            font-weight: 600;
+        }
+
+        [data-theme="light"] .filter-chip-btn.active {
+            background: var(--cuhk-blue);
+            color: #ffffff;
+            border-color: var(--cuhk-blue);
+        }
+
+        .chip-count {
+            font-size: 0.7rem;
+            padding: 0.1rem 0.4rem;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .active .chip-count {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .results-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 0 0.25rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .text-action-link {
+            color: var(--cuhk-gold);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: underline;
+            padding: 0;
+        }
+
+        .text-action-link:hover {
+            color: var(--cuhk-gold-light);
+        }
+
+        .qa-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .qa-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-fast);
+        }
+
+        .qa-card:hover {
+            border-color: var(--border-gold);
+            box-shadow: var(--shadow-md);
+        }
+
+        .qa-card-header {
+            padding: 1.15rem 1.35rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            user-select: none;
+            background: transparent;
+        }
+
+        .qa-card-header:hover {
+            background: var(--bg-glass-hover);
+        }
+
+        .qa-card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.4;
+            margin-bottom: 0.35rem;
+        }
+
+        .qa-card-badges {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .topic-badge {
+            font-size: 0.725rem;
+            font-weight: 600;
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            background: rgba(0, 32, 96, 0.4);
+            border: 1px solid var(--border-gold);
+            color: var(--text-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        [data-theme="light"] .topic-badge {
+            background: #e0f2fe;
+            border-color: #bae6fd;
+            color: #0369a1;
+        }
+
+        .toggle-arrow {
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+            font-size: 1.1rem;
+            line-height: 1;
+            margin-top: 0.2rem;
+            flex-shrink: 0;
+        }
+
+        .qa-card.open .toggle-arrow {
+            transform: rotate(180deg);
+            color: var(--cuhk-gold);
+        }
+
+        .qa-card-body {
+            display: none;
+            padding: 1.25rem 1.35rem 1.5rem 1.35rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-main);
+        }
+
+        .qa-card.open .qa-card-body {
+            display: block;
+        }
+
+        .section-heading {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .question-box {
+            background: var(--bg-surface);
+            border-left: 3px solid var(--info);
+            border-radius: 6px;
+            padding: 0.9rem 1.15rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.55;
+            margin-bottom: 1.25rem;
+        }
+
+        .answer-box {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-gold);
+            border-radius: 8px;
+            padding: 1.15rem 1.25rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .answer-badge-header {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            background: var(--success-bg);
+            border: 1px solid var(--success);
+            color: var(--success);
+            padding: 0.2rem 0.55rem;
+            border-radius: 4px;
+            font-size: 0.725rem;
+            font-weight: 700;
+            margin-bottom: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Math formula formatting */
+        .math-block {
+            display: block;
+            margin: 0.85rem 0;
+            padding: 0.75rem 1rem;
+            background: var(--code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            font-size: 1.05rem;
+            color: var(--math-color);
+            text-align: center;
+            overflow-x: auto;
+        }
+
+        .math-inline {
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            font-size: 1rem;
+            color: var(--math-color);
+            padding: 0 0.2rem;
+            font-style: italic;
+        }
+
+        .math-frac {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            padding: 0 0.25rem;
+            font-size: 0.95em;
+        }
+
+        .math-num {
+            border-bottom: 1px solid currentColor;
+            padding-bottom: 1px;
+        }
+
+        .math-den {
+            padding-top: 1px;
+        }
+
+        .highlight-match {
+            background-color: rgba(218, 165, 32, 0.3);
+            color: inherit;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+
+        .no-matches-found {
+            text-align: center;
+            padding: 3.5rem 1.5rem;
+            background: var(--bg-surface);
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            color: var(--text-muted);
+        }
+
+        .copy-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .copy-btn:hover {
+            border-color: var(--cuhk-gold);
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .qa-container { padding: 0 1rem; margin-top: 1rem; }
+            .search-panel { padding: 1rem; }
+            .search-shortcut-hint { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="brand-section">
+            <span class="cuhk-badge">FINA3020 &middot; Knowledge Base</span>
+            <div>
+                <h1 class="app-title">Conceptual Q&amp;A Clearinghouse</h1>
+                <p class="app-subtitle">Searchable lecture principles, parity conditions, and international finance mechanics</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-secondary" id="themeToggleBtn" onclick="toggleTheme()">🌙 Dark</button>
+            <button class="btn btn-secondary" onclick="exportDataJSON()">Export JSON</button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="qa-container">
+        <!-- Search & Filter Card -->
+        <section class="search-panel">
+            <div class="search-box-row">
+                <svg class="search-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" class="search-input-field" id="qaSearchInput" placeholder="Search concepts (e.g. CIP formula, forward premium, Triffin, balance of payments, hedging, basis)..." autocomplete="off" spellcheck="false">
+                <span class="search-shortcut-hint">Press / to search</span>
+            </div>
+
+            <div class="filters-group" id="filterPillsContainer">
+                <span class="filters-label">Topic:</span>
+                <button class="filter-chip-btn active" data-cat="all">All Topics <span class="chip-count" id="count-all">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 1: FX Markets &amp; Quotations">Week 1: Quotes <span class="chip-count" id="count-w1">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 2: Parity Conditions &amp; Forward Markets">Week 2: Parity &amp; CIP <span class="chip-count" id="count-w2">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 3: Carry Trades &amp; FX Regimes">Week 3: Carry Trades <span class="chip-count" id="count-w3">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 4: FX Hedging &amp; Derivatives">Week 4: FX Hedging <span class="chip-count" id="count-w4">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 5: MNCs &amp; Capital Budgeting">Week 5: MNCs &amp; FDI <span class="chip-count" id="count-w5">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 6: Balance of Payments">Week 6: BoP Ledger <span class="chip-count" id="count-w6">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 7: Banking &amp; Eurodollar Markets">Week 7: Banking <span class="chip-count" id="count-w7">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 8: Basis &amp; Balance Sheets">Week 8: Basis &amp; Constraints <span class="chip-count" id="count-w8">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 9: Capital Markets &amp; ICAPM">Week 9: ICAPM <span class="chip-count" id="count-w9">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 10: Payment Rails &amp; Dollar Dominance">Week 10: Payments &amp; Dollar <span class="chip-count" id="count-w10">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 11: Sovereign Debt &amp; Sudden Stops">Week 11: Sudden Stops <span class="chip-count" id="count-w11">0</span></button>
+                <button class="filter-chip-btn" data-cat="Week 12: Transition &amp; Blended Finance">Week 12: Blended Finance <span class="chip-count" id="count-w12">0</span></button>
+            </div>
+        </section>
+
+        <!-- Results Info & Batch Actions -->
+        <div class="results-bar">
+            <span id="resultsCountLabel">Loading conceptual clearinghouse...</span>
+            <div class="results-actions">
+                <button class="text-action-link" id="toggleAllAccordionsBtn" onclick="toggleAllCards()">Expand All</button>
+            </div>
+        </div>
+
+        <!-- QA Accordion Feed -->
+        <div class="qa-list" id="qaFeedList"></div>
+    </main>
+
+    <script>
+        const QA_DATA = [
+            {
+                "id": "concept_parity_quotes",
+                "category": "Week 1: FX Markets & Quotations",
+                "subject": "Exchange Rate Quotation Conventions: Base vs. Quote Currency and Bid-Ask Rules",
+                "question": "How do market quote conventions (Base/Quote) work, and how do you calculate inverse rates, bid-ask spreads, and cross rates?",
+                "instructor_answer": "In international financial markets, quotes follow strict standard conventions:\n\n1. <strong>Market Notation (BASE/QUOTE)</strong>: In a pair written as $BASE/QUOTE$ (e.g., $EUR/USD = 1.0800$ or $HKD/USD = 7.8000$):\n   • <strong>Base Currency</strong>: The first currency (fixed at 1 unit).\n   • <strong>Quote / Terms Currency</strong>: The second currency (the price in units of quote currency needed to buy 1 unit of base currency).\n\n2. <strong>Bid-Ask Market Rule (Dealer Perspective)</strong>:\n   • <strong>Bid Price</strong>: The price at which the dealer <em>buys</em> the base currency (client sells base at Bid).\n   • <strong>Ask Price</strong>: The price at which the dealer <em>sells</em> the base currency (client buys base at Ask).\n   • <strong>Spread</strong>: $\\text{Ask} - \\text{Bid} > 0$, representing liquidity provider compensation.\n\n3. <strong>Inverse / Reciprocal Quotes</strong>:\n   • $S_{QUOTE/BASE}^{Bid} = \\frac{1}{S_{BASE/QUOTE}^{Ask}}$\n   • $S_{QUOTE/BASE}^{Ask} = \\frac{1}{S_{BASE/QUOTE}^{Bid}}$"
+            },
+            {
+                "id": "concept_microstructure_order_book",
+                "category": "Week 1: FX Markets & Quotations",
+                "subject": "Order Book Mechanics: Bid, Ask, Market Depth, and Price Slippage",
+                "question": "How do market orders execute against the limit order book, and what causes price slippage when order size exceeds top-of-book depth?",
+                "instructor_answer": "In continuous double auction markets:\n\n1. <strong>Execution Mechanism</strong>:\n   • A <strong>market buy order</strong> matches immediately against limit sell orders at the best available <strong>Ask</strong> price.\n   • A <strong>market sell order</strong> matches immediately against limit buy orders at the best available <strong>Bid</strong> price.\n\n2. <strong>Depth & Slippage</strong>:\n   • Top-of-book quotes only guarantee price for quantities up to the posted volume depth.\n   • When a large market order exceeds the depth available at the best Bid or Ask, it 'walks the book', executing the remaining volume against progressively worse price tiers. The effective average execution price slips away from the initial quote."
+            },
+            {
+                "id": "concept_parity_cip",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Covered Interest Parity (CIP) Equation & Cash Flow Arbitrage Mechanics",
+                "question": "What is Covered Interest Parity (CIP), and how is the exact no-arbitrage forward rate relation derived?",
+                "instructor_answer": "Covered Interest Parity states that domestic investment must yield the exact same return as a covered foreign money-market investment:\n\n1. <strong>Cash Flow Derivation</strong> (Let $S_{d/f}$ and $F_{d/f}$ be domestic currency per 1 foreign unit, e.g. HKD/USD):\n   • <em>Domestic leg</em>: Invest 1 unit domestic currency at $i_d$ $\\to (1 + i_d \\cdot \\frac{T}{360})$ at maturity $T$.\n   • <em>Foreign covered leg</em>: Convert 1 domestic unit to $\\frac{1}{S_{d/f}}$ foreign units at spot; invest at foreign rate $i_f \\to \\frac{1}{S_{d/f}}(1 + i_f \\cdot \\frac{T}{360})$; lock forward conversion at $F_{d/f} \\to \\frac{F_{d/f}}{S_{d/f}}(1 + i_f \\cdot \\frac{T}{360})$.\n\n2. <strong>No-Arbitrage Formula</strong>:\n   $$1 + i_d \\cdot \\frac{T}{360} = \\frac{F_{d/f}}{S_{d/f}} \\cdot \\left(1 + i_f \\cdot \\frac{T}{360}\\right) \\iff F_{d/f}^* = S_{d/f} \\cdot \\frac{1 + i_d \\cdot \\frac{T}{360}}{1 + i_f \\cdot \\frac{T}{360}}$$\n\n3. <strong>Arbitrage Rule</strong>:\n   • If market $F > F^*$: Synthetic foreign lending is overvalued $\\implies$ Borrow domestic, convert spot to foreign, invest foreign, sell forward.\n   • If market $F < F^*$: Synthetic domestic lending is overvalued $\\implies$ Borrow foreign, convert spot to domestic, invest domestic, buy forward."
+            },
+            {
+                "id": "concept_parity_forward_premium",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Forward Premium / Discount & Interest Rate Differentials",
+                "question": "What does a positive annualized forward premium imply about relative interest rates between two currencies?",
+                "instructor_answer": "The annualized forward premium for foreign currency ($f$ quoted as domestic per foreign $S_{d/f}$) is defined as:\n\n$$\\text{Forward Premium} = \\frac{F_{d/f} - S_{d/f}}{S_{d/f}} \\times \\frac{360}{T}$$\n\nUnder Covered Interest Parity:\n\n$$\\frac{F_{d/f} - S_{d/f}}{S_{d/f}} = \\frac{1 + i_d \\cdot \\frac{T}{360}}{1 + i_f \\cdot \\frac{T}{360}} - 1 = \\frac{(i_d - i_f)\\frac{T}{360}}{1 + i_f \\cdot \\frac{T}{360}} \\approx (i_d - i_f) \\cdot \\frac{T}{360}$$\n\n• <strong>Core Rule</strong>: A positive forward premium ($F > S$) means foreign currency trades at a premium forward, implying that <strong>foreign interest rates are lower than domestic interest rates</strong> ($i_f < i_d$). The currency with the higher interest rate always trades at a forward discount."
+            },
+            {
+                "id": "concept_parity_uip_carry",
+                "category": "Week 3: Carry Trades & FX Regimes",
+                "subject": "Uncovered Interest Parity (UIP), Forward Rate Bias, and Carry Trade Crash Risk",
+                "question": "Why does the carry trade generate persistent excess returns if Uncovered Interest Parity (UIP) holds in theory, and what explains the 'carry trade puzzle'?",
+                "instructor_answer": "Uncovered Interest Parity (UIP) states that the expected rate of currency depreciation should offset the interest rate differential:\n\n$$E_t[S_{t+1}] - S_t \\approx (i_d - i_f)S_t$$\n\n1. <strong>The Carry Trade Puzzle</strong>: Empirically, high-interest currencies often do not depreciate in the short to medium term (Fama beta regression $\\beta < 1$ or even negative), yielding persistent positive excess returns for carry traders who borrow low-yielding currencies (funding) to invest in high-yielding currencies (target).\n\n2. <strong>Economic Risk Explanation</strong>: Carry trade profits are not riskless arbitrage. They represent compensation for severe <strong>crash risk / negative skewness</strong> (peso problem). During global liquidity freezes or volatility spikes (VIX surge), synchronized unwinds trigger sharp, discontinuous collapses in the high-yielding target currencies."
+            },
+            {
+                "id": "concept_hedging_interest",
+                "category": "Week 4: FX Hedging & Derivatives",
+                "subject": "Interest Financing on Upfront Costs for Options and Input Capital",
+                "question": "When computing net ex-post profit for a producer using financial options or debt-financed inputs, how should interest expenses be incorporated?",
+                "instructor_answer": "Total net profit is defined as total terminal revenue minus total opportunity costs at realization time $t=1$:\n\n$$\\text{Total Ex-Post Cost} = \\left( \\text{Input Expenses} + \\text{Upfront Option Premiums} \\right) \\times (1 + r)$$\n\nWhere $r$ is the financing cost or opportunity cost of capital over the horizon. Because option premiums and production inputs are disbursed upfront at $t=0$, they must be compounded to harvest / settlement time $t=1$ before being subtracted from gross terminal cash flows."
+            },
+            {
+                "id": "concept_hedging_options_vs_futures",
+                "category": "Week 4: FX Hedging & Derivatives",
+                "subject": "Payoff Structures & Quantity Risk: Put Options vs. Forward/Futures Contracts",
+                "question": "What is the structural difference between hedging price risk using put options versus forward contracts, especially when volume/output is uncertain?",
+                "instructor_answer": "1. <strong>Forward / Futures Contract</strong>:\n   • <em>Payoff</em>: Linear and symmetric. Locks in the exact settlement rate $F_0$ with zero upfront premium.\n   • <em>Quantity Risk Pitfall</em>: If underlying commercial volume falls short of the contracted amount (e.g. crop failure or canceled order), the firm remains legally committed to deliver the full contract size, creating an open, unhedged speculative exposure.\n\n2. <strong>Put Option</strong>:\n   • <em>Payoff</em>: Asymmetric right (not obligation) to sell at strike $K$.\n   • <em>Protection</em>: Establishes a guaranteed price floor while preserving upside participation if spot rallies ($S_1 > K$). If production drops to zero, the maximum loss is strictly capped at the upfront option premium paid."
+            },
+            {
+                "id": "concept_hedging_combination",
+                "category": "Week 4: FX Hedging & Derivatives",
+                "subject": "Combining Partial Forwards and Put Options for Layered Risk Management",
+                "question": "Why might a multinational corporate treasury combine forward contracts and options rather than relying exclusively on a single instrument?",
+                "instructor_answer": "Layered hedging optimizes the trade-off between upfront hedging cost and flexibility:\n\n1. <strong>Base-Load Hedging</strong>: The firm uses forward contracts to lock in rates on its deterministic minimum expected cash flow (eliminating downside risk on baseline revenue without paying option premiums).\n2. <strong>Tail-Risk & Volume-Surplus Protection</strong>: The firm buys out-of-the-money put options for volatile, uncertain surplus production, securing a safety floor without risking delivery penalties if surplus output does not materialize."
+            },
+            {
+                "id": "concept_fdi_greenfield_vs_ma",
+                "category": "Week 5: MNCs & Capital Budgeting",
+                "subject": "Greenfield FDI vs. Cross-Border Mergers & Acquisitions (M&A)",
+                "question": "What is the distinction between Greenfield FDI and Cross-Border M&A, both in real economic impact and Balance of Payments accounting?",
+                "instructor_answer": "1. <strong>Greenfield FDI</strong>: Constructing brand-new physical production facilities, plants, or infrastructure from scratch in the host country. It directly expands host-country physical capital stock and productive capacity.\n2. <strong>Cross-Border M&A</strong>: Acquiring an existing domestic firm or asset, transferring operational control and equity ownership to a foreign parent.\n\n3. <strong>BoP Accounting</strong>: Both are recorded in the host country's <strong>Financial Account</strong> as Direct Investment (FDI) inflows, but Greenfield investment directly triggers gross fixed capital formation in the host economy's national accounts."
+            },
+            {
+                "id": "concept_capital_budgeting_fx",
+                "category": "Week 5: MNCs & Capital Budgeting",
+                "subject": "International Capital Budgeting: Home-Currency vs. Foreign-Currency Project Valuation",
+                "question": "How should cross-border cash flows be discounted when evaluating a foreign capital investment project?",
+                "instructor_answer": "Under perfect capital markets, two valuation approaches yield identical net present values (NPV):\n\n1. <strong>Home Currency Method</strong>: Convert projected foreign cash flows into home currency using expected future spot rates $E[S_t]$ (or forward rates), then discount at the home-currency required rate of return / WACC ($r_{home}$).\n2. <strong>Foreign Currency Method</strong>: Discount foreign cash flows in local currency using the foreign-currency required rate of return ($r_{foreign}$), then convert the resulting foreign NPV to home currency at the spot rate $S_0$.\n\nIn practice, analysts must explicitly incorporate institutional frictions: foreign withholding taxes on repatriated dividends, blocked fund rules, and applicable bilateral tax credits."
+            },
+            {
+                "id": "concept_bop_double_entry",
+                "category": "Week 6: Balance of Payments",
+                "subject": "Double-Entry Bookkeeping Principles for Cross-Border Financial & Asset Transactions",
+                "question": "Why does every international transaction generate two entries in the Balance of Payments? How do credits and debits balance across accounts?",
+                "instructor_answer": "Every international transaction is an exchange of value and is recorded twice in the Balance of Payments:\n\n• <strong>Credit (+)</strong>: Any transaction giving rise to a receipt of funds from abroad (exports of goods/services, factor income earned, foreign purchases of domestic assets / liability issuance).\n• <strong>Debit (-)</strong>: Any transaction giving rise to a payment obligation to abroad (imports of goods/services, factor income paid, domestic acquisitions of foreign assets).\n\nFor example, when a domestic resident buys foreign shares:\n1. <em>Debit (-) Financial Account</em>: Acquisition of foreign equity asset (increases Net Foreign Assets).\n2. <em>Credit (+) Financial Account / Reserves</em>: Settlement transfer of bank deposit or reserve outflow."
+            },
+            {
+                "id": "concept_bop_ip",
+                "category": "Week 6: Balance of Payments",
+                "subject": "Capital Account vs. Current Account: Intellectual Property Transfers vs. Licensing Royalties",
+                "question": "How are intellectual property (IP) transactions recorded in the Balance of Payments? What is the distinction between selling IP outright versus licensing IP for royalties?",
+                "instructor_answer": "In standard IMF Balance of Payments (BPM6) accounting:\n\n1. <strong>Outright IP Sale / Transfer</strong>: Counted in the <strong>Capital Account</strong> under 'Gross acquisitions / disposals of non-produced non-financial assets' (e.g., permanent sale of patents, trademarks, franchises).\n2. <strong>IP Licensing & Royalties</strong>: Counted in the <strong>Current Account</strong> under <em>Services (Charges for the use of intellectual property)</em>. Licensing grants temporary authorization to use proprietary technology/brands in exchange for recurring fees without transferring underlying ownership."
+            },
+            {
+                "id": "concept_bop_repatriation",
+                "category": "Week 6: Balance of Payments",
+                "subject": "FDI Accounting: Profit Reinvestment vs. Profit Repatriation",
+                "question": "What are the exact Balance of Payments credit and debit entries for a foreign affiliate earning profits, comparing reinvested profits against repatriated profits?",
+                "instructor_answer": "When a foreign subsidiary of a domestic parent earns operating profit:\n\n1. <strong>Earnings Accrual Stage</strong>:\n   • <em>Home Country</em>: Credit (+) Current Account as Primary Factor Income.\n   • <em>Host Country</em>: Debit (-) Current Account as Factor Income paid to foreign owners.\n\n2. <strong>Settlement / Disposition</strong>:\n   • <em>If Profits are Reinvested</em>: Home country Debits (-) Financial Account (increase in outbound Direct Investment assets). Host country Credits (+) Financial Account (increase in inbound FDI liabilities).\n   • <em>If Profits are Repatriated</em>: Home country Debits (-) Financial Account via increase in foreign bank deposits/claims. Host country Credits (+) Financial Account via settlement."
+            },
+            {
+                "id": "concept_bop_reserves_sign",
+                "category": "Week 6: Balance of Payments",
+                "subject": "Financial Account Sign Convention & Central Bank Foreign Reserves",
+                "question": "Why is an accumulation of official central bank foreign reserves recorded as a negative entry (debit) in the Financial Account?",
+                "instructor_answer": "The Financial Account (FA) records net capital inflows: $\\text{FA Balance} = \\Delta\\text{Liabilities} - \\Delta\\text{Assets} = -\\Delta(\\text{Net Foreign Asset Position})$.\n\nWhen a central bank accumulates foreign currency reserves (e.g. purchasing US Treasuries), its foreign asset position increases ($+\\Delta\\text{NFA}$). Because acquiring foreign claims represents a capital <em>outflow</em>, it enters the Financial Account with a <strong>negative sign (debit)</strong>.\n\n$$\\text{Current Account} + \\text{Capital Account} + \\text{Financial Account} = 0$$"
+            },
+            {
+                "id": "concept_bop_real_estate_vs_equity",
+                "category": "Week 6: Balance of Payments",
+                "subject": "Classification of Real Estate Funds, Foreign Equity, and Sovereign Bonds",
+                "question": "How are cross-border purchases of real estate, foreign stocks, and government bonds classified in the Balance of Payments?",
+                "instructor_answer": "All cross-border financial asset acquisitions enter the <strong>Financial Account</strong> under distinct subcategories:\n\n• <strong>Foreign Equity</strong>: Portfolio Investment if ownership is $<10\\%$; Foreign Direct Investment (FDI) if ownership is $\\ge 10\\%$ (providing lasting management influence).\n• <strong>Government & Corporate Bonds</strong>: Portfolio Investment (Debt Securities).\n• <strong>Physical Real Estate</strong>: Outright acquisition of land and buildings by non-residents is classified under <strong>Foreign Direct Investment (FDI)</strong> because the buyer acquires a notional resident enterprise owning immovable domestic property."
+            },
+            {
+                "id": "concept_banking_offshore",
+                "category": "Week 7: Banking & Eurodollar Markets",
+                "subject": "Offshore Banking, Eurodollars, and Regulatory Arbitrage",
+                "question": "What defines an offshore bank deposit or Eurodollar market, and why do offshore financial centers exist?",
+                "instructor_answer": "A Eurodollar is any US dollar-denominated bank deposit held in a financial institution located outside the United States (e.g., London, Hong Kong, Singapore, Tokyo, Zurich).\n\nOffshore banking centers expanded primarily through <strong>regulatory arbitrage</strong>:\n1. Exemption from US Federal Reserve reserve requirements.\n2. Exemption from historical interest rate ceilings (Regulation Q).\n3. Avoidance of domestic deposit insurance assessments (FDIC) and local capital controls."
+            },
+            {
+                "id": "concept_basis_cip_breakdown",
+                "category": "Week 8: Basis & Balance Sheets",
+                "subject": "Cross-Currency Swap Basis: Why Post-2008 CIP Deviations Persist",
+                "question": "Why does the cross-currency basis (CIP deviation) persist without being eliminated by riskless arbitrage?",
+                "instructor_answer": "Prior to 2008, CIP held tightly because dealers freely arbitraged price discrepancies. Since the 2008 Global Financial Crisis, the cross-currency swap basis has persisted due to <strong>intermediary balance-sheet constraints</strong>:\n\n1. <strong>Post-Crisis Regulations</strong> (Basel III Leverage Ratio, SLR, LCR) require banks to hold costly regulatory equity against gross balance sheet assets, regardless of risk.\n2. Exploiting a CIP deviation requires expanding both assets and liabilities simultaneously (funded arbitrage).\n3. When balance-sheet capacity is scarce, arbitrageurs demand a positive basis premium to compensate for the marginal regulatory shadow cost of balance-sheet space."
+            },
+            {
+                "id": "concept_capm_international",
+                "category": "Week 9: Capital Markets & ICAPM",
+                "subject": "International CAPM & Currency / Sovereign Risk Premiums",
+                "question": "How does the International CAPM extend the standard CAPM to account for exchange rate risk and sovereign default risk?",
+                "instructor_answer": "Because Purchasing Power Parity (PPP) fails in the short and medium term, investors in different countries consume different local consumption baskets and face real exchange rate risk.\n\nThe International CAPM (Solnik-Sercu-Adler-Dumas) prices assets using both global market risk and currency risk exposures:\n\n$$E[R_i] = R_f + \\beta_i^W \\left( E[R_W] - R_f \\right) + \\sum_{k} \\beta_{i,k} \\gamma_k$$\n\nWhere $\\beta_i^W$ is exposure to the global market portfolio, $\\beta_{i,k}$ is sensitivity to exchange rate factor $k$, and $\\gamma_k$ is the market price of currency risk $k$."
+            },
+            {
+                "id": "concept_payments_triffin",
+                "category": "Week 10: Payment Rails & Dollar Dominance",
+                "subject": "The Triffin Dilemma and Global Reserve Currency Mechanics",
+                "question": "What is the Triffin Dilemma, and how does providing a global reserve currency create a conflict between short-term domestic liquidity and long-term solvency?",
+                "instructor_answer": "The Triffin Dilemma arises when a single sovereign currency (e.g. USD) serves as the primary global reserve asset and international trade invoicing vehicle:\n\n1. <strong>Global Liquidity Demand</strong>: To satisfy growing world trade and reserve demand, the issuer must run persistent Current Account deficits or expand external gross liabilities.\n2. <strong>Long-Term Solvency Conflict</strong>: As cumulative foreign claims on the reserve issuer grow far larger than its underlying fiscal capacity or gold backing, international confidence in the issuer's long-term convertibility and fiscal stability is inevitably undermined."
+            },
+            {
+                "id": "concept_sudden_stops_trilemma",
+                "category": "Week 11: Sovereign Debt & Sudden Stops",
+                "subject": "Emerging Market Sudden Stops: Balance Sheet Mismatches and the Policy Trilemma",
+                "question": "What happens during an emerging-market sudden stop when domestic firms have unhedged foreign-currency debt?",
+                "instructor_answer": "A Sudden Stop is an abrupt halt or reversal of foreign capital inflows to an emerging market:\n\n1. <strong>Balance Sheet Channel</strong>: When domestic non-financial firms hold USD-denominated debt while earning local-currency revenues, sudden currency depreciation triggers a sharp increase in the real domestic debt burden, causing widespread insolvencies and credit collapse.\n2. <strong>Policy Trade-offs</strong>:\n   • <em>Reserve Sales</em>: Stabilizes the currency temporarily but depletes foreign exchange buffers.\n   • <em>Monetary Tightening (Rate Hikes)</em>: Defends the exchange rate but crushes domestic economic activity.\n   • <em>Capital Controls / Multilateral Support</em>: Restricts capital flight but signals distress to foreign investors."
+            },
+            {
+                "id": "concept_blended_finance_derisking",
+                "category": "Week 12: Transition & Blended Finance",
+                "subject": "Blended Finance: First-Loss Tranches and Catalytic De-risking",
+                "question": "How does concessional first-loss capital crowd in commercial private investment in climate and transition projects?",
+                "instructor_answer": "Transition and emerging-market climate projects often carry perceived default and political risks that exceed private commercial hurdle rates.\n\n1. <strong>Capital Structuring</strong>: Development finance institutions (DFIs) or philanthropic donors provide <strong>concessional first-loss capital</strong> (subordinated junior equity or debt).\n2. <strong>De-Risking Mechanism</strong>: The junior tranche absorbs initial default losses up to a defined percentage, insulating senior tranches and elevating their risk-return profile to commercial investment-grade standards, thereby crowding in institutional private capital."
+            }
+        ];
+
+        let activeCategory = 'all';
+        let currentSearch = '';
+        let allExpanded = false;
+        let isDark = true;
+
+        const searchInput = document.getElementById('qaSearchInput');
+        const filterContainer = document.getElementById('filterPillsContainer');
+        const qaFeedList = document.getElementById('qaFeedList');
+        const resultsCountLabel = document.getElementById('resultsCountLabel');
+        const toggleAllBtn = document.getElementById('toggleAllAccordionsBtn');
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+
+        // Keyboard shortcut: Press / to focus search
+        window.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement !== searchInput) {
+                e.preventDefault();
+                searchInput.focus();
+                searchInput.select();
+            } else if (e.key === 'Escape' && document.activeElement === searchInput) {
+                searchInput.value = '';
+                currentSearch = '';
+                renderCards();
+            }
+        });
+
+        // Theme Toggle
+        function toggleTheme() {
+            isDark = !isDark;
+            document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            themeToggleBtn.textContent = isDark ? '🌙 Dark' : '☀️ Light';
+            try {
+                sessionStorage.setItem('fina3020_theme', isDark ? 'dark' : 'light');
+            } catch (e) {}
+        }
+
+        // Initialize Theme from sessionStorage
+        try {
+            const savedTheme = sessionStorage.getItem('fina3020_theme');
+            if (savedTheme === 'light') {
+                toggleTheme();
+            }
+        } catch (e) {}
+
+        // Filter chip clicks
+        filterContainer.addEventListener('click', (e) => {
+            const btn = e.target.closest('.filter-chip-btn');
+            if (!btn) return;
+            document.querySelectorAll('.filter-chip-btn').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            activeCategory = btn.getAttribute('data-cat');
+            renderCards();
+        });
+
+        // Search Input
+        searchInput.addEventListener('input', (e) => {
+            currentSearch = e.target.value.trim().toLowerCase();
+            renderCards();
+        });
+
+        // Expand/Collapse All
+        function toggleAllCards() {
+            allExpanded = !allExpanded;
+            toggleAllBtn.textContent = allExpanded ? 'Collapse All' : 'Expand All';
+            document.querySelectorAll('.qa-card').forEach(card => {
+                if (allExpanded) card.classList.add('open');
+                else card.classList.remove('open');
+            });
+        }
+
+        // Lightweight Pure-JS TeX & Formatting Parser
+        function formatRichContent(rawText, highlightTerm) {
+            if (!rawText) return '';
+
+            // 1. Process Display Math: $$...$$
+            let text = rawText.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+                return `<div class="math-block">${renderTeX(formula.trim())}</div>`;
+            });
+
+            // 2. Process Inline Math: $...$
+            text = text.replace(/\$([^\$\n]+?)\$/g, (match, formula) => {
+                return `<span class="math-inline">${renderTeX(formula.trim())}</span>`;
+            });
+
+            // 3. Process newlines and paragraphs
+            text = text.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+
+            // 4. Highlight search keywords if present
+            if (highlightTerm && highlightTerm.length >= 2) {
+                const escaped = highlightTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const regex = new RegExp(`(?![^<]*>)(${escaped})`, 'gi');
+                text = text.replace(regex, '<mark class="highlight-match">$1</mark>');
+            }
+
+            return text;
+        }
+
+        function renderTeX(tex) {
+            let out = tex;
+
+            // Handle \frac{num}{den}
+            out = out.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '<span class="math-frac"><span class="math-num">$1</span><span class="math-den">$2</span></span>');
+            // Handle double-nested fractions if any
+            out = out.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '<span class="math-frac"><span class="math-num">$1</span><span class="math-den">$2</span></span>');
+
+            // Handle \text{...}
+            out = out.replace(/\\text\{([^{}]+)\}/g, '<span style="font-family:inherit; font-style:normal;">$1</span>');
+
+            // Handle Greek letters & math symbols
+            const symbols = {
+                '\\Delta': '&Delta;',
+                '\\beta': '&beta;',
+                '\\gamma': '&gamma;',
+                '\\sum': '&sum;',
+                '\\approx': '&asymp;',
+                '\\times': '&times;',
+                '\\cdot': '&middot;',
+                '\\ge': '&ge;',
+                '\\le': '&le;',
+                '\\ne': '&ne;',
+                '\\neq': '&ne;',
+                '\\to': '&rarr;',
+                '\\implies': '&rArr;',
+                '\\iff': '&hArr;',
+                '\\left(': '(',
+                '\\right)': ')'
+            };
+
+            for (const [key, sym] of Object.entries(symbols)) {
+                out = out.split(key).join(sym);
+            }
+
+            // Handle subscripts and superscripts: x_{abc} or x_d
+            out = out.replace(/_\{([^{}]+)\}/g, '<sub>$1</sub>');
+            out = out.replace(/_([a-zA-Z0-9*+-]+)/g, '<sub>$1</sub>');
+            out = out.replace(/\^\{([^{}]+)\}/g, '<sup>$1</sup>');
+            out = out.replace(/\^([a-zA-Z0-9*+-]+)/g, '<sup>$1</sup>');
+
+            return out;
+        }
+
+        function updateCategoryCounts() {
+            document.getElementById('count-all').textContent = QA_DATA.length;
+            const weekKeys = {
+                'count-w1': 'Week 1: FX Markets & Quotations',
+                'count-w2': 'Week 2: Parity Conditions & Forward Markets',
+                'count-w3': 'Week 3: Carry Trades & FX Regimes',
+                'count-w4': 'Week 4: FX Hedging & Derivatives',
+                'count-w5': 'Week 5: MNCs & Capital Budgeting',
+                'count-w6': 'Week 6: Balance of Payments',
+                'count-w7': 'Week 7: Banking & Eurodollar Markets',
+                'count-w8': 'Week 8: Basis & Balance Sheets',
+                'count-w9': 'Week 9: Capital Markets & ICAPM',
+                'count-w10': 'Week 10: Payment Rails & Dollar Dominance',
+                'count-w11': 'Week 11: Sovereign Debt & Sudden Stops',
+                'count-w12': 'Week 12: Transition & Blended Finance'
+            };
+
+            for (const [id, categoryName] of Object.entries(weekKeys)) {
+                const el = document.getElementById(id);
+                if (el) {
+                    const count = QA_DATA.filter(item => item.category === categoryName).length;
+                    el.textContent = count;
+                }
+            }
+        }
+
+        function renderCards() {
+            qaFeedList.innerHTML = '';
+
+            const filtered = QA_DATA.filter(item => {
+                const matchCat = (activeCategory === 'all') || (item.category === activeCategory);
+                const fullText = (item.subject + ' ' + item.question + ' ' + item.instructor_answer + ' ' + item.category).toLowerCase();
+                const matchSearch = !currentSearch || fullText.includes(currentSearch);
+                return matchCat && matchSearch;
+            });
+
+            resultsCountLabel.textContent = `Showing ${filtered.length} of ${QA_DATA.length} concepts`;
+
+            if (filtered.length === 0) {
+                qaFeedList.innerHTML = `
+                    <div class="no-matches-found">
+                        <p style="font-size:1.1rem; font-weight:600; margin-bottom:0.35rem;">No matching concepts found</p>
+                        <p style="font-size:0.875rem;">Try adjusting your keywords or clearing the topic filter.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement('article');
+                card.className = 'qa-card' + (allExpanded ? ' open' : '');
+
+                const highlightedSubject = formatRichContent(item.subject, currentSearch);
+                const formattedQuestion = formatRichContent(item.question, currentSearch);
+                const formattedAnswer = formatRichContent(item.instructor_answer, currentSearch);
+
+                card.innerHTML = `
+                    <div class="qa-card-header" onclick="this.parentElement.classList.toggle('open')">
+                        <div>
+                            <h2 class="qa-card-title">${highlightedSubject}</h2>
+                            <div class="qa-card-badges">
+                                <span class="topic-badge">${item.category}</span>
+                            </div>
+                        </div>
+                        <span class="toggle-arrow">▼</span>
+                    </div>
+                    <div class="qa-card-body">
+                        <div class="section-heading">
+                            <span>Conceptual Question</span>
+                            <button class="copy-btn" onclick="event.stopPropagation(); copyText('${item.id}')">Copy Q&amp;A</button>
+                        </div>
+                        <div class="question-box" id="q-${item.id}">${formattedQuestion}</div>
+
+                        <div class="section-heading">
+                            <span>Core Economic Principle &amp; Guidance</span>
+                        </div>
+                        <div class="answer-box" id="a-${item.id}">
+                            <div class="answer-badge-header">✓ Course Principle</div>
+                            <div>${formattedAnswer}</div>
+                        </div>
+                    </div>
+                `;
+
+                qaFeedList.appendChild(card);
+            });
+        }
+
+        function copyText(id) {
+            const item = QA_DATA.find(q => q.id === id);
+            if (!item) return;
+            const plainText = `[${item.category}] ${item.subject}\n\nQuestion:\n${item.question}\n\nCourse Principle:\n${item.instructor_answer}`;
+            navigator.clipboard.writeText(plainText).then(() => {
+                const btn = event.target;
+                const orig = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => { btn.textContent = orig; }, 1500);
+            }).catch(() => {});
+        }
+
+        function exportDataJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(QA_DATA, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "fina3020_piazza_qa_clearinghouse.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        // Initialize on page load
+        updateCategoryCounts();
+        renderCards();
+    </script>
+</body>
+</html>
