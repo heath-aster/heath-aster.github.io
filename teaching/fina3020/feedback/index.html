@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Course Feedback | FINA3020</title>
+    <link rel="stylesheet" href="css/design_system.css">
+    <style>
+        .feedback-container {
+            max-width: 820px;
+            margin: 2.5rem auto;
+            padding: 0 1.25rem 3rem;
+        }
+
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(0, 32, 96, 0.65) 0%, rgba(19, 24, 34, 0.95) 100%);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            padding: 2rem 2.25rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-banner::after {
+            content: '';
+            position: absolute;
+            top: -40%;
+            right: -10%;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, var(--cuhk-gold-glow) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 720px;
+        }
+
+        .privacy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #34D399;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+
+        .feedback-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.75rem 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: border-color var(--transition-smooth);
+        }
+
+        .feedback-card:hover {
+            border-color: var(--border-gold);
+        }
+
+        .card-header-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .card-num {
+            background: var(--cuhk-blue);
+            border: 1px solid var(--cuhk-gold);
+            color: var(--cuhk-gold-light);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+        }
+
+        @media (max-width: 680px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            margin-bottom: 1.1rem;
+        }
+
+        .field-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .field-label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .field-tag-optional {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .field-tag-required {
+            font-size: 0.75rem;
+            color: var(--cuhk-gold-light);
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 0.92rem;
+            line-height: 1.6;
+            outline: none;
+            resize: vertical;
+            min-height: 140px;
+            transition: var(--transition-fast);
+        }
+
+        textarea:focus {
+            border-color: var(--cuhk-gold);
+            box-shadow: 0 0 0 3px var(--cuhk-gold-glow);
+        }
+
+        .other-topic-container {
+            margin-top: 0.75rem;
+            display: none;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .submit-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--cuhk-blue), #003399);
+            border: 1px solid var(--cuhk-gold);
+            color: var(--cuhk-gold-light);
+            padding: 0.85rem 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: var(--shadow-gold);
+            transition: var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(218, 165, 32, 0.4);
+            border-color: #FFE066;
+            color: #FFFFFF;
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-msg {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        /* Success & Receipt Card */
+        .receipt-card {
+            display: none;
+            background: rgba(19, 24, 34, 0.95);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 14px;
+            padding: 2rem;
+            margin-top: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .receipt-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .receipt-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--success);
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .receipt-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .receipt-sub {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .receipt-details {
+            background: var(--bg-main);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-size: 0.82rem;
+            color: #CBD5E1;
+            line-height: 1.7;
+            margin-bottom: 1.25rem;
+            word-break: break-all;
+        }
+
+        .btn-reset {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.55rem 1.2rem;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-reset:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="app-header">
+        <div class="brand-section">
+            <span class="cuhk-badge">CUHK Business School</span>
+            <div class="app-title">FINA3020 &bull; International Finance</div>
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">Prof. Henry Zhang</div>
+    </header>
+
+    <main class="feedback-container">
+
+        <!-- Hero Section -->
+        <div class="hero-banner">
+            <h1 class="hero-title">Course Feedback & Suggestions</h1>
+            <p class="hero-subtitle">
+                Your candid input directly shapes lectures, problem sets, game simulations, and course pacing.
+                Submissions are received immediately and recorded into the instructor feedback ledger.
+            </p>
+            <div class="privacy-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Anonymous by default &bull; No student login required
+            </div>
+        </div>
+
+        <form id="feedbackForm">
+
+            <!-- Card 1: Volunteer Demographics -->
+            <section class="feedback-card">
+                <div class="card-header-row">
+                    <div class="card-num">1</div>
+                    <div class="card-title">Identity & Section (Optional)</div>
+                </div>
+                <div class="form-grid">
+                    <div class="field-group">
+                        <label class="field-label" for="section">
+                            Course Section
+                            <span class="field-tag-optional">Optional</span>
+                        </label>
+                        <select id="section" name="section">
+                            <option value="">Prefer not to say / All sections</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="studentName">
+                            Your Name
+                            <span class="field-tag-optional">Optional</span>
+                        </label>
+                        <input type="text" id="studentName" name="studentName" placeholder="Leave blank to remain anonymous" autocomplete="off">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 2: Feedback Category & Dropdown -->
+            <section class="feedback-card">
+                <div class="card-header-row">
+                    <div class="card-num">2</div>
+                    <div class="card-title">Topic & Evaluation</div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="topic">
+                        Primary Topic
+                        <span class="field-tag-required">Required</span>
+                    </label>
+                    <select id="topic" name="topic" required>
+                        <option value="">Select a topic...</option>
+                        <option value="Lecture Pace & Clarity">Lecture Pace & Clarity</option>
+                        <option value="Problem Sets & Assignments">Problem Sets & Assignments</option>
+                        <option value="Interactive Games & Simulations">Interactive Games & Simulations</option>
+                        <option value="Exam & Midterm Preparation">Exam & Midterm Preparation</option>
+                        <option value="Readings & Lecture Slides">Readings & Lecture Slides</option>
+                        <option value="Workload & Course Balance">Workload & Course Balance</option>
+                        <option value="General Course Experience">General Course Experience</option>
+                        <option value="Other">Other (specify below)</option>
+                    </select>
+
+                    <div class="other-topic-container" id="otherTopicWrapper">
+                        <input type="text" id="topicOther" name="topicOther" placeholder="Please specify your feedback topic">
+                    </div>
+                </div>
+
+                <div class="form-grid" style="margin-top: 1.25rem;">
+                    <div class="field-group">
+                        <label class="field-label" for="paceRating">
+                            Current Course Pace
+                            <span class="field-tag-optional">Optional</span>
+                        </label>
+                        <select id="paceRating" name="paceRating">
+                            <option value="">Select pace assessment...</option>
+                            <option value="Too fast">Too fast</option>
+                            <option value="Slightly fast">Slightly fast</option>
+                            <option value="Just right">Just right</option>
+                            <option value="Slightly slow">Slightly slow</option>
+                            <option value="Too slow">Too slow</option>
+                        </select>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="clarityRating">
+                            Concept & Explanation Clarity
+                            <span class="field-tag-optional">Optional</span>
+                        </label>
+                        <select id="clarityRating" name="clarityRating">
+                            <option value="">Select rating...</option>
+                            <option value="5 - Exceptionally clear">5 - Exceptionally clear</option>
+                            <option value="4 - Clear with minor questions">4 - Clear with minor questions</option>
+                            <option value="3 - Moderate / needs more examples">3 - Moderate / needs more examples</option>
+                            <option value="2 - Difficult to follow">2 - Difficult to follow</option>
+                            <option value="1 - Very confusing">1 - Very confusing</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Card 3: Detailed Feedback -->
+            <section class="feedback-card">
+                <div class="card-header-row">
+                    <div class="card-num">3</div>
+                    <div class="card-title">Comments & Suggestions</div>
+                </div>
+
+                <div class="field-group">
+                    <label class="field-label" for="comments">
+                        Your Detailed Feedback
+                        <span class="field-tag-required">Required</span>
+                    </label>
+                    <textarea id="comments" name="comments" placeholder="What is working well? What can be explained differently or improved? Which concepts or games would you like more time on?" required></textarea>
+                </div>
+            </section>
+
+            <!-- Submit Section -->
+            <div class="submit-bar">
+                <div class="status-msg" id="statusMessage">
+                    Click submit to send your feedback directly to the instructor.
+                </div>
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <span>Submit Feedback</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </form>
+
+        <!-- Receipt Confirmation Section -->
+        <div class="receipt-card" id="receiptCard">
+            <div class="receipt-header">
+                <div class="receipt-icon">&#10003;</div>
+                <div>
+                    <div class="receipt-title">Feedback Received</div>
+                    <div class="receipt-sub">Your response was recorded in the course feedback ledger.</div>
+                </div>
+            </div>
+            <div class="receipt-details" id="receiptDetails"></div>
+            <button type="button" class="btn-reset" id="resetBtn">Submit Another Feedback</button>
+        </div>
+
+    </main>
+
+    <script>
+        // Live Google Apps Script Receiver Web App URL
+        const FEEDBACK_ENDPOINT = "https://script.google.com/macros/s/AKfycbw-RPNsP1YjgmRnOS4K4HDKg4jZD5DaYH3LrMJvDRdMrPsIEccdyYkkDZZsu1TUAQ8_/exec";
+
+        const form = document.getElementById('feedbackForm');
+        const topicSelect = document.getElementById('topic');
+        const otherWrapper = document.getElementById('otherTopicWrapper');
+        const otherInput = document.getElementById('topicOther');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusMsg = document.getElementById('statusMessage');
+        const receiptCard = document.getElementById('receiptCard');
+        const receiptDetails = document.getElementById('receiptDetails');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Toggle 'Other' topic text field
+        topicSelect.addEventListener('change', () => {
+            if (topicSelect.value === 'Other') {
+                otherWrapper.style.display = 'block';
+                otherInput.setAttribute('required', 'required');
+                otherInput.focus();
+            } else {
+                otherWrapper.style.display = 'none';
+                otherInput.removeAttribute('required');
+                otherInput.value = '';
+            }
+        });
+
+        // Form Submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const topicVal = topicSelect.value;
+            const commentsVal = document.getElementById('comments').value.trim();
+
+            if (!topicVal) {
+                alert('Please select a feedback topic.');
+                topicSelect.focus();
+                return;
+            }
+
+            if (!commentsVal) {
+                alert('Please provide your comments before submitting.');
+                document.getElementById('comments').focus();
+                return;
+            }
+
+            if (topicVal === 'Other' && !otherInput.value.trim()) {
+                alert('Please specify the topic.');
+                otherInput.focus();
+                return;
+            }
+
+            // Generate UUID for submission deduplication
+            const submissionId = (window.crypto && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : 'sub-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
+
+            const payload = {
+                submissionId: submissionId,
+                section: document.getElementById('section').value,
+                studentName: document.getElementById('studentName').value.trim(),
+                topic: topicVal,
+                topicOther: otherInput.value.trim(),
+                paceRating: document.getElementById('paceRating').value,
+                clarityRating: document.getElementById('clarityRating').value,
+                comments: commentsVal,
+                clientTimestamp: new Date().toISOString()
+            };
+
+            // Set loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span>Submitting...</span>';
+            statusMsg.textContent = 'Recording response into instructor sheet...';
+            statusMsg.style.color = 'var(--text-secondary)';
+
+            try {
+                const response = await fetch(FEEDBACK_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network error: HTTP ' + response.status);
+                }
+
+                const result = await response.json();
+
+                if (!result || result.ok !== true) {
+                    throw new Error(result && result.error ? result.error : 'Server returned unsuccessful response.');
+                }
+
+                // Show Receipt
+                form.style.display = 'none';
+                receiptCard.style.display = 'block';
+
+                receiptDetails.innerHTML = `
+Receipt ID:       ${result.receiptId || 'N/A'}
+Server Timestamp: ${result.serverTimestamp || new Date().toISOString()}
+Topic:            ${payload.topic}${payload.topicOther ? ' (' + payload.topicOther + ')' : ''}
+Section:          ${payload.section || 'Not specified (Anonymous)'}
+Identity:         ${payload.studentName ? payload.studentName : 'Anonymous'}
+                `.trim();
+
+            } catch (err) {
+                console.error('Submission failed:', err);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `
+                    <span>Retry Submission</span>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                `;
+                statusMsg.textContent = 'Submission failed (' + err.message + '). Please try again.';
+                statusMsg.style.color = 'var(--danger)';
+            }
+        });
+
+        // Reset form to allow another submission
+        resetBtn.addEventListener('click', () => {
+            form.reset();
+            otherWrapper.style.display = 'none';
+            otherInput.removeAttribute('required');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+                <span>Submit Feedback</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            `;
+            statusMsg.textContent = 'Click submit to send your feedback directly to the instructor.';
+            statusMsg.style.color = 'var(--text-secondary)';
+            receiptCard.style.display = 'none';
+            form.style.display = 'block';
+        });
+    </script>
+</body>
+</html>
