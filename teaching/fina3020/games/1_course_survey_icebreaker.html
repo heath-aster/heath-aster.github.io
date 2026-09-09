@@ -10,7 +10,7 @@
     <script src="vendor/chart.umd-4.4.7.js"></script>
     <!-- Custom Design System & Shared Utils -->
     <link rel="stylesheet" href="css/design_system.css">
-    <script src="js/common_utils.js"></script>
+    <script src="js/common_utils.js?v=20260909"></script>
     <style>
         .survey-container {
             max-width: 1000px;
@@ -346,10 +346,15 @@
             color: var(--cuhk-gold-light);
         }
     </style>
-<link rel="stylesheet" href="css/numeric_controls.css">
-<script src="js/numeric_controls.js" defer></script>
+<link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
+<script src="js/numeric_controls.js?v=20260909" defer></script>
+<link rel="stylesheet" href="css/mobile.css?v=20260909">
 </head>
 <body>
+<nav class="course-navigation" aria-label="Course games">
+    <a href="./">← Game list</a>
+    <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
+</nav>
 
     <!-- Header Navigation -->
     <header class="app-header">
@@ -384,7 +389,7 @@
                 <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 1rem;">
                     Please enter your official CUHK registration details for attendance and participation credit:
                 </p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
+                <div class="mobile-stack" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem;">
                     <div>
                         <label class="slider-label" style="display: block; margin-bottom: 0.5rem;">Surname, Given name <span style="color: var(--danger);">*</span></label>
                         <input type="text" id="inputFullName" class="text-input-field" style="min-height: unset; padding: 0.75rem 1rem;" placeholder="e.g. LOU, Seon" required>
@@ -708,7 +713,7 @@
             // "receipt hash" was invented client-side before anything was sent, so it
             // looked like proof of submission while proving nothing.
             surveyData.hash = saved.submissionId;
-            sessionStorage.setItem('fina3020_icebreaker', JSON.stringify(surveyData));
+            FINA3020Storage.setItem('fina3020_icebreaker', JSON.stringify(surveyData));
             document.getElementById('receiptHash').innerText = saved.submissionId;
 
             document.getElementById('receiptIcon').innerText = '…';
@@ -768,6 +773,8 @@
         }
 
         function renderCohortCharts(userCareer, userTopics) {
+            // The current survey omits the optional cohort charts.
+            if (typeof Chart === 'undefined' || !document.getElementById('careerChart') || !document.getElementById('topicChart')) return;
             // Simulated Cohort Data with user response incremented
             const careerCounts = {
                 'Investment Banking': 14,
@@ -788,6 +795,12 @@
                 'Payment Rails & CBDCs': 11,
                 'Dollar Dominance': 9
             };
+
+            // Reusing the survey after Back/Forward or editing must release old canvases.
+            ['careerChart', 'topicChart'].forEach(id => {
+                const existing = Chart.getChart(id);
+                if (existing) existing.destroy();
+            });
 
             // Career Chart
             const ctx1 = document.getElementById('careerChart').getContext('2d');
@@ -845,11 +858,26 @@
             document.getElementById('resultsDashboard').style.display = 'none';
         }
 
+        function refreshSurveyReceipt() {
+            let data;
+            try { data = JSON.parse(FINA3020Storage.getItem('fina3020_icebreaker') || 'null'); } catch (error) { return; }
+            if (!data || !FINA3020Utils.isIdentityConfirmedForSession()) return;
+            const entry = FINA3020Utils._readHistory().find(row => row.submissionId === data.hash);
+            const confirmed = entry && entry.delivered;
+            document.getElementById('receiptIcon').innerText = confirmed ? '✓' : '!';
+            document.getElementById('receiptHeadline').innerText = confirmed ? 'Survey Response Confirmed' : 'Not Yet Confirmed';
+            document.getElementById('receiptDetail').innerText = confirmed
+                ? 'Your response was received and recorded for Week 1.'
+                : 'Your response has not been confirmed. Keep this tab open and use Retry submissions below, or export a copy for the TA.';
+        }
+        FINA3020Utils.onDeliveryChange(refreshSurveyReceipt);
+        window.addEventListener('pageshow', refreshSurveyReceipt);
+
         // Restore if previously submitted
         window.addEventListener('DOMContentLoaded', () => {
             let data = null;
             try {
-                data = JSON.parse(sessionStorage.getItem('fina3020_icebreaker') || 'null');
+                data = JSON.parse(FINA3020Storage.getItem('fina3020_icebreaker') || 'null');
             } catch (e) {
                 data = null;
             }
@@ -889,19 +917,7 @@
                 selectedCareerValue = data.career;
                 selectedTopics = data.topics || [];
                 document.getElementById('receiptHash').innerText = data.hash || '—';
-                const updateReceipt = () => {
-                    const entry = FINA3020Utils._readHistory().find(item => item.submissionId === data.hash);
-                    const confirmed = !!(entry && entry.delivered);
-                    document.getElementById('receiptIcon').innerText = confirmed ? '✓' : '!';
-                    document.getElementById('receiptHeadline').innerText = confirmed ? 'Survey Response Confirmed' : 'Not Yet Confirmed';
-                    document.getElementById('receiptDetail').innerText = confirmed
-                        ? 'Your response was received and recorded for Week 1.'
-                        : 'Your saved response has not been confirmed by the server. Reload to retry, or contact the TA with the submission reference.';
-                };
-                updateReceipt();
-                FINA3020Utils.onDeliveryChange(() => {
-                    if (document.getElementById('receiptHash').innerText === data.hash) updateReceipt();
-                });
+                refreshSurveyReceipt();
                 renderRecommendations(data.career, selectedTopics);
 
                 document.getElementById('icebreakerForm').style.display = 'none';

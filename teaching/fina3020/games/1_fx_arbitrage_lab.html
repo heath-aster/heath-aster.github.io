@@ -9,7 +9,7 @@
     <title>FX Arbitrage & Microstructure Lab | FINA3020</title>
     <!-- Custom Design System & Shared Utils -->
     <link rel="stylesheet" href="css/design_system.css">
-    <script src="js/common_utils.js"></script>
+    <script src="js/common_utils.js?v=20260909"></script>
     <style>
         .order-book-grid {
             display: grid;
@@ -311,10 +311,15 @@
             -webkit-appearance: none;
         }
     </style>
-<link rel="stylesheet" href="css/numeric_controls.css">
-<script src="js/numeric_controls.js" defer></script>
+<link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
+<script src="js/numeric_controls.js?v=20260909" defer></script>
+<link rel="stylesheet" href="css/mobile.css?v=20260909">
 </head>
 <body>
+<nav class="course-navigation" aria-label="Course games">
+    <a href="./">← Game list</a>
+    <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
+</nav>
 
     <header class="app-header">
         <div class="brand-section">
@@ -625,9 +630,9 @@
                         <span class="badge badge-gold">Microstructure Depth Ladder</span>
                     </div>
 
-                    <div style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr); gap: 1.5rem; margin-top: 1rem;">
+                    <div class="mobile-stack orderbook-layout" style="display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr); gap: 1.5rem; margin-top: 1rem;">
                         <!-- Depth Ladder -->
-                        <div>
+                        <div class="table-container">
                             <table class="depth-table">
                                 <thead>
                                     <tr>
@@ -650,7 +655,7 @@
                                 <div class="stat-label">Order Details</div>
                                 <div style="font-size: 1rem; font-weight: 700;" id="ob-sim-details">Sell $2,000,000 USD</div>
                             </div>
-                            <div class="stats-grid answer-area" style="grid-template-columns: 1fr; gap: 0.75rem;">
+                            <div class="mobile-stack stats-grid answer-area" style="grid-template-columns: 1fr; gap: 0.75rem;">
                                 <div class="stat-card neutral">
                                     <div class="stat-label">Volume Weighted Avg Price (VWAP)</div>
                                     <div class="stat-number gold" id="ob-vwap">&mdash;</div>
@@ -1145,7 +1150,7 @@
 
             num.addEventListener('input', () => {
                 const val = parseFloat(num.value);
-                if (Number.isFinite(val) && val > 0) {
+                if (Number.isFinite(val) && (val > 0 || (val === 0 && Number(slider.min) === 0))) {
                     if (val < parseFloat(slider.min)) slider.min = String(val);
                     if (val > parseFloat(slider.max)) slider.max = String(val);
                     slider.value = String(val);
@@ -1155,7 +1160,7 @@
 
             num.addEventListener('change', () => {
                 const val = parseFloat(num.value);
-                if (Number.isFinite(val) && val > 0) {
+                if (Number.isFinite(val) && (val > 0 || (val === 0 && Number(slider.min) === 0))) {
                     num.value = typeof dp === 'number' ? val.toFixed(dp) : val;
                 } else {
                     num.value = slider.value;
@@ -1165,16 +1170,6 @@
 
         function initApp() {
             updateStudentIDDisplay();
-            if (!FINA3020Utils.getStudentID()) {
-                // Collect name, ID and section together. The old auto-prompt asked only
-                // for the ID, so the other two were demanded again mid-round and the
-                // stored identity was incomplete until then.
-                setTimeout(() => {
-                    FINA3020Utils.ensureStudentCredentials(true);
-                    updateStudentIDDisplay();
-                }, 400);
-            }
-
             // Bind Locational Controls
             ['loc-dealerA', 'loc-dealerB', 'loc-spread'].forEach(id => {
                 document.getElementById(`input-${id}`).addEventListener('input', updateLocational);
@@ -1439,9 +1434,7 @@
         }
 
         function switchStudent() {
-            // Clear first so nothing is pre-filled. On a shared or lab machine the next
-            // student would otherwise inherit the previous student's name and ID.
-            FINA3020Utils.clearSensitiveData();
+            // Let the student review details without discarding unconfirmed responses.
             FINA3020Utils.ensureStudentCredentials(true);
             updateStudentIDDisplay();
         }

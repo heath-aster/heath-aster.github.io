@@ -9,6 +9,38 @@ if (typeof window.FINA3020_REQUIRE_ACCESS_CODE === 'undefined') {
     window.FINA3020_REQUIRE_ACCESS_CODE = false;
 }
 
+const FINA3020Storage = {
+    memory: Object.create(null),
+    available: true,
+    getItem(key) {
+        if (!this.available && Object.prototype.hasOwnProperty.call(this.memory, key)) return this.memory[key];
+        try {
+            // A page restored from Back/Forward may have an older memory snapshot.
+            const value = sessionStorage.getItem(key);
+            this.memory[key] = value;
+            return value;
+        } catch (error) {
+            this.available = false;
+            return Object.prototype.hasOwnProperty.call(this.memory, key) ? this.memory[key] : null;
+        }
+    },
+    setItem(key, value) {
+        this.memory[key] = String(value);
+        try { sessionStorage.setItem(key, String(value)); }
+        catch (error) { this.available = false; }
+    },
+    removeItem(key) {
+        this.memory[key] = null;
+        try { sessionStorage.removeItem(key); }
+        catch (error) { this.available = false; }
+    },
+    clearCourseData() {
+        const keys = Object.keys(this.memory);
+        try { keys.push(...Object.keys(sessionStorage)); } catch (error) { this.available = false; }
+        keys.filter(key => key.startsWith('fina3020_')).forEach(key => this.removeItem(key));
+    }
+};
+
 const FINA3020Utils = {
     /**
      * Format numbers as currency with symbol and commas
@@ -182,15 +214,15 @@ const FINA3020Utils = {
      * durable name, ID, or answer history for the next user.
      * ------------------------------------------------------------------ */
     getStudentID: function() {
-        return sessionStorage.getItem('fina3020_student_id') || '';
+        return FINA3020Storage.getItem('fina3020_student_id') || '';
     },
 
     setStudentID: function(id) {
         if (id && id.trim()) {
             const cleanId = id.trim().replace(/\s+/g, '');
             if (/^\d{10}$/.test(cleanId)) {
-                sessionStorage.setItem('fina3020_student_id', cleanId);
-                sessionStorage.removeItem('fina3020_identity_confirmed');
+                FINA3020Storage.setItem('fina3020_student_id', cleanId);
+                FINA3020Storage.removeItem('fina3020_identity_confirmed');
                 return true;
             }
         }
@@ -198,26 +230,26 @@ const FINA3020Utils = {
     },
 
     getFullName: function() {
-        return sessionStorage.getItem('fina3020_student_name') || '';
+        return FINA3020Storage.getItem('fina3020_student_name') || '';
     },
 
     setFullName: function(name) {
         if (name && name.trim()) {
-            sessionStorage.setItem('fina3020_student_name', name.trim().slice(0, 160));
-            sessionStorage.removeItem('fina3020_identity_confirmed');
+            FINA3020Storage.setItem('fina3020_student_name', name.trim().slice(0, 160));
+            FINA3020Storage.removeItem('fina3020_identity_confirmed');
             return true;
         }
         return false;
     },
 
     getSection: function() {
-        return sessionStorage.getItem('fina3020_student_section') || '';
+        return FINA3020Storage.getItem('fina3020_student_section') || '';
     },
 
     setSection: function(sec) {
         if (sec && ['A', 'B', 'C'].includes(sec.trim().toUpperCase())) {
-            sessionStorage.setItem('fina3020_student_section', sec.trim().toUpperCase());
-            sessionStorage.removeItem('fina3020_identity_confirmed');
+            FINA3020Storage.setItem('fina3020_student_section', sec.trim().toUpperCase());
+            FINA3020Storage.removeItem('fina3020_identity_confirmed');
             return true;
         }
         return false;
@@ -228,21 +260,16 @@ const FINA3020Utils = {
      * student would otherwise submit under the previous student's name and ID.
      */
     clearStudentCredentials: function() {
-        sessionStorage.removeItem('fina3020_student_id');
-        sessionStorage.removeItem('fina3020_student_name');
-        sessionStorage.removeItem('fina3020_student_section');
-        sessionStorage.removeItem('fina3020_identity_confirmed');
+        FINA3020Storage.removeItem('fina3020_student_id');
+        FINA3020Storage.removeItem('fina3020_student_name');
+        FINA3020Storage.removeItem('fina3020_student_section');
+        FINA3020Storage.removeItem('fina3020_identity_confirmed');
     },
 
     /** Remove all device-local course PII and response data for this tab. */
     clearSensitiveData: function() {
-        Object.keys(sessionStorage)
-            .filter(key => key.startsWith('fina3020_'))
-            .forEach(key => sessionStorage.removeItem(key));
-        // Purge data created by versions used before August 2026.
-        Object.keys(localStorage)
-            .filter(key => key.startsWith('fina3020_'))
-            .forEach(key => localStorage.removeItem(key));
+        FINA3020Storage.clearCourseData();
+        this.purgeLegacyStorage();
     },
 
     /**
@@ -255,15 +282,15 @@ const FINA3020Utils = {
         const cleanSection = String(section || '').trim().toUpperCase();
         if (!/^\d{10}$/.test(cleanId) || !cleanName || cleanName.length > 160 ||
             !['A', 'B', 'C'].includes(cleanSection)) return false;
-        sessionStorage.setItem('fina3020_student_id', cleanId);
-        sessionStorage.setItem('fina3020_student_name', cleanName);
-        sessionStorage.setItem('fina3020_student_section', cleanSection);
+        FINA3020Storage.setItem('fina3020_student_id', cleanId);
+        FINA3020Storage.setItem('fina3020_student_name', cleanName);
+        FINA3020Storage.setItem('fina3020_student_section', cleanSection);
         this.markIdentityConfirmedForSession();
         return true;
     },
 
     getAccessCode: function() {
-        return sessionStorage.getItem('fina3020_access_code') || '';
+        return FINA3020Storage.getItem('fina3020_access_code') || '';
     },
 
     ensureAccessCode: function() {
@@ -277,7 +304,7 @@ const FINA3020Utils = {
             alert('The access code must contain exactly 16 hexadecimal characters.');
             return false;
         }
-        sessionStorage.setItem('fina3020_access_code', clean);
+        FINA3020Storage.setItem('fina3020_access_code', clean);
         return true;
     },
 
@@ -286,11 +313,11 @@ const FINA3020Utils = {
      * identity is theirs. Cleared when the tab closes, so a shared machine always asks.
      */
     isIdentityConfirmedForSession: function() {
-        return sessionStorage.getItem('fina3020_identity_confirmed') === this.getStudentID();
+        return FINA3020Storage.getItem('fina3020_identity_confirmed') === this.getStudentID();
     },
 
     markIdentityConfirmedForSession: function() {
-        sessionStorage.setItem('fina3020_identity_confirmed', this.getStudentID());
+        FINA3020Storage.setItem('fina3020_identity_confirmed', this.getStudentID());
     },
 
     /**
@@ -305,88 +332,79 @@ const FINA3020Utils = {
         if (!id || !name || !section) return this.ensureStudentCredentials(true);
         if (this.isIdentityConfirmedForSession()) return true;
 
-        const ok = confirm(
-            `This device will submit as:\n\n    ${name}\n    CUHK ID ${id}\n    Section ${section}\n\n` +
-            `Click OK if this is you.\nClick Cancel to enter different details.`
-        );
-        if (ok) {
-            this.markIdentityConfirmedForSession();
-            return true;
-        }
-        this.clearStudentCredentials();
-        return this.ensureStudentCredentials(true);
+        this.showIdentityForm();
+        return false;
     },
 
     /**
      * Ensure student credentials are set before submitting game rounds.
-     * Prompts for Full Name (Surname, Given name), 10-digit CUHK Student ID, and Course Section (A, B, C).
+     * Uses an in-page form for name, 10-digit CUHK ID, and section; cancellation preserves saved responses.
      */
-    ensureStudentCredentials: function(forcePrompt = false, attempt = 0) {
-        if (attempt > 5) {
-            alert('Too many invalid attempts. Reload the page and try again.');
-            return false;
+    ensureStudentCredentials: function(forcePrompt = false) {
+        if (!forcePrompt && this.getStudentID() && this.getFullName() && this.getSection()) {
+            this.markIdentityConfirmedForSession();
+            return true;
         }
+        this.showIdentityForm();
+        return false; // The student resumes the original action after saving the form.
+    },
 
-        let currentId = this.getStudentID();
-        let currentName = this.getFullName();
-        let currentSection = this.getSection();
-
-        if (forcePrompt && (currentId || currentName || currentSection)) {
-            if (this.getPendingCount() > 0) {
-                alert('Changing students will clear unconfirmed responses from this tab. Export the CSV first if you need a copy.');
+    showIdentityForm: function() {
+        if (document.getElementById('course-identity')) return;
+        const previousFocus = document.activeElement;
+        const panel = document.createElement('div');
+        panel.id = 'course-identity';
+        panel.className = 'course-identity-overlay';
+        panel.innerHTML = `<form class="course-identity-form" role="dialog" aria-modal="true" aria-labelledby="identity-title">
+            <h2 id="identity-title">Your course details</h2>
+            <p>Save your details, then tap your game choice again to continue.</p>
+            <label>Full name<input name="fullName" autocomplete="name" maxlength="160" required></label>
+            <label>10-digit CUHK ID<input name="studentId" type="text" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required></label>
+            <label>Section<select name="section" required><option value="">Choose section</option><option>A</option><option>B</option><option>C</option></select></label>
+            <p role="status" id="identity-message"></p>
+            <div class="header-actions"><button type="submit" class="btn btn-gold">Save details</button><button type="button" class="btn btn-secondary" id="identity-cancel">Cancel</button></div>
+        </form>`;
+        document.body.appendChild(panel);
+        const form = panel.querySelector('form');
+        form.elements.fullName.value = this.getFullName();
+        form.elements.studentId.value = this.getStudentID();
+        form.elements.section.value = this.getSection();
+        const close = () => { panel.remove(); if (previousFocus) previousFocus.focus(); };
+        panel.querySelector('#identity-cancel').onclick = close;
+        panel.onkeydown = event => {
+            if (event.key === 'Escape') close();
+            if (event.key === 'Tab') {
+                const fields = [...form.querySelectorAll('input,select,button')];
+                if (event.shiftKey && document.activeElement === fields[0]) { event.preventDefault(); fields[fields.length - 1].focus(); }
+                else if (!event.shiftKey && document.activeElement === fields[fields.length - 1]) { event.preventDefault(); fields[0].focus(); }
             }
-            this.clearSensitiveData();
-            currentId = '';
-            currentName = '';
-            currentSection = '';
-        }
-
-        if (forcePrompt || !currentId || !currentName || !currentSection) {
-            const nameInput = prompt(
-                'Enter your Full Name (Format: "Surname, Given name", e.g., "LOU, Seon"):',
-                currentName
-            );
-            if (nameInput === null && !forcePrompt && currentId && currentName && currentSection) return true;
-            if (nameInput && nameInput.trim()) {
-                this.setFullName(nameInput.trim());
-            }
-
-            const idInput = prompt(
-                'Enter your 10-digit CUHK Student ID (e.g., 1155123456):',
-                currentId
-            );
-            if (idInput === null && !forcePrompt && currentId && currentName && currentSection) return true;
-            if (idInput) {
-                const cleanId = idInput.trim().replace(/\s+/g, '');
-                if (!/^\d{10}$/.test(cleanId)) {
-                    alert('Invalid CUHK Student ID! It must be exactly 10 digits (e.g. 1155123456).');
-                    return this.ensureStudentCredentials(true, attempt + 1);
+        };
+        form.onsubmit = event => {
+            event.preventDefault();
+            const id = form.elements.studentId.value.trim();
+            const name = form.elements.fullName.value.trim();
+            const section = form.elements.section.value;
+            if (!/^\d{10}$/.test(id) || !name || !['A','B','C'].includes(section)) return;
+            if (this.getStudentID() && id !== this.getStudentID()) {
+                if (this.getPendingCount()) {
+                    panel.querySelector('#identity-message').textContent = 'Responses are still unconfirmed. Close this form and retry or export them before changing students.';
+                    return;
                 }
-                this.setStudentID(cleanId);
+                this.clearSensitiveData();
             }
+            this.setStudentCredentials(id, name, section);
+            const button = document.getElementById('btn-student-id');
+            if (button) button.textContent = `ID: ${id} | ${name}`;
+            close();
+        };
+        form.elements.fullName.focus();
+    },
 
-            const secInput = prompt(
-                'Enter your Course Section (A, B, or C):',
-                currentSection || 'A'
-            );
-            if (secInput && ['A', 'B', 'C'].includes(secInput.trim().toUpperCase())) {
-                this.setSection(secInput.trim().toUpperCase());
-            } else if (!currentSection) {
-                alert('Course Section must be A, B, or C.');
-                return this.ensureStudentCredentials(true, attempt + 1);
-            }
-        }
-
-        currentId = this.getStudentID();
-        currentName = this.getFullName();
-        currentSection = this.getSection();
-
-        if (!currentId || !currentName || !currentSection) {
-            alert('Full Name, 10-digit CUHK Student ID, and Course Section (A, B, or C) are required to submit.');
-            return false;
-        }
-        this.markIdentityConfirmedForSession();
-        return true;
+    purgeLegacyStorage: function() {
+        try {
+            Object.keys(localStorage).filter(key => key.startsWith('fina3020_'))
+                .forEach(key => localStorage.removeItem(key));
+        } catch (error) { /* Blocked legacy storage must not interrupt game startup. */ }
     },
 
     /* ------------------------------------------------------------------ *
@@ -422,7 +440,7 @@ const FINA3020Utils = {
 
     _readPending: function() {
         try {
-            const value = JSON.parse(sessionStorage.getItem('fina3020_pending_submissions') || '[]');
+            const value = JSON.parse(FINA3020Storage.getItem('fina3020_pending_submissions') || '[]');
             return Array.isArray(value) ? value.slice(-50) : [];
         } catch (e) {
             return [];
@@ -430,7 +448,7 @@ const FINA3020Utils = {
     },
 
     _writePending: function(queue) {
-        sessionStorage.setItem('fina3020_pending_submissions', JSON.stringify(queue.slice(-50)));
+        FINA3020Storage.setItem('fina3020_pending_submissions', JSON.stringify(queue.slice(-50)));
     },
 
     getPendingCount: function() {
@@ -445,7 +463,16 @@ const FINA3020Utils = {
     _post: function(payload) {
         const webhookUrl = window.FINA3020_WEBHOOK_URL;
         if (!webhookUrl) return Promise.reject(new Error('No submission endpoint is configured.'));
-        return fetch(webhookUrl, {
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        let timer;
+        const timeout = new Promise((resolve, reject) => {
+            timer = setTimeout(() => {
+                reject(new Error('Connection timed out. Your response is still queued; retry when connected.'));
+                if (controller) controller.abort();
+            }, 12000);
+        });
+        const request = fetch(webhookUrl, {
+            signal: controller ? controller.signal : undefined,
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload),
@@ -483,6 +510,7 @@ const FINA3020Utils = {
                 serverTimestamp: ack.serverTimestamp || null
             };
         });
+        return Promise.race([request, timeout]).finally(() => clearTimeout(timer));
     },
 
     _markDelivered: function(submissionId, serverTimestamp, receiptId) {
@@ -492,7 +520,7 @@ const FINA3020Utils = {
             entry.delivered = true;
             entry.serverTimestamp = serverTimestamp || entry.serverTimestamp;
             entry.receiptId = receiptId || entry.receiptId;
-            sessionStorage.setItem('fina3020_response_history', JSON.stringify(history.slice(-100)));
+            FINA3020Storage.setItem('fina3020_response_history', JSON.stringify(history.slice(-100)));
         }
         this._writePending(this._readPending().filter(p => p.submissionId !== submissionId));
     },
@@ -501,7 +529,15 @@ const FINA3020Utils = {
      * Try to deliver one payload, retrying with backoff. Resolves true if the
      * server confirmed receipt, false if it stays queued.
      */
-    _deliver: function(payload, attempt = 0) {
+    _inFlight: new Map(),
+    _deliver: function(payload) {
+        if (this._inFlight.has(payload.submissionId)) return this._inFlight.get(payload.submissionId);
+        const promise = this._attemptDelivery(payload).finally(() => this._inFlight.delete(payload.submissionId));
+        this._inFlight.set(payload.submissionId, promise);
+        return promise;
+    },
+
+    _attemptDelivery: function(payload, attempt = 0) {
         const delays = [2000, 6000];
         this._emitDelivery('sending');
         return this._post(payload).then(ack => {
@@ -511,7 +547,7 @@ const FINA3020Utils = {
         }).catch(err => {
             if (attempt < delays.length) {
                 return new Promise(resolve => setTimeout(resolve, delays[attempt]))
-                    .then(() => this._deliver(payload, attempt + 1));
+                    .then(() => this._attemptDelivery(payload, attempt + 1));
             }
             console.warn('Submission not confirmed:', err);
             this._emitDelivery('unconfirmed', err.message);
@@ -534,7 +570,7 @@ const FINA3020Utils = {
 
     _readHistory: function() {
         try {
-            const value = JSON.parse(sessionStorage.getItem('fina3020_response_history') || '[]');
+            const value = JSON.parse(FINA3020Storage.getItem('fina3020_response_history') || '[]');
             return Array.isArray(value) ? value.slice(-100) : [];
         } catch (e) {
             return [];
@@ -612,7 +648,7 @@ const FINA3020Utils = {
 
         const history = this._readHistory();
         history.push(fullPayload);
-        sessionStorage.setItem('fina3020_response_history', JSON.stringify(history.slice(-100)));
+        FINA3020Storage.setItem('fina3020_response_history', JSON.stringify(history.slice(-100)));
 
         const queue = this._readPending();
         queue.push(deliveryPayload);
@@ -669,17 +705,34 @@ const FINA3020Utils = {
     }
 };
 
-// Initialize when DOM loads
+// Keep recovery visible on every game, including after returning from a phone lock screen.
 document.addEventListener('DOMContentLoaded', () => {
-    // Remove durable PII written by older versions of the games.
-    Object.keys(localStorage)
-        .filter(key => key.startsWith('fina3020_'))
-        .forEach(key => localStorage.removeItem(key));
+    FINA3020Utils.purgeLegacyStorage();
     FINA3020Utils.setupTabs();
-    // Recover anything a previous session could not confirm.
-    if (FINA3020Utils.getPendingCount() > 0) FINA3020Utils.flushPending();
-});
-
-window.addEventListener('online', () => {
-    if (FINA3020Utils.getPendingCount() > 0) FINA3020Utils.flushPending();
+    FINA3020Storage.setItem('fina3020_storage_check', '1');
+    FINA3020Storage.removeItem('fina3020_storage_check');
+    const status = document.createElement('section');
+    status.className = 'course-connection';
+    status.hidden = true;
+    status.innerHTML = '<p role="status" aria-live="polite"></p><button class="btn btn-secondary" type="button">Retry submissions</button> <button class="btn btn-secondary" type="button">Export responses</button>';
+    document.body.appendChild(status);
+    const buttons = status.querySelectorAll('button');
+    buttons[0].onclick = () => FINA3020Utils.flushPending();
+    buttons[1].onclick = () => FINA3020Utils.exportResponsesCSV();
+    const update = (detail = {}) => {
+        const pending = FINA3020Utils.getPendingCount();
+        status.hidden = !pending && FINA3020Storage.available;
+        status.querySelector('p').textContent =
+            (!FINA3020Storage.available ? 'Browser storage is unavailable. Keep this page open until confirmation; reloading will lose unconfirmed responses. ' : '') +
+            (pending ? `${pending} response(s) ${detail.state === 'sending' ? 'sending' : 'not yet confirmed'}. Keep this tab open. Retry after reconnecting, or export a copy for the TA.` : '');
+        buttons[0].disabled = detail.state === 'sending';
+    };
+    FINA3020Utils.onDeliveryChange(update);
+    update();
+    const recover = () => { if (FINA3020Utils.getPendingCount()) FINA3020Utils.flushPending(); };
+    window.addEventListener('online', recover);
+    window.addEventListener('pageshow', recover);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) recover(); });
+    setInterval(() => { if (!document.hidden) recover(); }, 30000);
+    recover();
 });

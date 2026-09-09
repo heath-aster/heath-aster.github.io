@@ -1,0 +1,49 @@
+/* Shared phone layout. Loaded after each game's own styles. */
+.main-container > *, .glass-panel, .controls-panel, .visualization-panel {
+    min-width: 0;
+}
+.course-connection { margin: 1rem; padding: 1rem; border: 1px solid var(--warning, #ca9b31); border-radius: 8px; overflow-wrap: anywhere; }
+.course-connection[hidden] { display: none; }
+.course-connection p { margin-bottom: .75rem; }
+.course-identity-overlay { position: fixed; inset: 0; z-index: 1000; overflow-y: auto; background: rgba(0,0,0,.8); padding: 1rem; }
+.course-identity-form { max-width: 30rem; margin: 1rem auto; padding: 1.25rem; border-radius: 12px; color: var(--text-primary, #f8fafc); background: var(--bg-surface, #131822); }
+.course-identity-form label { display: block; margin: 1rem 0; }
+.course-identity-form input, .course-identity-form select { display: block; width: 100%; min-height: 44px; font-size: 16px; }
+.course-navigation { padding: .75rem 1rem; font-size: .875rem; }
+.course-navigation a { color: var(--cuhk-gold-light, #8c6314); }
+.course-navigation p { margin-top: .4rem; }
+@media (max-width: 700px) {
+    .app-header { position: static; padding: 1rem; flex-direction: column; align-items: stretch; gap: 1rem; }
+    .brand-section, .header-actions { flex-wrap: wrap; min-width: 0; }
+    .brand-section > div { flex: 1; min-width: 0; }
+    .header-actions > * { max-width: 100%; overflow-wrap: anywhere; }
+    .main-container { padding: 1rem; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
+    .glass-panel { padding: 1rem; }
+    .panel-header, .control-label, .slider-header { flex-wrap: wrap; gap: .5rem; }
+    .game-grid, .game-actions, .orderbook-layout { grid-template-columns: minmax(0, 1fr) !important; }
+    .stats-grid, .dealer-grid { grid-template-columns: minmax(0, 1fr); }
+    .tabs-header, .nav-tabs { flex-wrap: wrap; }
+    .panel-title { min-width: 0; }
+    input:not([type="range"]):not([type="checkbox"]):not([type="radio"]), select, textarea {
+        font-size: 16px !important; max-width: 100%; min-height: 44px;
+    }
+    button, .btn, .tab-btn, .nav-tab-btn { min-height: 44px; white-space: normal; }
+    input[type="range"] { height: 32px; background: linear-gradient(rgba(255,255,255,.18),rgba(255,255,255,.18)) center / 100% 6px no-repeat; }
+    input[type="range"]::-webkit-slider-thumb { width: 28px; height: 28px; }
+    input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; }
+    .table-container { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .course-identity-form { margin: 0 auto; }
+}
+@media (max-width: 700px) {
+    .mobile-stack, .form-grid, .topic-list, .option-grid, .charts-grid, .bs-grid, .decision-cards {
+        grid-template-columns: minmax(0, 1fr) !important;
+    }
+    .mobile-stack > *, .form-grid > *, .topic-item > * { min-width: 0; }
+    .nav-tabs-wrapper { flex-wrap: wrap; }
+    .stage-stepper { max-width: 100%; }
+    .stat-number, .game-feedback, #receiptHash { overflow-wrap: anywhere; }
+}
+@media (max-width: 700px) {
+    .brand-section > div { flex-basis: 12rem; }
+    .app-title, .app-subtitle { overflow-wrap: anywhere; }
+}
