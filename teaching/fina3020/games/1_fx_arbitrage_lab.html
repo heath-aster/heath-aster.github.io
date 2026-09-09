@@ -378,7 +378,7 @@
                         </div>
                         <span class="control-value" id="val-loc-spread" style="display:none;">10 bps</span>
                     </div>
-                    <input type="range" id="input-loc-spread" min="0" max="50" step="2" value="10">
+                    <input type="range" id="input-loc-spread" min="0" max="50" step="1" value="10">
                 </div>
             </div>
 
@@ -401,9 +401,8 @@
                         </div>
                         <span class="control-value" id="val-ob-spread" style="display:none;">2 pips</span>
                     </div>
-                    <!-- USD/HKD trades in low single-digit pips. Quoting the touch spread
-                         in bps put it near 78 pips, far wider than the depth ladder. -->
-                    <input type="range" id="input-ob-spread" min="1" max="3" step="1" value="2">
+                    <!-- USD/HKD trades in low single-digit pips. Touch spread can be set to 0. -->
+                    <input type="range" id="input-ob-spread" min="0" max="5" step="1" value="2">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
@@ -472,7 +471,7 @@
                         </div>
                         <span class="control-value" id="val-tri-spread" style="display:none;">10 bps</span>
                     </div>
-                    <input type="range" id="input-tri-spread" min="0" max="50" step="2" value="10">
+                    <input type="range" id="input-tri-spread" min="0" max="50" step="1" value="10">
                 </div>
             </div>
 
@@ -833,7 +832,7 @@
             const spreadPips = parseFloat(document.getElementById('input-ob-spread').value);
             const pip = 0.0001;
             const half = (spreadPips * pip) / 2;
-            const gap = spreadPips * pip;
+            const gap = Math.max(1, spreadPips) * pip;
 
             if (currentBookSizes.bids.length === 0) regenerateBookSizes();
 
@@ -1804,7 +1803,7 @@
             resetRange('input-loc-spread', '0', '50', 10);
 
             resetRange('input-ob-mid', '7.7500', '7.8500', 7.8000);
-            resetRange('input-ob-spread', '1', '3', 2);
+            resetRange('input-ob-spread', '0', '5', 2);
             document.getElementById('input-ob-ordersize').value = "1500000";
             document.getElementById('input-ob-direction').value = "sell";
 
