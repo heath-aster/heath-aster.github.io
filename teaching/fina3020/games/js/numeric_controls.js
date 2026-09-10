@@ -32,7 +32,9 @@
             number.min = slider.min || '0';
             number.max = slider.max || '100';
             number.disabled = slider.disabled;
-            number.value = slider.value;
+            if (document.activeElement !== number) {
+                number.value = slider.value;
+            }
             number.removeAttribute('aria-invalid');
         };
         // Resets and newly generated rounds set .value directly without emitting events.
@@ -57,7 +59,15 @@
             if (!number.validity.valid) number.reportValidity();
             else slider.dispatchEvent(new Event('change', { bubbles: true }));
         });
-        number.addEventListener('blur', sync);
+        number.addEventListener('blur', () => {
+            if (document.activeElement !== number) {
+                if (!number.validity.valid) {
+                    sync();
+                } else if (Number.isFinite(number.valueAsNumber)) {
+                    slider.value = number.value;
+                }
+            }
+        });
         number.addEventListener('keydown', event => {
             if (event.key === 'Enter') { event.preventDefault(); number.blur(); }
         });

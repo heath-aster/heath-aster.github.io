@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Forward Curve Explorer & Game | FINA3020 Week 2</title>
+    <!-- Chart.js -->
+    <script src="vendor/chart.umd-4.4.7.js"></script>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js?v=20260909"></script>
+    <link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
+    <script src="js/numeric_controls.js?v=20260909" defer></script>
+    <link rel="stylesheet" href="css/mobile.css?v=20260909">
+    <style>
+        .game-panel {
+            border-color: var(--border-gold);
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .game-prompt {
+            color: var(--text-primary);
+            margin-top: 0.5rem;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+
+        .game-actions {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 0.75rem;
+        }
+
+        .game-feedback {
+            min-height: 1.5rem;
+            margin-top: 0.75rem;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .game-actions select { min-width: 0; }
+
+        .btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+            transform: none;
+        }
+
+        .pair-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .pair-pill {
+            padding: 0.4rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .pair-pill:hover {
+            border-color: var(--cuhk-gold);
+            color: var(--text-primary);
+        }
+
+        .pair-pill.active {
+            background: rgba(224, 168, 0, 0.15);
+            border-color: var(--cuhk-gold);
+            color: var(--cuhk-gold-light);
+        }
+
+        .view-toggles {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .view-btn {
+            padding: 0.35rem 0.75rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .view-btn.active {
+            background: var(--cuhk-blue);
+            color: #fff;
+            border-color: var(--cuhk-blue);
+            font-weight: 600;
+        }
+
+        .round-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .round-step-btn {
+            padding: 0.35rem 0.7rem;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .round-step-btn.active {
+            border-color: var(--cuhk-gold);
+            color: var(--cuhk-gold-light);
+            background: rgba(224, 168, 0, 0.12);
+        }
+
+        .stat-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .badge-premium {
+            background: rgba(34, 197, 94, 0.18);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .badge-discount {
+            background: rgba(239, 68, 68, 0.18);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-flat {
+            background: rgba(148, 163, 184, 0.18);
+            color: #cbd5e1;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        @media (max-width: 900px) {
+            .game-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            .game-actions { grid-template-columns: 1fr; }
+            .round-nav { flex-wrap: wrap; }
+            .round-step-btn { flex: 1 1 auto; min-width: 95px; text-align: center; }
+            .chart-container { height: 240px !important; }
+            .view-toggles { width: 100%; }
+            .view-btn { flex: 1 1 auto; min-width: 95px; text-align: center; }
+            .pair-pills { width: 100%; }
+            .pair-pill { flex: 1 1 auto; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+<nav class="course-navigation" aria-label="Course games">
+    <a href="./">← Game list</a>
+    <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
+</nav>
+
+    <header class="app-header">
+        <div class="brand-section">
+            <span class="cuhk-badge">FINA3020 &middot; Week 2</span>
+            <div>
+                <h1 class="app-title">Forward Curve Explorer & Game</h1>
+                <p class="app-subtitle">Term structure of forward points, outright rates, and corporate hedging</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-gold" id="btn-student-id" onclick="FINA3020Utils.ensureStudentCredentials(true)">CUHK ID: Not Set</button>
+            <button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export Responses (.csv)</button>
+            <button class="btn btn-secondary" onclick="resetToCurrentPair()">Reset Curve</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <!-- Sidebar Controls -->
+        <aside class="controls-panel glass-panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Currency Pair & Money Market</h2>
+                <span class="badge badge-warning" id="curve-status-badge">Curve: Premium</span>
+            </div>
+
+            <div class="pair-pills" role="tablist" aria-label="Select currency pair">
+                <button class="pair-pill active" id="pill-usd-hkd" onclick="selectPair('USD/HKD')">USD/HKD</button>
+                <button class="pair-pill" id="pill-eur-usd" onclick="selectPair('EUR/USD')">EUR/USD</button>
+                <button class="pair-pill" id="pill-gbp-usd" onclick="selectPair('GBP/USD')">GBP/USD</button>
+                <button class="pair-pill" id="pill-usd-jpy" onclick="selectPair('USD/JPY')">USD/JPY</button>
+                <button class="pair-pill" id="pill-custom" onclick="selectPair('CUSTOM')">Custom Pair</button>
+            </div>
+
+            <div class="control-section">
+                <div class="control-group">
+                    <div class="control-label">
+                        <span id="label-spot">Spot Rate S (HKD per USD)</span>
+                        <span class="control-value" id="val-spot">7.8400</span>
+                    </div>
+                    <input type="range" id="input-spot" min="7.0000" max="8.5000" step="any" value="7.8400">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span id="label-rbase">USD Interest Rate (Base r_b)</span>
+                        <span class="control-value" id="val-rbase">4.50%</span>
+                    </div>
+                    <input type="range" id="input-rbase" min="0.00" max="12.00" step="any" value="4.50">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span id="label-rquote">HKD Interest Rate (Quote r_q)</span>
+                        <span class="control-value" id="val-rquote">5.00%</span>
+                    </div>
+                    <input type="range" id="input-rquote" min="0.00" max="12.00" step="any" value="5.00">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Bid-Ask Spread on Points (bps)</span>
+                        <span class="control-value" id="val-spread">0 bps</span>
+                    </div>
+                    <input type="range" id="input-spread" min="0" max="40" step="any" value="0">
+                </div>
+            </div>
+
+            <div class="edu-callout">
+                <div class="edu-callout-title">Forward Points Formula</div>
+                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.35rem;">
+                    <strong>Points</strong> = (F - S) &times; Pip Multiplier<br>
+                    <strong>Covered Parity</strong>: F(T) &approx; S &times; [1 + (r_quote - r_base) &times; T/360]
+                </p>
+                <p style="font-size: 0.78rem; color: var(--cuhk-gold-light);">
+                    Spread = 0 allows clean outright calculations. Drag spread slider to test market friction.
+                </p>
+            </div>
+        </aside>
+
+        <!-- Main Workspace Area -->
+        <section class="workspace-area">
+
+            <!-- Interactive Game / Challenge Panel -->
+            <div class="glass-panel game-panel">
+                <div class="panel-header">
+                    <div style="display:flex; align-items:center; gap:0.6rem;">
+                        <h2 class="panel-title" id="round-title">Challenge 1: Forward Points & Outright Rate</h2>
+                    </div>
+                    <span class="badge badge-gold" id="round-badge">Round 1 of 3</span>
+                </div>
+
+                <div class="round-nav">
+                    <button class="round-step-btn active" id="btn-round-1" onclick="switchRound(1)">1. Points & Outright</button>
+                    <button class="round-step-btn" id="btn-round-2" onclick="switchRound(2)">2. CFO Hedger</button>
+                    <button class="round-step-btn" id="btn-round-3" onclick="switchRound(3)">3. Central Bank Shock</button>
+                </div>
+
+                <div class="game-grid">
+                    <div>
+                        <p class="game-prompt" id="round-prompt">
+                            A dealer quotes <strong>Spot = 7.8000</strong> and <strong>6-month Forward Points = -30.0</strong> pips on USD/HKD. What is the outright 6-month forward rate, and is the USD at a forward premium or discount?
+                        </p>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.4rem;" id="round-hint">
+                            Hint: 1 pip = 0.0001 for 4-decimal pairs. Outright F = Spot + (Points / 10,000) = 7.8000 - 0.0030.
+                        </p>
+                    </div>
+                    <div>
+                        <label class="control-label" for="prediction-select"><span id="prediction-label">Select Your Answer</span></label>
+                        <div class="game-actions">
+                            <select id="prediction-select">
+                                <option value="">Select answer...</option>
+                                <option value="opt-1">7.7970 &middot; USD at Forward Discount</option>
+                                <option value="opt-2">7.8030 &middot; USD at Forward Premium</option>
+                                <option value="opt-3">7.7970 &middot; USD at Forward Premium</option>
+                                <option value="opt-4">7.8030 &middot; USD at Forward Discount</option>
+                            </select>
+                            <button class="btn btn-gold" id="lock-prediction" onclick="handleLockChoice()">Lock Choice</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="game-feedback" id="round-feedback" aria-live="polite">Choose an answer and lock your choice to test your intuition.</div>
+
+                <!-- Exit Reflection Panel -->
+                <div id="reflection-section" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+                    <label class="control-label" for="reflection-input"><span>Exit Reflection (1 sentence): Why do forward points increase in magnitude as maturity T lengthens?</span></label>
+                    <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                        <input type="text" id="reflection-input" placeholder="e.g. The interest rate differential compounds over more days, widening the cash-flow gap..." style="flex: 1; min-width: 250px; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.25); color: white;">
+                        <button class="btn btn-gold" id="submit-reflection" onclick="handleSubmitReflection()">Record Response</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forward Curve Visualizer -->
+            <div class="glass-panel">
+                <div class="panel-header">
+                    <div>
+                        <h2 class="panel-title">Forward Curve Visualization</h2>
+                        <span style="font-size:0.8rem; color:var(--text-secondary);" id="chart-pair-desc">USD/HKD Term Structure across Tenors</span>
+                    </div>
+                    <div class="view-toggles">
+                        <button class="view-btn active" id="view-rate" onclick="setViewMode('rate')">Outright Rate F(T)</button>
+                        <button class="view-btn" id="view-points" onclick="setViewMode('points')">Forward Points (pips)</button>
+                        <button class="view-btn" id="view-annualized" onclick="setViewMode('annualized')">Annualized Premium %</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card neutral">
+                        <div class="stat-label">Spot Reference S_0</div>
+                        <div class="stat-number gold" id="stat-spot-val">7.8000</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);" id="stat-spot-unit">HKD per USD</div>
+                    </div>
+                    <div class="stat-card" id="card-diff">
+                        <div class="stat-label">Interest Rate Gap (r_q - r_b)</div>
+                        <div class="stat-number" id="stat-diff-val">-0.10%</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);" id="stat-diff-desc">USD rate higher &rarr; Discount</div>
+                    </div>
+                    <div class="stat-card" id="card-1y-pts">
+                        <div class="stat-label">1-Year Forward Points</div>
+                        <div class="stat-number" id="stat-1y-points">-78.0 pips</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);" id="stat-1y-outright">Outright 1Y: 7.7922</div>
+                    </div>
+                </div>
+
+                <div class="chart-container" style="margin-top: 1.25rem; height: 320px; position: relative;">
+                    <canvas id="forwardCurveChart"></canvas>
+                </div>
+
+                <!-- Tenor Term Structure Schedule Table -->
+                <div style="margin-top: 2rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.75rem;">
+                        <h3 class="panel-title" style="margin: 0;">Tenor Schedule & Market Quotes</h3>
+                        <span style="font-size:0.75rem; color:var(--text-secondary);">360-day money-market convention</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="financial-table">
+                            <thead>
+                                <tr>
+                                    <th>Tenor</th>
+                                    <th>Days</th>
+                                    <th>Forward Points (Bid / Ask)</th>
+                                    <th>Mid Points</th>
+                                    <th>Outright Rate (Bid / Ask)</th>
+                                    <th>Outright Mid</th>
+                                    <th>Annualized %</th>
+                                    <th>Market Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tenor-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        FINA3020: International Finance &middot; CUHK Business School &middot; Prof. Henry Zhang
+    </footer>
+
+    <script>
+        const PAIR_PRESETS = {
+            'USD/HKD': {
+                base: 'USD', quote: 'HKD', decimals: 4, pipMultiplier: 10000,
+                spot: 7.8000, minSpot: 7.6000, maxSpot: 8.0000, stepSpot: 0.0005,
+                rbase: 4.60, rquote: 4.50, spread: 0
+            },
+            'EUR/USD': {
+                base: 'EUR', quote: 'USD', decimals: 4, pipMultiplier: 10000,
+                spot: 1.0850, minSpot: 0.9500, maxSpot: 1.2500, stepSpot: 0.0005,
+                rbase: 3.25, rquote: 4.50, spread: 0
+            },
+            'GBP/USD': {
+                base: 'GBP', quote: 'USD', decimals: 4, pipMultiplier: 10000,
+                spot: 1.2950, minSpot: 1.1000, maxSpot: 1.4500, stepSpot: 0.0005,
+                rbase: 4.75, rquote: 4.50, spread: 0
+            },
+            'USD/JPY': {
+                base: 'USD', quote: 'JPY', decimals: 2, pipMultiplier: 100,
+                spot: 152.00, minSpot: 120.00, maxSpot: 175.00, stepSpot: 0.05,
+                rbase: 4.50, rquote: 0.50, spread: 0
+            },
+            'CUSTOM': {
+                base: 'BASE', quote: 'QUOTE', decimals: 4, pipMultiplier: 10000,
+                spot: 1.0000, minSpot: 0.5000, maxSpot: 2.0000, stepSpot: 0.001,
+                rbase: 3.00, rquote: 5.00, spread: 0
+            }
+        };
+
+        const TENORS = [
+            { label: 'Spot', days: 0 },
+            { label: '1W', days: 7 },
+            { label: '1M', days: 30 },
+            { label: '2M', days: 60 },
+            { label: '3M', days: 90 },
+            { label: '6M', days: 180 },
+            { label: '9M', days: 270 },
+            { label: '1Y', days: 360 }
+        ];
+
+        let currentPairKey = 'USD/HKD';
+        let viewMode = 'rate';
+        let chartInstance = null;
+        let activeRound = 1;
+        let roundStatus = { 1: false, 2: false, 3: false };
+
+        function initApp() {
+            updateStudentIDDisplay();
+            selectPair('USD/HKD');
+            setupInputListeners();
+            switchRound(1);
+        }
+
+        function updateStudentIDDisplay() {
+            const btn = document.getElementById('btn-student-id');
+            const id = FINA3020Utils.getStudentID();
+            const name = FINA3020Utils.getFullName();
+            if (id) {
+                btn.textContent = name ? id + ' (' + name + ')' : 'CUHK ID: ' + id;
+                btn.classList.remove('btn-gold');
+                btn.classList.add('btn-secondary');
+            } else {
+                btn.textContent = 'CUHK ID: Not Set';
+                btn.classList.add('btn-gold');
+                btn.classList.remove('btn-secondary');
+            }
+        }
+
+        function selectPair(pairKey) {
+            currentPairKey = pairKey;
+            document.querySelectorAll('.pair-pill').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const pillId = 'pill-' + pairKey.toLowerCase().replace('/', '-');
+            const activePill = document.getElementById(pillId);
+            if (activePill) activePill.classList.add('active');
+
+            const p = PAIR_PRESETS[pairKey];
+            const spotInput = document.getElementById('input-spot');
+            spotInput.min = p.minSpot;
+            spotInput.max = p.maxSpot;
+            spotInput.step = 'any';
+            spotInput.value = p.spot;
+
+            document.getElementById('input-rbase').value = p.rbase;
+            document.getElementById('input-rquote').value = p.rquote;
+            document.getElementById('input-spread').value = p.spread;
+
+            document.getElementById('label-spot').textContent = 'Spot Rate S (' + p.quote + ' per ' + p.base + ')';
+            document.getElementById('label-rbase').textContent = p.base + ' Interest Rate (Base r_b)';
+            document.getElementById('label-rquote').textContent = p.quote + ' Interest Rate (Quote r_q)';
+            document.getElementById('stat-spot-unit').textContent = p.quote + ' per ' + p.base;
+            document.getElementById('chart-pair-desc').textContent = pairKey + ' Term Structure across Tenors';
+
+            syncAndRecalculate();
+        }
+
+        function resetToCurrentPair() {
+            selectPair(currentPairKey);
+        }
+
+        function setupInputListeners() {
+            ['spot', 'rbase', 'rquote', 'spread'].forEach(id => {
+                const el = document.getElementById('input-' + id);
+                if (el) {
+                    el.addEventListener('input', syncAndRecalculate);
+                }
+            });
+        }
+
+        function getMarketData() {
+            const pair = PAIR_PRESETS[currentPairKey];
+            const spot = parseFloat(document.getElementById('input-spot').value);
+            const rbase = parseFloat(document.getElementById('input-rbase').value) / 100;
+            const rquote = parseFloat(document.getElementById('input-rquote').value) / 100;
+            const spreadBps = parseFloat(document.getElementById('input-spread').value);
+            const spreadPoints = spreadBps;
+
+            return {
+                pair,
+                spot,
+                rbase,
+                rquote,
+                spreadBps,
+                spreadPoints,
+                multiplier: pair.pipMultiplier,
+                decimals: pair.decimals
+            };
+        }
+
+        function calculateCurve(m) {
+            return TENORS.map(t => {
+                if (t.days === 0) {
+                    return {
+                        label: t.label,
+                        days: 0,
+                        fwdRateMid: m.spot,
+                        fwdRateBid: m.spot,
+                        fwdRateAsk: m.spot,
+                        pointsMid: 0,
+                        pointsBid: 0,
+                        pointsAsk: 0,
+                        annPremiumPct: 0
+                    };
+                }
+                const timeFactor = t.days / 360;
+                const fwdRateMid = m.spot * ((1 + m.rquote * timeFactor) / (1 + m.rbase * timeFactor));
+                const pointsMid = (fwdRateMid - m.spot) * m.multiplier;
+                
+                const tenorSpread = m.spreadPoints === 0 ? 0 : m.spreadPoints * (1 + 0.3 * Math.sqrt(t.days / 30));
+                const halfSpread = tenorSpread / 2;
+                
+                const pointsBid = pointsMid - halfSpread;
+                const pointsAsk = pointsMid + halfSpread;
+                const fwdRateBid = pointsBid === pointsAsk ? fwdRateMid : m.spot + (pointsBid / m.multiplier);
+                const fwdRateAsk = pointsBid === pointsAsk ? fwdRateMid : m.spot + (pointsAsk / m.multiplier);
+                const annPremiumPct = ((fwdRateMid - m.spot) / m.spot) * (360 / t.days) * 100;
+
+                return {
+                    label: t.label,
+                    days: t.days,
+                    fwdRateMid,
+                    fwdRateBid,
+                    fwdRateAsk,
+                    pointsMid,
+                    pointsBid,
+                    pointsAsk,
+                    annPremiumPct
+                };
+            });
+        }
+
+        function syncAndRecalculate() {
+            const m = getMarketData();
+
+            document.getElementById('val-spot').textContent = m.spot.toFixed(m.decimals);
+            document.getElementById('val-rbase').textContent = (m.rbase * 100).toFixed(2) + '%';
+            document.getElementById('val-rquote').textContent = (m.rquote * 100).toFixed(2) + '%';
+            document.getElementById('val-spread').textContent = (Number.isInteger(m.spreadBps) ? m.spreadBps.toFixed(0) : m.spreadBps.toFixed(1)) + ' bps';
+
+            const rDiff = (m.rquote - m.rbase) * 100;
+            const statDiff = document.getElementById('stat-diff-val');
+            const statDiffDesc = document.getElementById('stat-diff-desc');
+            statDiff.textContent = (rDiff >= 0 ? '+' : '') + rDiff.toFixed(2) + '%';
+
+            const badge = document.getElementById('curve-status-badge');
+            if (Math.abs(rDiff) < 0.001) {
+                badge.textContent = 'Curve: Flat';
+                badge.className = 'badge stat-badge badge-flat';
+                statDiffDesc.textContent = 'Equal rates \u2192 Flat curve';
+            } else if (rDiff > 0) {
+                badge.textContent = 'Curve: Forward Premium';
+                badge.className = 'badge stat-badge badge-premium';
+                statDiffDesc.textContent = m.pair.quote + ' rate higher \u2192 Premium';
+            } else {
+                badge.textContent = 'Curve: Forward Discount';
+                badge.className = 'badge stat-badge badge-discount';
+                statDiffDesc.textContent = m.pair.base + ' rate higher \u2192 Discount';
+            }
+
+            document.getElementById('stat-spot-val').textContent = m.spot.toFixed(m.decimals);
+
+            const curveData = calculateCurve(m);
+            const oneYear = curveData[curveData.length - 1];
+            document.getElementById('stat-1y-points').textContent = (oneYear.pointsMid >= 0 ? '+' : '') + oneYear.pointsMid.toFixed(1) + ' pips';
+            document.getElementById('stat-1y-outright').textContent = 'Outright 1Y: ' + oneYear.fwdRateMid.toFixed(m.decimals);
+
+            renderTable(curveData, m);
+            renderChart(curveData, m);
+        }
+
+        function renderTable(data, m) {
+            const tbody = document.getElementById('tenor-table-body');
+            tbody.innerHTML = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                const ptsBidStr = row.days === 0 ? '0.0' : (row.pointsBid >= 0 ? '+' : '') + row.pointsBid.toFixed(1);
+                const ptsAskStr = row.days === 0 ? '0.0' : (row.pointsAsk >= 0 ? '+' : '') + row.pointsAsk.toFixed(1);
+                const ptsMidStr = row.days === 0 ? '0.0' : (row.pointsMid >= 0 ? '+' : '') + row.pointsMid.toFixed(1);
+                
+                let statusBadge = '<span class="stat-badge badge-flat">Spot</span>';
+                if (row.days > 0) {
+                    if (row.pointsMid > 0.05) {
+                        statusBadge = '<span class="stat-badge badge-premium">Premium</span>';
+                    } else if (row.pointsMid < -0.05) {
+                        statusBadge = '<span class="stat-badge badge-discount">Discount</span>';
+                    } else {
+                        statusBadge = '<span class="stat-badge badge-flat">Par</span>';
+                    }
+                }
+
+                tr.innerHTML = '<td><strong>' + row.label + '</strong></td>' +
+                    '<td>' + row.days + 'd</td>' +
+                    '<td>' + ptsBidStr + ' / ' + ptsAskStr + '</td>' +
+                    '<td class="gold" style="font-weight:600;">' + ptsMidStr + '</td>' +
+                    '<td>' + row.fwdRateBid.toFixed(m.decimals) + ' / ' + row.fwdRateAsk.toFixed(m.decimals) + '</td>' +
+                    '<td style="font-weight:600;">' + row.fwdRateMid.toFixed(m.decimals) + '</td>' +
+                    '<td>' + (row.days === 0 ? '—' : (row.annPremiumPct >= 0 ? '+' : '') + row.annPremiumPct.toFixed(2) + '%') + '</td>' +
+                    '<td>' + statusBadge + '</td>';
+                tbody.appendChild(tr);
+            });
+        }
+
+        function setViewMode(mode) {
+            viewMode = mode;
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('view-' + mode);
+            if (activeBtn) activeBtn.classList.add('active');
+            syncAndRecalculate();
+        }
+
+        function renderChart(curveData, m) {
+            const ctx = document.getElementById('forwardCurveChart').getContext('2d');
+            const labels = curveData.map(d => d.label + ' (' + d.days + 'd)');
+            let yValues = [];
+            let yLabel = '';
+            let baselineValue = null;
+
+            if (viewMode === 'rate') {
+                yValues = curveData.map(d => d.fwdRateMid);
+                yLabel = 'Outright Forward Rate (' + m.pair.quote + ' per ' + m.pair.base + ')';
+                baselineValue = m.spot;
+            } else if (viewMode === 'points') {
+                yValues = curveData.map(d => d.pointsMid);
+                yLabel = 'Forward Points (pips)';
+                baselineValue = 0;
+            } else {
+                yValues = curveData.map(d => d.annPremiumPct);
+                yLabel = 'Annualized Premium / Discount (%)';
+                baselineValue = 0;
+            }
+
+            const isUpward = (m.rquote - m.rbase) >= 0;
+            const lineColor = isUpward ? '#e0a800' : '#38bdf8';
+            const areaFillColor = isUpward ? 'rgba(224, 168, 0, 0.12)' : 'rgba(56, 189, 248, 0.12)';
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: yLabel,
+                            data: yValues,
+                            borderColor: lineColor,
+                            backgroundColor: areaFillColor,
+                            borderWidth: 3,
+                            pointBackgroundColor: lineColor,
+                            pointBorderColor: '#ffffff',
+                            pointHoverRadius: 7,
+                            pointRadius: 5,
+                            fill: true,
+                            tension: 0.25
+                        },
+                        {
+                            label: viewMode === 'rate' ? 'Spot Baseline' : 'Zero Line',
+                            data: labels.map(() => baselineValue),
+                            borderColor: 'rgba(255, 255, 255, 0.35)',
+                            borderDash: [5, 5],
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#94a3b8',
+                                font: { family: 'Inter, sans-serif', size: 12 }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            titleColor: '#e0a800',
+                            bodyColor: '#ffffff',
+                            borderColor: 'rgba(224, 168, 0, 0.4)',
+                            borderWidth: 1,
+                            padding: 10,
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 1) return null;
+                                    const item = curveData[context.dataIndex];
+                                    if (viewMode === 'rate') {
+                                        return [
+                                            'Outright: ' + item.fwdRateMid.toFixed(m.decimals),
+                                            'Points: ' + (item.pointsMid >= 0 ? '+' : '') + item.pointsMid.toFixed(1) + ' pips',
+                                            'Annualized: ' + (item.annPremiumPct >= 0 ? '+' : '') + item.annPremiumPct.toFixed(2) + '%'
+                                        ];
+                                    } else if (viewMode === 'points') {
+                                        return [
+                                            'Points: ' + (item.pointsMid >= 0 ? '+' : '') + item.pointsMid.toFixed(1) + ' pips',
+                                            'Outright: ' + item.fwdRateMid.toFixed(m.decimals),
+                                            'Annualized: ' + (item.annPremiumPct >= 0 ? '+' : '') + item.annPremiumPct.toFixed(2) + '%'
+                                        ];
+                                    } else {
+                                        return [
+                                            'Annualized: ' + (item.annPremiumPct >= 0 ? '+' : '') + item.annPremiumPct.toFixed(2) + '%',
+                                            'Points: ' + (item.pointsMid >= 0 ? '+' : '') + item.pointsMid.toFixed(1) + ' pips',
+                                            'Outright: ' + item.fwdRateMid.toFixed(m.decimals)
+                                        ];
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(255, 255, 255, 0.06)' },
+                            ticks: { color: '#94a3b8', font: { family: 'Inter, sans-serif' } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                            ticks: {
+                                color: '#94a3b8',
+                                font: { family: 'Inter, sans-serif' },
+                                callback: function(val) {
+                                    if (viewMode === 'rate') return val.toFixed(m.decimals);
+                                    if (viewMode === 'points') return val.toFixed(0) + ' pts';
+                                    return val.toFixed(2) + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        const ROUND_CONFIGS = {
+            1: {
+                badge: 'Round 1 of 3',
+                title: 'Challenge 1: Forward Points & Outright Rate',
+                prompt: 'A dealer quotes <strong>Spot = 7.8000</strong> and <strong>6-month Forward Points = -30.0</strong> pips on USD/HKD. What is the outright 6-month forward rate, and is the USD at a forward premium or discount?',
+                hint: 'Hint: 1 pip = 0.0001 for 4-decimal currency pairs. Outright F = Spot + (Points / 10,000) = 7.8000 - 0.0030. Negative points mean forward discount.',
+                options: [
+                    { val: 'opt-1', text: '7.7970 · USD at Forward Discount', correct: true },
+                    { val: 'opt-2', text: '7.8030 · USD at Forward Premium', correct: false },
+                    { val: 'opt-3', text: '7.7970 · USD at Forward Premium', correct: false },
+                    { val: 'opt-4', text: '7.8030 · USD at Forward Discount', correct: false }
+                ],
+                explanation: 'Correct! Outright F = 7.8000 + (-30.0 / 10,000) = 7.8000 - 0.0030 = 7.7970. Because F < S, the USD buys fewer HKD forward than spot: the USD trades at a forward discount (-0.0769% = -7.7 bps annualized). Notice that F remains comfortably within the 7.7500–7.8500 currency board band!'
+            },
+            2: {
+                badge: 'Round 2 of 3',
+                title: 'Challenge 2: Corporate CFO Hedging Dilemma',
+                prompt: 'You are the CFO of a European importer paying <strong>US$1,000,000 in 6 months</strong> (EUR/USD Spot = 1.0850). US interest rate (4.50%) > Euro rate (3.25%). The forward points are <strong>-70 pips</strong> (F = 1.0780). How many Euros must you commit forward to hedge, and do forward points provide a hedging pickup or cost?',
+                hint: 'Hint: Importer sells EUR to buy USD at forward rate F = 1.0780. Required EUR = $1,000,000 / 1.0780. Compare to Spot conversion at 1.0850.',
+                options: [
+                    { val: 'opt-1', text: '€927,644 · Hedging Cost (EUR buys fewer USD forward than spot)', correct: true },
+                    { val: 'opt-2', text: '€921,659 · Hedging Benefit (EUR buys more USD forward than spot)', correct: false },
+                    { val: 'opt-3', text: '€1,078,000 · Hedging Benefit (Locked in profit)', correct: false },
+                    { val: 'opt-4', text: '€927,644 · Hedging Benefit (Lower dollar cost)', correct: false }
+                ],
+                explanation: 'Correct! At F = 1.0780, hedging requires $1,000,000 / 1.0780 = €927,644. At spot (1.0850), it would have required only €921,659. Because EUR interest rate < USD interest rate, EUR trades at a forward discount (-70 pips), making forward USD purchases more expensive in EUR (a negative roll yield / hedging cost for the European importer).'
+            },
+            3: {
+                badge: 'Round 3 of 3',
+                title: 'Challenge 3: Central Bank Rate Shock & Forward Curve Pivot',
+                prompt: 'The US Federal Reserve unexpectedly <strong>hikes the USD rate by 50 bps</strong> (from 4.60% to 5.10%) while Hong Kong\'s HKD rate stays at 4.50%. What happens to the USD/HKD forward curve and forward points?',
+                hint: 'Hint: Interest rate gap (r_HKD - r_USD) becomes more negative, widening from -0.10% to -0.60%. Recall F(T) \u2248 S * [1 + (r_HKD - r_USD)*T/360].',
+                options: [
+                    { val: 'opt-1', text: 'The forward curve slopes more steeply DOWNWARD (forward points become more negative / deeper discount)', correct: true },
+                    { val: 'opt-2', text: 'The forward curve FLATTENS to zero (points disappear)', correct: false },
+                    { val: 'opt-3', text: 'The forward curve INVERTS upward (points turn positive)', correct: false },
+                    { val: 'opt-4', text: 'No change because spot exchange rate is pegged', correct: false }
+                ],
+                explanation: 'Correct! When the Fed hikes USD rates, the gap (r_HKD - r_USD) widens from -0.10% to -0.60%. Under CIP, USD forward points become more negative, deepening the downward slope of the forward curve (a larger forward discount on the higher-yielding USD). All rates still remain safely within the convertibility band!'
+            }
+        };
+
+        function switchRound(roundNum) {
+            activeRound = roundNum;
+            document.querySelectorAll('.round-step-btn').forEach((btn, idx) => {
+                if (idx + 1 === roundNum) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            const config = ROUND_CONFIGS[roundNum];
+            document.getElementById('round-badge').textContent = config.badge;
+            document.getElementById('round-title').textContent = config.title;
+            document.getElementById('round-prompt').innerHTML = config.prompt;
+            document.getElementById('round-hint').innerHTML = config.hint;
+
+            const select = document.getElementById('prediction-select');
+            select.innerHTML = '<option value="">Select answer...</option>';
+            config.options.forEach(opt => {
+                const optEl = document.createElement('option');
+                optEl.value = opt.val;
+                optEl.textContent = opt.text;
+                select.appendChild(optEl);
+            });
+
+            document.getElementById('round-feedback').textContent = 'Choose an answer and lock your choice to test your intuition.';
+            document.getElementById('round-feedback').style.color = 'var(--text-secondary)';
+            document.getElementById('lock-prediction').disabled = false;
+
+            if (roundNum === 2) {
+                selectPair('EUR/USD');
+            } else if (roundNum === 1 || roundNum === 3) {
+                selectPair('USD/HKD');
+            }
+        }
+
+        function handleLockChoice() {
+            const select = document.getElementById('prediction-select');
+            const val = select.value;
+            if (!val) {
+                alert('Please select an answer first.');
+                return;
+            }
+
+            const config = ROUND_CONFIGS[activeRound];
+            const chosen = config.options.find(o => o.val === val);
+            const feedbackEl = document.getElementById('round-feedback');
+
+            if (chosen && chosen.correct) {
+                feedbackEl.innerHTML = '<span style="color:#4ade80; font-weight:700;">&#10003; Excellent!</span> ' + config.explanation;
+                roundStatus[activeRound] = true;
+            } else {
+                feedbackEl.innerHTML = '<span style="color:#f87171; font-weight:700;">&#10007; Not quite.</span> ' + config.explanation;
+                roundStatus[activeRound] = false;
+            }
+
+            document.getElementById('lock-prediction').disabled = true;
+
+            if (activeRound === 3) {
+                document.getElementById('input-rbase').value = 5.10;
+                syncAndRecalculate();
+            }
+
+            document.getElementById('reflection-section').style.display = 'block';
+        }
+
+        async function handleSubmitReflection() {
+            const reflectionText = document.getElementById('reflection-input').value.trim();
+            if (!reflectionText) {
+                alert('Please enter your 1-sentence analytical reflection.');
+                return;
+            }
+
+            const creds = FINA3020Utils.getStudentID();
+            if (!creds) {
+                const ok = FINA3020Utils.ensureStudentCredentials(true);
+                if (!ok) return;
+            }
+
+            const payload = {
+                mode: 'CIP',
+                game: 'Forward_Curve_Explorer',
+                targetTab: 'CIP',
+                roundCompleted: activeRound,
+                pair: currentPairKey,
+                spot: document.getElementById('input-spot').value,
+                rbase: document.getElementById('input-rbase').value,
+                rquote: document.getElementById('input-rquote').value,
+                reflection: reflectionText
+            };
+
+            const submitBtn = document.getElementById('submit-reflection');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Recording...';
+
+            try {
+                const res = FINA3020Utils.recordResponse(payload);
+                const delivered = await res.deliveryPromise;
+                if (delivered) {
+                    alert('Response successfully submitted and recorded for participation!');
+                    submitBtn.textContent = 'Submitted \u2713';
+                    updateStudentIDDisplay();
+                } else {
+                    alert('Submission stored locally (offline/queued). Keep tab open to confirm.');
+                    submitBtn.textContent = 'Stored Locally';
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Submission error: ' + err.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Record Response';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
