@@ -63,8 +63,30 @@
 <link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
 <script src="js/numeric_controls.js?v=20260909" defer></script>
 <link rel="stylesheet" href="css/mobile.css?v=20260909">
+<style>
+    .identity-locked .main-container { display: none; }
+    [hidden] { display: none !important; }
+    #desk-hint summary { cursor: pointer; min-height: 44px; font-weight: 600; }
+    #desk-hint p, #baseline-note { margin-top: .75rem; overflow-wrap: anywhere; }
+    .round-pending .answer-area { visibility: hidden; }
+    @media (max-width: 700px) {
+        body { font-size: 16px; }
+        .app-subtitle, .control-label, .control-value, .btn, .game-feedback,
+        .stat-label, .edu-callout, .course-navigation, .financial-table { font-size: 1rem; }
+        .main-container p, .stat-card > div:last-child { font-size: 1rem !important; }
+        #reflection-section > div { flex-direction: column; }
+        #reflection-input { width: 100%; min-width: 0; }
+        .financial-table { table-layout: fixed; width: 100%; }
+        .financial-table thead { display: none; }
+        .financial-table tr, .financial-table td { display: block; width: 100%; }
+        .financial-table tr { margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+        .financial-table td { white-space: normal; overflow-wrap: anywhere; padding: .5rem; }
+        .financial-table td[data-label]::before { content: attr(data-label) ": "; font-weight: 600; color: var(--text-secondary); }
+        .chart-container { height: 340px; }
+    }
+</style>
 </head>
-<body>
+<body class="identity-locked">
 <nav class="course-navigation" aria-label="Course games">
     <a href="./">← Game list</a>
     <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
@@ -80,18 +102,23 @@
         </div>
         <div class="header-actions">
             <button class="btn btn-gold" id="btn-student-id" onclick="FINA3020Utils.ensureStudentCredentials(true)">CUHK ID: Not Set</button>
-            <button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export Responses (.csv)</button>
-            <button class="btn btn-secondary" onclick="resetDefaults()">Reset Market</button>
+            <button class="btn btn-secondary" data-requires-identity disabled onclick="if (canPlay()) FINA3020Utils.exportResponsesCSV()">Export Responses (.csv)</button>
+            <button class="btn btn-secondary" data-requires-identity disabled onclick="resetDefaults()">Reset Market</button>
         </div>
     </header>
 
-    <main class="main-container">
+    <div id="entry-gate" class="glass-panel" style="margin: 1rem;">
+        <h2 class="panel-title">Enter your details to begin</h2>
+        <p>Enter your full name, 10-digit CUHK ID, and class section to unlock the game and hint.</p>
+        <button class="btn btn-gold" onclick="FINA3020Utils.ensureStudentCredentials(true)">Enter Name &amp; CUHK ID</button>
+    </div>
+    <main class="main-container" inert>
 
         <!-- Sidebar Controls -->
         <aside class="controls-panel glass-panel">
             <div class="panel-header">
                 <h2 class="panel-title">Money Market Inputs</h2>
-                <span class="badge badge-warning">Live Quotes</span>
+                <span class="badge badge-warning" id="market-mode">Slide baseline</span>
             </div>
 
             <div class="control-section">
@@ -105,41 +132,41 @@
                 <div class="control-group">
                     <div class="control-label">
                         <span>Market forward rate F (HKD per USD)</span>
-                        <span class="control-value" id="val-forward">7.7850</span>
+                        <span class="control-value" id="val-forward">7.76148</span>
                     </div>
-                    <input type="range" id="input-forward" min="7.7000" max="7.9000" step="any" value="7.7850">
+                    <input type="range" id="input-forward" min="7.3000" max="8.3000" step="any" value="7.76148">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
                         <span>HKD interest rate (r_d)</span>
-                        <span class="control-value" id="val-rd">4.50%</span>
+                        <span class="control-value" id="val-rd">3.00%</span>
                     </div>
-                    <input type="range" id="input-rd" min="0.00" max="10.00" step="any" value="4.50">
+                    <input type="range" id="input-rd" min="0.00" max="10.00" step="any" value="3.00">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
                         <span>USD interest rate (r_f)</span>
-                        <span class="control-value" id="val-rf">5.25%</span>
+                        <span class="control-value" id="val-rf">5.00%</span>
                     </div>
-                    <input type="range" id="input-rf" min="0.00" max="10.00" step="any" value="5.25">
+                    <input type="range" id="input-rf" min="0.00" max="10.00" step="any" value="5.00">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
                         <span>Maturity</span>
-                        <span class="control-value" id="val-days">360 Days</span>
+                        <span class="control-value" id="val-days">90 Days</span>
                     </div>
                     <select id="input-days" style="margin-top: 0.25rem;">
-                        <option value="90">90 Days (3 Months)</option>
+                        <option value="90" selected>90 Days (3 Months)</option>
                         <option value="180">180 Days (6 Months)</option>
-                        <option value="360" selected>360 Days (1 Year)</option>
+                        <option value="360">360 Days (1 Year)</option>
                     </select>
                 </div>
                 <div class="control-group">
                     <div class="control-label">
                         <span>Bid-ask spread (basis points)</span>
-                        <span class="control-value" id="val-spread">15 bps</span>
+                        <span class="control-value" id="val-spread">0 bps</span>
                     </div>
-                    <input type="range" id="input-spread" min="0" max="100" step="any" value="15">
+                    <input type="range" id="input-spread" min="0" max="100" step="any" value="0">
                 </div>
             </div>
 
@@ -179,6 +206,14 @@
                     </div>
                 </div>
 
+                <p id="baseline-note">Round 1 matches the slides’ 90-day HKD/USD example: S = 7.8000, HKD 3%, USD 5%, and zero spread. Quotes stay fixed until you press New Round.</p>
+                <details id="desk-hint" class="edu-callout">
+                    <summary>Show hint: compare covered returns</summary>
+                    <p>Use T = days / 360 and annual rates as decimals. With HKD per USD quotes, the fair forward is F* = S × (1 + r_HKD × T) / (1 + r_USD × T).</p>
+                    <p>If F is below F*, consider borrowing USD, selling USD spot, investing HKD, and buying USD forward to repay. If F is above F*, consider the reverse trade.</p>
+                    <p>Check executable prices: sell at the bid and buy at the ask. For each spot or forward midpoint, bid = midpoint × (1 − spread / 20,000) and ask = midpoint × (1 + spread / 20,000), with spread in basis points.</p>
+                    <p>Borrowing USD works only if S_bid × (1 + r_HKD × T) / F_ask exceeds 1 + r_USD × T. Borrowing HKD works only if F_bid × (1 + r_USD × T) / S_ask exceeds 1 + r_HKD × T. Otherwise choose no profitable trade.</p>
+                </details>
                 <div id="reflection-section" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
                     <label class="control-label" for="reflection-input"><span>Exit Reflection (1 sentence): What drove the CIP deviation or wiped out the arbitrage?</span></label>
                     <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
@@ -260,6 +295,21 @@
             }
         }
 
+        function canPlay() {
+            return /^\d{10}$/.test(FINA3020Utils.getStudentID()) &&
+                !!FINA3020Utils.getFullName().trim() && !!FINA3020Utils.getSection() &&
+                FINA3020Utils.isIdentityConfirmedForSession();
+        }
+
+        function syncEntryGate() {
+            const allowed = canPlay();
+            document.body.classList.toggle('identity-locked', !allowed);
+            document.querySelector('main').inert = !allowed;
+            document.getElementById('entry-gate').hidden = allowed;
+            document.querySelectorAll('[data-requires-identity]').forEach(button => button.disabled = !allowed);
+            updateStudentIDDisplay();
+        }
+
         function initApp() {
             updateStudentIDDisplay();
 
@@ -275,11 +325,19 @@
             document.getElementById('submit-reflection').addEventListener('click', submitReflection);
             document.getElementById('new-round').addEventListener('click', newRound);
             
-            newRound();
+            startRound(false);
+            syncEntryGate();
+            // The shared identity form saves details before removing its overlay.
+            new MutationObserver(syncEntryGate).observe(document.body, { childList: true });
         }
 
         function newRound() {
-            roundNumber += 1;
+            if (!canPlay()) return;
+            startRound(true);
+        }
+
+        function startRound(randomize) {
+            roundNumber = randomize ? roundNumber + 1 : 1;
             predictionLocked = false;
             currentRoundResponse = null;
             document.body.classList.add('round-pending');
@@ -290,6 +348,16 @@
             document.getElementById('reflection-input').value = '';
             document.getElementById('prediction-select').value = '';
 
+            document.getElementById('desk-hint').open = false;
+            document.getElementById('baseline-note').hidden = randomize;
+            document.getElementById('market-mode').textContent = randomize ? 'Practice quotes' : 'Slide baseline';
+            document.querySelectorAll('.controls-panel input, .controls-panel select').forEach(input => input.disabled = !randomize);
+            if (!randomize) {
+                const baseline = { spot: 7.8, forward: 7.8 * 1.0075 / 1.0125, rd: 3, rf: 5, days: 90, spread: 0 };
+                Object.entries(baseline).forEach(([key, value]) => document.getElementById(`input-${key}`).value = value);
+                updateCIP();
+                return;
+            }
             const spot = 7.76 + Math.random() * 0.08;
             const rd = 2.5 + Math.random() * 4.0;
             const rf = 2.5 + Math.random() * 4.0;
@@ -339,6 +407,7 @@
         }
 
         function lockPrediction() {
+            if (!canPlay() || predictionLocked) return;
             if (!FINA3020Utils.ensureStudentCredentials()) return;
             updateStudentIDDisplay();
 
@@ -372,6 +441,7 @@
         }
 
         function submitReflection() {
+            if (!canPlay()) return;
             if (!currentRoundResponse) return;
             const reflection = document.getElementById('reflection-input').value.trim();
             if (!reflection) {
@@ -399,7 +469,7 @@
             const spreadBps = parseFloat(document.getElementById('input-spread').value);
 
             document.getElementById('val-spot').innerText = spot.toFixed(4);
-            document.getElementById('val-forward').innerText = forward.toFixed(4);
+            document.getElementById('val-forward').innerText = forward.toFixed(5);
             document.getElementById('val-rd').innerText = `${(rd * 100).toFixed(2)}%`;
             document.getElementById('val-rf').innerText = `${(rf * 100).toFixed(2)}%`;
             document.getElementById('val-days').innerText = `${days} Days`;
@@ -412,7 +482,7 @@
             const fLowerBand = fTheoretical * (1 - spreadPct);
             const devBps = ((forward - fTheoretical) / fTheoretical) * 10000;
 
-            document.getElementById('stat-theoretical-fwd').innerText = fTheoretical.toFixed(4);
+            document.getElementById('stat-theoretical-fwd').innerText = fTheoretical.toFixed(5);
             document.getElementById('stat-fwd-dev').innerText = `${devBps > 0 ? '+' : ''}${devBps.toFixed(1)} bps`;
 
             const cardDev = document.getElementById('card-deviation');
@@ -452,7 +522,7 @@
             const statStrategy = document.getElementById('stat-strategy');
             let ledgerHtml = '';
 
-            if (profitStrat1 > 0 && profitStrat1 > profitStrat2USD) {
+            if (profitStrat1 > 1.0 && profitStrat1 > profitStrat2USD) {
                 cardProfit.className = 'stat-card profit';
                 statNetProfit.className = 'stat-number profit';
                 statNetProfit.innerText = `+${FINA3020Utils.formatCurrency(profitStrat1, '$', 2)}`;
@@ -464,7 +534,7 @@
                     <tr><td>4</td><td>Buy USD forward at F_ask = ${fwdAsk.toFixed(4)}</td><td>--</td><td>-HK$${hkdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} &rarr; +US$${usdReturned.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
                     <tr style="background: rgba(16,185,129,0.1); font-weight:700;"><td colspan="3">Net profit after transaction costs</td><td style="color:var(--success);">+US$${profitStrat1.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
                 `;
-            } else if (profitStrat2USD > 0) {
+            } else if (profitStrat2USD > 1.0) {
                 cardProfit.className = 'stat-card profit';
                 statNetProfit.className = 'stat-number profit';
                 statNetProfit.innerText = `+${FINA3020Utils.formatCurrency(profitStrat2USD, '$', 2)} USD`;
@@ -484,6 +554,10 @@
                 ledgerHtml = `<tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding:2rem;">Rates inside no-arbitrage band.</td></tr>`;
             }
             document.getElementById('cip-ledger-body').innerHTML = ledgerHtml;
+            document.querySelectorAll('#cip-ledger-body tr').forEach(row => {
+                if (row.cells.length !== 4) return;
+                [...row.cells].forEach((cell, index) => cell.dataset.label = ['Step', 'Action', 'Today', 'At maturity'][index]);
+            });
 
             updateChart(spot, rd, rf, t, fTheoretical, fUpperBand, fLowerBand, forward);
         }
@@ -492,6 +566,11 @@
             if (typeof Chart === 'undefined') return;
             const ctx = document.getElementById('cipChart').getContext('2d');
             const defaults = FINA3020Utils.getChartDefaults();
+            defaults.plugins.legend.labels.font = { family: 'system-ui, sans-serif', size: 14 };
+            defaults.plugins.legend.labels.boxWidth = 20;
+            Object.values(defaults.scales).forEach(axis => {
+                axis.ticks.font = { family: 'system-ui, sans-serif', size: 14 };
+            });
             cipChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -507,7 +586,7 @@
                     ...defaults,
                     plugins: {
                         ...defaults.plugins,
-                        title: { display: true, text: 'CIP No-Arbitrage Band by Maturity', color: '#F8FAFC', font: { family: 'Outfit', size: 14 } }
+                        title: { display: true, text: 'CIP No-Arbitrage Band by Maturity', color: '#F8FAFC', font: { family: 'system-ui, sans-serif', size: 14 } }
                     }
                 }
             });
@@ -531,13 +610,8 @@
         }
 
         function resetDefaults() {
-            document.getElementById('input-spot').value = 7.8000;
-            document.getElementById('input-forward').value = 7.7850;
-            document.getElementById('input-rd').value = 4.50;
-            document.getElementById('input-rf').value = 5.25;
-            document.getElementById('input-days').value = "360";
-            document.getElementById('input-spread').value = 15;
-            updateCIP();
+            if (!canPlay()) return;
+            startRound(false);
         }
 
         window.addEventListener('load', initApp);
