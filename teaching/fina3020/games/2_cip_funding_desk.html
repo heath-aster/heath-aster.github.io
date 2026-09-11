@@ -41,6 +41,57 @@
             color: var(--text-secondary);
         }
 
+        .feedback-banner {
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            margin-top: 0.5rem;
+            border: 1px solid transparent;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            width: 100%;
+            overflow-wrap: break-word;
+        }
+
+        .feedback-banner.correct {
+            background: rgba(74, 222, 128, 0.12);
+            border-color: rgba(74, 222, 128, 0.4);
+            color: #f1f5f9;
+        }
+
+        .feedback-banner.incorrect {
+            background: rgba(248, 113, 113, 0.12);
+            border-color: rgba(248, 113, 113, 0.4);
+            color: #f1f5f9;
+        }
+
+        .feedback-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .feedback-banner.correct .feedback-title {
+            color: #4ade80;
+        }
+
+        .feedback-banner.incorrect .feedback-title {
+            color: #f87171;
+        }
+
+        .feedback-detail {
+            color: #cbd5e1;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        .feedback-detail strong {
+            color: #f8fafc;
+        }
+
         .game-actions select { min-width: 0; }
 
         .btn:disabled {
@@ -206,6 +257,10 @@
                     </div>
                 </div>
 
+                <div class="game-feedback" id="round-feedback" aria-live="polite">
+                    <div style="font-size: 0.9rem; color: var(--text-secondary);">Select a strategy and lock your choice to test your intuition.</div>
+                </div>
+
                 <p id="baseline-note">Round 1 matches the slides’ 90-day HKD/USD example: S = 7.8000, HKD 3%, USD 5%, and zero spread. Quotes stay fixed until you press New Round.</p>
                 <details id="desk-hint" class="edu-callout">
                     <summary>Show hint: compare covered returns</summary>
@@ -216,13 +271,13 @@
                 </details>
                 <div id="reflection-section" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
                     <label class="control-label" for="reflection-input"><span>Exit Reflection (1 sentence): What drove the CIP deviation or wiped out the arbitrage?</span></label>
-                    <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
-                        <input type="text" id="reflection-input" placeholder="e.g. Market forward quote fell below theoretical F*, favoring USD borrowing..." style="flex: 1; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
+                    <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem; flex-wrap: wrap;">
+                        <input type="text" id="reflection-input" placeholder="e.g. Market forward quote fell below theoretical F*, favoring USD borrowing..." style="flex: 1; min-width: 240px; padding: 0.5rem 0.75rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white;">
                         <button class="btn btn-gold" id="submit-reflection">Record Response</button>
                     </div>
+                    <div id="reflection-status" style="font-size: 0.85rem; margin-top: 0.5rem; min-height: 1.2rem;"></div>
                 </div>
-                <div class="game-feedback" id="round-feedback" aria-live="polite">Record one choice before you reveal the result.</div>
-                <button class="btn btn-secondary" id="new-round" style="margin-top: 0.5rem;">New Round</button>
+                <button class="btn btn-secondary" id="new-round" style="margin-top: 0.75rem;">New Round</button>
             </div>
 
             <!-- Workspace View -->
@@ -230,18 +285,18 @@
                 <div class="stats-grid answer-area">
                     <div class="stat-card neutral">
                         <div class="stat-label">No-Arbitrage Forward Rate F*</div>
-                        <div class="stat-number gold" id="stat-theoretical-fwd">7.7944</div>
+                        <div class="stat-number gold" id="stat-theoretical-fwd">7.76148</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary);">Calculated from spot and interest rates</div>
                     </div>
                     <div class="stat-card" id="card-deviation">
                         <div class="stat-label">Market Quote Deviation</div>
-                        <div class="stat-number" id="stat-fwd-dev">-94.0 bps</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);" id="stat-dev-desc">Market quote below theoretical</div>
+                        <div class="stat-number" id="stat-fwd-dev">+0.0 bps</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);" id="stat-dev-desc">Inside the no-arbitrage band</div>
                     </div>
                     <div class="stat-card" id="card-profit">
                         <div class="stat-label">Net Profit on US$1,000,000</div>
-                        <div class="stat-number" id="stat-net-profit">$1,205.13</div>
-                        <div style="font-size: 0.75rem; color: var(--text-secondary);" id="stat-strategy">Borrow USD, invest HKD</div>
+                        <div class="stat-number" id="stat-net-profit">$0.00 USD</div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary);" id="stat-strategy">Inside no-arbitrage band</div>
                     </div>
                 </div>
 
@@ -342,11 +397,23 @@
             currentRoundResponse = null;
             document.body.classList.add('round-pending');
             document.getElementById('round-title').innerText = `Round ${roundNumber}: CIP Funding Desk Decision`;
-            document.getElementById('round-feedback').innerText = 'Record one choice before you reveal the result.';
+            document.getElementById('round-feedback').innerHTML = '<span style="color: var(--text-secondary);">Select a strategy and lock your choice to test your intuition.</span>';
             document.getElementById('lock-prediction').disabled = false;
-            document.getElementById('reflection-section').style.display = 'none';
-            document.getElementById('reflection-input').value = '';
+            document.getElementById('prediction-select').disabled = false;
             document.getElementById('prediction-select').value = '';
+            document.getElementById('reflection-section').style.display = 'none';
+            const reflectionInput = document.getElementById('reflection-input');
+            if (reflectionInput) {
+                reflectionInput.disabled = false;
+                reflectionInput.value = '';
+            }
+            const statusEl = document.getElementById('reflection-status');
+            if (statusEl) statusEl.innerText = '';
+            const submitBtn = document.getElementById('submit-reflection');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Record Response';
+            }
 
             document.getElementById('desk-hint').open = false;
             document.getElementById('baseline-note').hidden = randomize;
@@ -406,6 +473,38 @@
             }[val] || val;
         }
 
+        function getExecutionExplanation(correct, prediction) {
+            const spot = parseFloat(document.getElementById('input-spot').value);
+            const forward = parseFloat(document.getElementById('input-forward').value);
+            const rd = parseFloat(document.getElementById('input-rd').value) / 100;
+            const rf = parseFloat(document.getElementById('input-rf').value) / 100;
+            const days = parseInt(document.getElementById('input-days').value);
+            const t = days / 360;
+            const spreadBps = parseFloat(document.getElementById('input-spread').value);
+            const spreadPct = spreadBps / 10000;
+            const spotBid = spot * (1 - spreadPct / 2);
+            const spotAsk = spot * (1 + spreadPct / 2);
+            const fwdBid = forward * (1 - spreadPct / 2);
+            const fwdAsk = forward * (1 + spreadPct / 2);
+            const usdNotional = 1000000;
+
+            const fTheoretical = spot * (1 + rd * t) / (1 + rf * t);
+            const devBps = ((forward - fTheoretical) / fTheoretical) * 10000;
+
+            const profitBorrowUsd = (usdNotional * spotBid * (1 + rd * t) / fwdAsk) - (usdNotional * (1 + rf * t));
+            const hkdNotional = usdNotional * spot;
+            const profitBorrowHkd = ((hkdNotional / spotAsk) * (1 + rf * t) * fwdBid - hkdNotional) - (hkdNotional * rd * t);
+            const profitHkdInUsd = profitBorrowHkd / spot;
+
+            if (correct === 'borrow-usd') {
+                return `Market quote F (${forward.toFixed(4)}) trades below no-arbitrage fair value F* (${fTheoretical.toFixed(4)}) by ${Math.abs(devBps).toFixed(1)} bps. Forward USD is underpriced. Borrowing USD, selling spot at S_bid (${spotBid.toFixed(4)}), investing HKD at ${(rd * 100).toFixed(2)}%, and locking USD forward repurchase at F_ask (${fwdAsk.toFixed(4)}) secures <strong>+US$${profitBorrowUsd.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong> net profit per $1M notional.`;
+            } else if (correct === 'borrow-hkd') {
+                return `Market quote F (${forward.toFixed(4)}) trades above no-arbitrage fair value F* (${fTheoretical.toFixed(4)}) by +${devBps.toFixed(1)} bps. Forward USD is overpriced. Borrowing HKD, buying USD spot at S_ask (${spotAsk.toFixed(4)}), investing USD at ${(rf * 100).toFixed(2)}%, and selling USD forward at F_bid (${fwdBid.toFixed(4)}) secures <strong>+US$${profitHkdInUsd.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong> net profit per $1M notional.`;
+            } else {
+                return `Market quote F (${forward.toFixed(4)}) lies inside the ${spreadBps} bps transaction-cost band around fair value F* (${fTheoretical.toFixed(4)}) (deviation: ${devBps > 0 ? '+' : ''}${devBps.toFixed(1)} bps). Crossing bid-ask spreads wipes out gross margins (USD borrowing yields -$${Math.abs(profitBorrowUsd).toFixed(2)}, HKD borrowing yields -$${Math.abs(profitHkdInUsd).toFixed(2)} per $1M), leaving no executable arbitrage.`;
+            }
+        }
+
         function lockPrediction() {
             if (!canPlay() || predictionLocked) return;
             if (!FINA3020Utils.ensureStudentCredentials()) return;
@@ -413,13 +512,14 @@
 
             const prediction = document.getElementById('prediction-select').value;
             if (!prediction) {
-                document.getElementById('round-feedback').innerText = 'Choose one answer before you lock the round.';
+                document.getElementById('round-feedback').innerHTML = '<span style="color: #f87171; font-weight: 600;">Please select a strategy from the dropdown before locking.</span>';
                 return;
             }
 
             predictionLocked = true;
             document.body.classList.remove('round-pending');
             document.getElementById('lock-prediction').disabled = true;
+            document.getElementById('prediction-select').disabled = true;
 
             const correct = getCorrectPrediction();
             const matched = prediction === correct;
@@ -434,30 +534,72 @@
             };
 
             document.getElementById('round-title').innerText = `Round ${roundNumber}: Result Revealed`;
-            document.getElementById('round-feedback').innerText = matched
-                ? `Correct! Result matches your choice: ${predictionLabel(correct)}. Now enter your exit reflection below.`
-                : `Executable result: ${predictionLabel(correct)}. Your attempt counts; enter your exit reflection below.`;
+            const explanation = getExecutionExplanation(correct, prediction);
+            const feedbackEl = document.getElementById('round-feedback');
+
+            if (matched) {
+                feedbackEl.innerHTML = `
+                    <div class="feedback-banner correct">
+                        <div class="feedback-title">&#10003; Correct!</div>
+                        <div class="feedback-detail">
+                            You correctly executed: <strong>${predictionLabel(correct)}</strong>.<br>
+                            ${explanation}
+                        </div>
+                    </div>
+                `;
+            } else {
+                feedbackEl.innerHTML = `
+                    <div class="feedback-banner incorrect">
+                        <div class="feedback-title">&#10007; Incorrect</div>
+                        <div class="feedback-detail">
+                            Your choice: <strong style="color: #fca5a5;">${predictionLabel(prediction)}</strong> &nbsp;|&nbsp; Optimal execution: <strong style="color: #86efac;">${predictionLabel(correct)}</strong>.<br>
+                            ${explanation}
+                        </div>
+                    </div>
+                `;
+            }
+
             document.getElementById('reflection-section').style.display = 'block';
         }
 
-        function submitReflection() {
+        async function submitReflection() {
             if (!canPlay()) return;
             if (!currentRoundResponse) return;
-            const reflection = document.getElementById('reflection-input').value.trim();
+            const reflectionInput = document.getElementById('reflection-input');
+            const reflection = reflectionInput.value.trim();
             if (!reflection) {
                 alert('Please enter a short exit reflection before submitting.');
                 return;
             }
             currentRoundResponse.exitReflection = reflection;
-            const saved = FINA3020Utils.recordResponse(currentRoundResponse);
-            document.getElementById('reflection-section').style.display = 'none';
-            const feedback = document.getElementById('round-feedback');
-            feedback.innerText = 'Submitting response…';
-            saved.deliveryPromise.then(confirmed => {
-                feedback.innerText = confirmed
-                    ? `Response confirmed for ${FINA3020Utils.getFullName()} (ID: ${FINA3020Utils.getStudentID()}). Click "New Round" for the next scenario.`
-                    : 'Saved in this tab but NOT confirmed by the server. Leave this tab open for retry, or export the CSV and contact the TA.';
-            });
+
+            const submitBtn = document.getElementById('submit-reflection');
+            const statusEl = document.getElementById('reflection-status');
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Recording…';
+            statusEl.style.color = 'var(--text-secondary)';
+            statusEl.innerText = 'Submitting response…';
+
+            try {
+                const saved = FINA3020Utils.recordResponse(currentRoundResponse);
+                const confirmed = await saved.deliveryPromise;
+                if (confirmed) {
+                    reflectionInput.disabled = true;
+                    submitBtn.innerText = 'Submitted ✓';
+                    statusEl.style.color = '#4ade80';
+                    statusEl.innerText = `✓ Response confirmed for ${FINA3020Utils.getFullName()} (ID: ${FINA3020Utils.getStudentID()}). Click "New Round" for the next scenario.`;
+                } else {
+                    submitBtn.innerText = 'Stored Locally';
+                    statusEl.style.color = 'var(--gold-primary, #DAA520)';
+                    statusEl.innerText = 'Saved in this tab but NOT confirmed by the server. Keep tab open to retry, or export CSV.';
+                }
+            } catch (err) {
+                console.error(err);
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Record Response';
+                statusEl.style.color = '#f87171';
+                statusEl.innerText = 'Error submitting response: ' + (err.message || err);
+            }
         }
 
         function updateCIP() {
