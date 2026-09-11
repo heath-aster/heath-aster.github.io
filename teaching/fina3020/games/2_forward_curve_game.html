@@ -47,6 +47,57 @@
             color: var(--text-secondary);
         }
 
+        .feedback-banner {
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            margin-top: 0.75rem;
+            border: 1px solid transparent;
+            line-height: 1.5;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+            width: 100%;
+            overflow-wrap: break-word;
+        }
+
+        .feedback-banner.correct {
+            background: rgba(74, 222, 128, 0.12);
+            border-color: rgba(74, 222, 128, 0.4);
+            color: #f1f5f9;
+        }
+
+        .feedback-banner.incorrect {
+            background: rgba(248, 113, 113, 0.12);
+            border-color: rgba(248, 113, 113, 0.4);
+            color: #f1f5f9;
+        }
+
+        .feedback-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 0.4rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .feedback-banner.correct .feedback-title {
+            color: #4ade80;
+        }
+
+        .feedback-banner.incorrect .feedback-title {
+            color: #f87171;
+        }
+
+        .feedback-detail {
+            color: #cbd5e1;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        .feedback-detail strong {
+            color: #f8fafc;
+        }
+
         .game-actions select { min-width: 0; }
 
         .btn:disabled {
@@ -59,17 +110,8 @@
             display: none !important;
         }
 
-        #forward-curve-visualizer {
-            position: relative;
-            overflow: hidden;
-            transition: filter 0.3s ease, opacity 0.3s ease;
-        }
-
         .round-pending #forward-curve-visualizer {
-            filter: blur(8px);
-            opacity: 0.4;
-            pointer-events: none;
-            user-select: none;
+            display: none !important;
         }
 
         .pair-pills {
@@ -866,7 +908,7 @@
                         { val: 'opt-3', text: '7.7970 · USD at Forward Premium', correct: false },
                         { val: 'opt-4', text: '7.8030 · USD at Forward Discount', correct: false }
                     ],
-                    explanation: 'Correct! Outright F = 7.8000 + (-30.0 / 10,000) = 7.8000 - 0.0030 = 7.7970. Because F < S (points < 0), the USD buys fewer HKD forward than spot: the USD trades at a forward discount (-0.0769% = -7.7 bps annualized).'
+                    explanation: 'Outright F = 7.8000 + (-30.0 / 10,000) = 7.8000 - 0.0030 = 7.7970. Because F < S (points < 0), the USD buys fewer HKD forward than spot: the USD trades at a forward discount (-0.0769% = -7.7 bps annualized).'
                 };
             }
             const pool = [
@@ -904,7 +946,7 @@
                 prompt: `A dealer quotes <strong>Spot bid = ${S.toFixed(item.decimals)}</strong> and <strong>${tenor} Forward Points bid = ${P >= 0 ? '+' : ''}${P.toFixed(1)}</strong> pips on ${item.pair}. What is the outright ${tenor} forward bid, and is the ${item.base} at a forward premium or discount?`,
                 hint: `Hint: 1 pip = ${(1/item.mult)} for ${item.decimals}-decimal pairs. Outright F = Spot + (Points / ${item.mult}). If Points > 0 (${item.base} buys more ${item.quote} forward), ${item.base} is at a premium; if Points < 0, at a discount.`,
                 options: rawOptions,
-                explanation: `Correct! Outright F = ${S.toFixed(item.decimals)} + (${P >= 0 ? '+' : ''}${P.toFixed(1)} / ${item.mult}) = ${correctRateStr}. Because ${P >= 0 ? 'F > S' : 'F < S'}, the ${item.base} trades at a forward ${isPrem ? 'premium' : 'discount'}.`
+                explanation: `Outright F = ${S.toFixed(item.decimals)} + (${P >= 0 ? '+' : ''}${P.toFixed(1)} / ${item.mult}) = ${correctRateStr}. Because ${P >= 0 ? 'F > S' : 'F < S'}, the ${item.base} trades at a forward ${isPrem ? 'premium' : 'discount'}.`
             };
         }
 
@@ -922,7 +964,7 @@
                         { val: 'opt-3', text: '€1,091,673 · Hedging Benefit (multiply by F)', correct: false },
                         { val: 'opt-4', text: '€916,025 · Hedging Cost (EUR buys fewer USD forward than spot)', correct: false }
                     ],
-                    explanation: 'Correct! CIP gives F = 1.0850 × (1 + 0.045 × 0.5) / (1 + 0.0325 × 0.5) = 1.091673. The USD payment requires about €916,025 forward, compared with €921,659 at today’s spot. The EUR forward premium gives a benefit relative to that spot comparison; it is not a risk-free profit.'
+                    explanation: 'CIP gives F = 1.0850 × (1 + 0.045 × 0.5) / (1 + 0.0325 × 0.5) = 1.091673. The USD payment requires about €916,025 forward, compared with €921,659 at today’s spot. The EUR forward premium gives a benefit relative to that spot comparison; it is not a risk-free profit.'
                 };
             }
             const amounts = [500000, 1000000, 1500000, 2000000];
@@ -961,7 +1003,7 @@
                 prompt: `You are the CFO of a European importer paying <strong>US$${amount.toLocaleString()} in ${tenorObj.label}</strong> (EUR/USD Spot = ${spot.toFixed(4)}). US interest rate (${(rUSD*100).toFixed(2)}%) > Euro rate (${(rEUR*100).toFixed(2)}%). Under CIP, the ${tenorObj.label} forward is <strong>F = ${F.toFixed(6)}</strong> (${pips >= 0 ? '+' : ''}${pips.toFixed(1)} pips). How many Euros must you commit forward to hedge, and do forward points provide a hedging pickup or cost?`,
                 hint: `Hint: Required EUR = USD payment / F. Compare with USD payment / S. Because F > S (EUR trades at a forward premium against USD), 1 EUR buys more USD forward, requiring fewer Euros today.`,
                 options: rawOptions,
-                explanation: `Correct! Under CIP, F = ${spot.toFixed(4)} × (1 + ${(rUSD*100).toFixed(2)}% × ${tenorObj.t}) / (1 + ${(rEUR*100).toFixed(2)}% × ${tenorObj.t}) = ${F.toFixed(6)}. Paying US$${amount.toLocaleString()} requires €${reqEUR.toLocaleString()} forward, vs €${spotEUR.toLocaleString()} at spot. Because EUR is at a forward premium, you enjoy a hedging benefit vs spot.`
+                explanation: `Under CIP, F = ${spot.toFixed(4)} × (1 + ${(rUSD*100).toFixed(2)}% × ${tenorObj.t}) / (1 + ${(rEUR*100).toFixed(2)}% × ${tenorObj.t}) = ${F.toFixed(6)}. Paying US$${amount.toLocaleString()} requires €${reqEUR.toLocaleString()} forward, vs €${spotEUR.toLocaleString()} at spot. Because EUR is at a forward premium, you enjoy a hedging benefit vs spot.`
             };
         }
 
@@ -979,7 +1021,7 @@
                         { val: 'opt-3', text: 'The forward curve INVERTS upward (points turn positive)', correct: false },
                         { val: 'opt-4', text: 'No change because spot exchange rate is pegged', correct: false }
                     ],
-                    explanation: 'Correct! When the Fed hikes USD rates, the gap (r_HKD - r_USD) widens from -0.10% to -0.60%. Under CIP, USD forward points become more negative, deepening the downward slope of the forward curve (a larger forward discount on the higher-yielding USD). The spot convertibility band does not constrain forward rates.',
+                    explanation: 'When the Fed hikes USD rates, the gap (r_HKD - r_USD) widens from -0.10% to -0.60%. Under CIP, USD forward points become more negative, deepening the downward slope of the forward curve (a larger forward discount on the higher-yielding USD). The spot convertibility band does not constrain forward rates.',
                     postLockAction: () => {
                         document.getElementById('input-rbase').value = '5.10';
                         syncAndRecalculate();
@@ -996,7 +1038,7 @@
                         { val: 'opt-3', text: 'The forward curve FLATTENS completely to zero', correct: false },
                         { val: 'opt-4', text: 'No change because the spot rate is pegged within 7.75 - 7.85', correct: false }
                     ],
-                    explanation: 'Correct! Because HKD rate (4.50%) is now higher than USD rate (4.00%), r_quote > r_base. Under CIP, F(T) > S: forward points become positive and the curve inverts to an upward-sloping premium curve.',
+                    explanation: 'Because HKD rate (4.50%) is now higher than USD rate (4.00%), r_quote > r_base. Under CIP, F(T) > S: forward points become positive and the curve inverts to an upward-sloping premium curve.',
                     postLockAction: () => {
                         document.getElementById('input-rbase').value = '4.00';
                         syncAndRecalculate();
@@ -1011,7 +1053,7 @@
                         { val: 'opt-3', text: 'The forward curve inverts upward to a steep premium', correct: false },
                         { val: 'opt-4', text: 'Forward rates diverge to the 7.85 upper convertibility bound', correct: false }
                     ],
-                    explanation: 'Correct! When domestic and foreign rates are identical (r_HKD = r_USD = 4.60%), F(T) = S for all tenors. Forward points are zero (par) and the forward curve is completely flat.',
+                    explanation: 'When domestic and foreign rates are identical (r_HKD = r_USD = 4.60%), F(T) = S for all tenors. Forward points are zero (par) and the forward curve is completely flat.',
                     postLockAction: () => {
                         document.getElementById('input-rquote').value = '4.60';
                         syncAndRecalculate();
@@ -1026,7 +1068,7 @@
                         { val: 'opt-3', text: 'The forward curve flattens toward zero', correct: false },
                         { val: 'opt-4', text: 'Forward points remain capped by the HKMA convertibility undertaking', correct: false }
                     ],
-                    explanation: 'Correct! Widening the interest differential to -1.10% causes USD forward points to become much more negative across all tenors, steepening the downward slope.',
+                    explanation: 'Widening the interest differential to -1.10% causes USD forward points to become much more negative across all tenors, steepening the downward slope.',
                     postLockAction: () => {
                         document.getElementById('input-rbase').value = '5.60';
                         syncAndRecalculate();
@@ -1118,13 +1160,31 @@
             }
 
             const chosen = currentConfig.options.find(o => o.val === val);
+            const correctOpt = currentConfig.options.find(o => o.correct);
             const feedbackEl = document.getElementById('round-feedback');
+            const cleanExplanation = (currentConfig.explanation || '').replace(/^Correct!\s*/i, '');
 
             if (chosen && chosen.correct) {
-                feedbackEl.innerHTML = '<span style="color:#4ade80; font-weight:700;">&#10003; Excellent!</span> ' + currentConfig.explanation;
+                feedbackEl.innerHTML = `
+                    <div class="feedback-banner correct">
+                        <div class="feedback-title">&#10003; Correct!</div>
+                        <div class="feedback-detail">
+                            ${cleanExplanation}
+                        </div>
+                    </div>
+                `;
                 roundStatus[activeRound] = true;
             } else {
-                feedbackEl.innerHTML = '<span style="color:#f87171; font-weight:700;">&#10007; Not quite.</span> ' + currentConfig.explanation;
+                feedbackEl.innerHTML = `
+                    <div class="feedback-banner incorrect">
+                        <div class="feedback-title">&#10007; Incorrect</div>
+                        <div class="feedback-detail">
+                            Your choice: <strong style="color: #fca5a5;">${chosen ? chosen.text : ''}</strong><br>
+                            Correct answer: <strong style="color: #86efac;">${correctOpt ? correctOpt.text : ''}</strong><br><br>
+                            ${cleanExplanation}
+                        </div>
+                    </div>
+                `;
                 roundStatus[activeRound] = false;
             }
 
@@ -1134,6 +1194,9 @@
             if (badge) badge.style.display = '';
             select.disabled = true;
             document.getElementById('lock-prediction').disabled = true;
+
+            // Re-render chart so canvas dimensions adapt cleanly to unhiding
+            syncAndRecalculate();
 
             if (currentConfig.postLockAction) {
                 currentConfig.postLockAction();
