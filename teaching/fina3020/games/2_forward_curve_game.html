@@ -179,9 +179,6 @@
         #baseline-note, #selected-answer { margin: .75rem 0; }
         #desk-hint summary { min-height: 44px; cursor: pointer; font-weight: 600; }
         #desk-hint p { margin-top: .5rem; }
-        body.slide-baseline .controls-panel .control-section,
-        body.slide-baseline .controls-panel > .edu-callout,
-        body.slide-baseline #card-diff { display: none; }
         @media (max-width: 700px) {
             .game-prompt, .game-feedback, .app-subtitle, .control-label, .control-value,
             .btn, .pair-pill, .view-btn, .round-step-btn, .stat-label, .financial-table,
@@ -236,15 +233,16 @@
             </div>
 
             <div class="pair-pills" role="tablist" aria-label="Select currency pair">
-                <button class="pair-pill active" id="pill-usd-hkd" onclick="if (canPlay() && activeRound !== 1) selectPair('USD/HKD')">USD/HKD</button>
-                <button class="pair-pill" id="pill-eur-usd" onclick="if (canPlay() && activeRound !== 1) selectPair('EUR/USD')">EUR/USD</button>
-                <button class="pair-pill" id="pill-gbp-usd" onclick="if (canPlay() && activeRound !== 1) selectPair('GBP/USD')">GBP/USD</button>
-                <button class="pair-pill" id="pill-usd-jpy" onclick="if (canPlay() && activeRound !== 1) selectPair('USD/JPY')">USD/JPY</button>
-                <button class="pair-pill" id="pill-custom" onclick="if (canPlay() && activeRound !== 1) selectPair('CUSTOM')">Custom Pair</button>
+                <button class="pair-pill active" id="pill-usd-hkd" onclick="if (canPlay()) selectPair('USD/HKD')">USD/HKD</button>
+                <button class="pair-pill" id="pill-eur-usd" onclick="if (canPlay()) selectPair('EUR/USD')">EUR/USD</button>
+                <button class="pair-pill" id="pill-gbp-usd" onclick="if (canPlay()) selectPair('GBP/USD')">GBP/USD</button>
+                <button class="pair-pill" id="pill-usd-jpy" onclick="if (canPlay()) selectPair('USD/JPY')">USD/JPY</button>
+                <button class="pair-pill" id="pill-custom" onclick="if (canPlay()) selectPair('CUSTOM')">Custom Pair</button>
             </div>
 
-            <p id="baseline-note">Round 1 uses the slides’ dealer quotes: spot 7.8000 / 7.8002, 6-month forward 7.7970 / 7.7974, and 12-month forward 7.7930 / 7.7936 (bid / ask). Press New Round to move to the next challenge and explore model curves.</p>
-            <p id="explorer-note" hidden>The challenge uses the scenario stated in its question. These controls let you explore other curves.</p>
+            <p id="baseline-note" style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.75rem;">
+                Select a currency pair or adjust spot rates, interest rates, and spreads to visualize how money markets shape the forward curve.
+            </p>
             <div class="control-section">
                 <div class="control-group">
                     <div class="control-label">
@@ -476,15 +474,26 @@
             updateStudentIDDisplay();
         }
         function newRound() {
-            if (!canPlay()) return;
+            if (!canPlay()) {
+                FINA3020Utils.ensureStudentCredentials(true);
+                return;
+            }
             practiceStarted = true;
-            switchRound(activeRound % 3 + 1);
+            startRound(activeRound, true);
+        }
+        function switchRound(roundNum) {
+            if (!canPlay()) {
+                FINA3020Utils.ensureStudentCredentials(true);
+                return;
+            }
+            practiceStarted = true;
+            startRound(roundNum, false);
         }
         function initApp() {
             updateStudentIDDisplay();
             selectPair('USD/HKD');
             setupInputListeners();
-            switchRound(1, true);
+            startRound(1, false);
             syncEntryGate();
             new MutationObserver(syncEntryGate).observe(document.body, { childList: true });
             document.getElementById('prediction-select').addEventListener('change', () => {
@@ -539,8 +548,7 @@
 
         function resetToCurrentPair() {
             if (!canPlay()) return;
-            practiceStarted = false;
-            switchRound(1, true);
+            selectPair(currentPairKey);
         }
 
         function setupInputListeners() {
@@ -573,16 +581,6 @@
         }
 
         function calculateCurve(m) {
-            if (activeRound === 1) {
-                // Actual dealer quotes from the slides, not a fitted flat-rate CIP curve.
-                return [[0, 'Spot', 7.8000, 7.8002], [180, '6M', 7.7970, 7.7974], [360, '1Y', 7.7930, 7.7936]].map(([days, label, bid, ask]) => {
-                    const mid = (bid + ask) / 2;
-                    return { days, label, fwdRateBid: bid, fwdRateAsk: ask, fwdRateMid: mid,
-                        pointsBid: (bid - 7.8000) * 10000, pointsAsk: (ask - 7.8002) * 10000,
-                        pointsMid: (mid - 7.8001) * 10000,
-                        annPremiumPct: days ? (mid / 7.8001 - 1) * (360 / days) * 100 : 0 };
-                });
-            }
             return TENORS.map(t => {
                 if (t.days === 0) {
                     return {
@@ -652,7 +650,7 @@
                 statDiffDesc.textContent = m.pair.base + ' rate higher \u2192 Discount';
             }
 
-            document.getElementById('stat-spot-val').textContent = (activeRound === 1 ? 7.8001 : m.spot).toFixed(m.decimals);
+            document.getElementById('stat-spot-val').textContent = m.spot.toFixed(m.decimals);
 
             const curveData = calculateCurve(m);
             const oneYear = curveData[curveData.length - 1];
@@ -716,7 +714,7 @@
             if (viewMode === 'rate') {
                 yValues = curveData.map(d => d.fwdRateMid);
                 yLabel = 'Outright Forward Rate (' + m.pair.quote + ' per ' + m.pair.base + ')';
-                baselineValue = activeRound === 1 ? 7.8001 : m.spot;
+                baselineValue = m.spot;
             } else if (viewMode === 'points') {
                 yValues = curveData.map(d => d.pointsMid);
                 yLabel = 'Forward Points (pips)';
@@ -834,70 +832,237 @@
             });
         }
 
-        const ROUND_CONFIGS = {
-            1: {
-                badge: 'Round 1 of 3',
-                title: 'Challenge 1: Forward Points & Outright Rate',
-                prompt: 'A dealer quotes <strong>Spot bid = 7.8000</strong> and <strong>6-month Forward Points bid = -30.0</strong> pips on USD/HKD. What is the outright 6-month forward bid, and is the USD at a forward premium or discount?',
-                hint: 'One pip is 0.0001 HKD per USD. Add signed bid points / 10,000 to the spot bid. If the forward is below spot, the base currency (USD) is at a discount; if above, it is at a premium.',
-                options: [
-                    { val: 'opt-1', text: '7.7970 · USD at Forward Discount', correct: true },
-                    { val: 'opt-2', text: '7.8030 · USD at Forward Premium', correct: false },
-                    { val: 'opt-3', text: '7.7970 · USD at Forward Premium', correct: false },
-                    { val: 'opt-4', text: '7.8030 · USD at Forward Discount', correct: false }
-                ],
-                explanation: 'Correct! Outright F = 7.8000 + (-30.0 / 10,000) = 7.8000 - 0.0030 = 7.7970. Because F < S, the USD buys fewer HKD forward than spot: the USD trades at a forward discount (-0.0769% = -7.7 bps annualized). The spot convertibility band is not a bound on forward rates.'
-            },
-            2: {
-                badge: 'Round 2 of 3',
-                title: 'Challenge 2: Corporate CFO Hedging Dilemma',
-                prompt: 'You are the CFO of a European importer paying <strong>US$1,000,000 in 6 months</strong> (EUR/USD Spot = 1.0850). US interest rate (4.50%) > Euro rate (3.25%). Under CIP, the 6-month forward is <strong>F = 1.091673</strong> (about +66.7 pips). How many Euros must you commit forward to hedge, and do forward points provide a hedging pickup or cost?',
-                hint: 'The importer sells EUR to buy USD. Required EUR = USD payment / F. Compare with USD payment / S. Under CIP, F = S × (1 + r_USD × 0.5) / (1 + r_EUR × 0.5).',
-                options: [
-                    { val: 'opt-1', text: '€916,025 · Hedging Benefit (EUR buys more USD forward than spot)', correct: true },
-                    { val: 'opt-2', text: '€921,659 · Same as converting at spot', correct: false },
-                    { val: 'opt-3', text: '€1,091,673 · Hedging Benefit (multiply by F)', correct: false },
-                    { val: 'opt-4', text: '€916,025 · Hedging Cost (EUR buys fewer USD forward than spot)', correct: false }
-                ],
-                explanation: 'Correct! CIP gives F = 1.0850 × (1 + 0.045 × 0.5) / (1 + 0.0325 × 0.5) = 1.091673. The USD payment requires about €916,025 forward, compared with €921,659 at today’s spot. The EUR forward premium gives a benefit relative to that spot comparison; it is not a risk-free profit.'
-            },
-            3: {
-                badge: 'Round 3 of 3',
-                title: 'Challenge 3: Central Bank Rate Shock & Forward Curve Pivot',
-                prompt: 'The US Federal Reserve unexpectedly <strong>hikes the USD rate by 50 pips</strong> (from 4.60% to 5.10%) while Hong Kong\'s HKD rate stays at 4.50%. What happens to the USD/HKD forward curve and forward points?',
-                hint: 'Hint: Interest rate gap (r_HKD - r_USD) becomes more negative, widening from -0.10% to -0.60%. Recall F(T) \u2248 S * [1 + (r_HKD - r_USD)*T/360].',
-                options: [
-                    { val: 'opt-1', text: 'The forward curve slopes more steeply DOWNWARD (forward points become more negative / deeper discount)', correct: true },
-                    { val: 'opt-2', text: 'The forward curve FLATTENS to zero (points disappear)', correct: false },
-                    { val: 'opt-3', text: 'The forward curve INVERTS upward (points turn positive)', correct: false },
-                    { val: 'opt-4', text: 'No change because spot exchange rate is pegged', correct: false }
-                ],
-                explanation: 'Correct! When the Fed hikes USD rates, the gap (r_HKD - r_USD) widens from -0.10% to -0.60%. Under CIP, USD forward points become more negative, deepening the downward slope of the forward curve (a larger forward discount on the higher-yielding USD). The spot convertibility band does not constrain forward rates.'
+        function getChallenge1Config(randomize) {
+            if (!randomize) {
+                return {
+                    pairKey: 'USD/HKD',
+                    badge: 'Challenge 1 · Slide Baseline',
+                    title: 'Challenge 1: Forward Points & Outright Rate',
+                    prompt: 'A dealer quotes <strong>Spot bid = 7.8000</strong> and <strong>6-month Forward Points bid = -30.0</strong> pips on USD/HKD. What is the outright 6-month forward bid, and is the USD at a forward premium or discount?',
+                    hint: 'One pip is 0.0001 HKD per USD (for 4-decimal pairs). Add signed bid points / 10,000 to the spot bid. If the forward rate is below spot (Points < 0), the base currency (USD) is at a discount; if above, at a premium.',
+                    options: [
+                        { val: 'opt-1', text: '7.7970 · USD at Forward Discount', correct: true },
+                        { val: 'opt-2', text: '7.8030 · USD at Forward Premium', correct: false },
+                        { val: 'opt-3', text: '7.7970 · USD at Forward Premium', correct: false },
+                        { val: 'opt-4', text: '7.8030 · USD at Forward Discount', correct: false }
+                    ],
+                    explanation: 'Correct! Outright F = 7.8000 + (-30.0 / 10,000) = 7.8000 - 0.0030 = 7.7970. Because F < S (points < 0), the USD buys fewer HKD forward than spot: the USD trades at a forward discount (-0.0769% = -7.7 bps annualized).'
+                };
             }
-        };
+            const pool = [
+                { pair: 'USD/HKD', base: 'USD', quote: 'HKD', decimals: 4, mult: 10000, spots: [7.7950, 7.8000, 7.8100, 7.8250], pointsList: [-45.0, -35.0, -20.0, -15.0, 15.0, 25.0, 40.0], tenors: ['3-month', '6-month', '12-month'] },
+                { pair: 'EUR/USD', base: 'EUR', quote: 'USD', decimals: 4, mult: 10000, spots: [1.0800, 1.0850, 1.0920, 1.1000], pointsList: [35.0, 50.0, 65.0, 80.0, -25.0, -40.0], tenors: ['3-month', '6-month', '12-month'] },
+                { pair: 'GBP/USD', base: 'GBP', quote: 'USD', decimals: 4, mult: 10000, spots: [1.2850, 1.2950, 1.3050], pointsList: [25.0, 40.0, -30.0, -50.0], tenors: ['3-month', '6-month', '12-month'] },
+                { pair: 'USD/JPY', base: 'USD', quote: 'JPY', decimals: 2, mult: 100, spots: [150.00, 152.00, 154.50], pointsList: [-150.0, -220.0, -310.0, 80.0, 120.0], tenors: ['3-month', '6-month', '12-month'] }
+            ];
+            const item = pool[Math.floor(Math.random() * pool.length)];
+            const S = item.spots[Math.floor(Math.random() * item.spots.length)];
+            const P = item.pointsList[Math.floor(Math.random() * item.pointsList.length)];
+            const tenor = item.tenors[Math.floor(Math.random() * item.tenors.length)];
+            const F = S + (P / item.mult);
+            const isPrem = P > 0;
+            const correctLabel = `${item.base} at Forward ${isPrem ? 'Premium' : 'Discount'}`;
+            const wrongLabel = `${item.base} at Forward ${isPrem ? 'Discount' : 'Premium'}`;
+            const correctRateStr = F.toFixed(item.decimals);
+            const wrongRateStr = (S - (P / item.mult)).toFixed(item.decimals);
 
-        function switchRound(roundNum, initializing = false) {
-            if (!initializing && (!canPlay() || !practiceStarted)) return;
+            const rawOptions = [
+                { val: 'opt-1', text: `${correctRateStr} · ${correctLabel}`, correct: true },
+                { val: 'opt-2', text: `${wrongRateStr} · ${wrongLabel}`, correct: false },
+                { val: 'opt-3', text: `${correctRateStr} · ${wrongLabel}`, correct: false },
+                { val: 'opt-4', text: `${wrongRateStr} · ${correctLabel}`, correct: false }
+            ];
+            for (let i = rawOptions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [rawOptions[i], rawOptions[j]] = [rawOptions[j], rawOptions[i]];
+            }
+
+            return {
+                pairKey: item.pair,
+                badge: 'Challenge 1 · Practice Round',
+                title: 'Challenge 1: Forward Points & Outright Rate',
+                prompt: `A dealer quotes <strong>Spot bid = ${S.toFixed(item.decimals)}</strong> and <strong>${tenor} Forward Points bid = ${P >= 0 ? '+' : ''}${P.toFixed(1)}</strong> pips on ${item.pair}. What is the outright ${tenor} forward bid, and is the ${item.base} at a forward premium or discount?`,
+                hint: `Hint: 1 pip = ${(1/item.mult)} for ${item.decimals}-decimal pairs. Outright F = Spot + (Points / ${item.mult}). If Points > 0 (${item.base} buys more ${item.quote} forward), ${item.base} is at a premium; if Points < 0, at a discount.`,
+                options: rawOptions,
+                explanation: `Correct! Outright F = ${S.toFixed(item.decimals)} + (${P >= 0 ? '+' : ''}${P.toFixed(1)} / ${item.mult}) = ${correctRateStr}. Because ${P >= 0 ? 'F > S' : 'F < S'}, the ${item.base} trades at a forward ${isPrem ? 'premium' : 'discount'}.`
+            };
+        }
+
+        function getChallenge2Config(randomize) {
+            if (!randomize) {
+                return {
+                    pairKey: 'EUR/USD',
+                    badge: 'Challenge 2 · Slide Baseline',
+                    title: 'Challenge 2: Corporate CFO Hedging Dilemma',
+                    prompt: 'You are the CFO of a European importer paying <strong>US$1,000,000 in 6 months</strong> (EUR/USD Spot = 1.0850). US interest rate (4.50%) > Euro rate (3.25%). Under CIP, the 6-month forward is <strong>F = 1.091673</strong> (about +66.7 pips). How many Euros must you commit forward to hedge, and do forward points provide a hedging pickup or cost?',
+                    hint: 'The importer sells EUR to buy USD. Required EUR = USD payment / F. Compare with USD payment / S. Under CIP, F = S × (1 + r_USD × 0.5) / (1 + r_EUR × 0.5).',
+                    options: [
+                        { val: 'opt-1', text: '€916,025 · Hedging Benefit (EUR buys more USD forward than spot)', correct: true },
+                        { val: 'opt-2', text: '€921,659 · Same as converting at spot', correct: false },
+                        { val: 'opt-3', text: '€1,091,673 · Hedging Benefit (multiply by F)', correct: false },
+                        { val: 'opt-4', text: '€916,025 · Hedging Cost (EUR buys fewer USD forward than spot)', correct: false }
+                    ],
+                    explanation: 'Correct! CIP gives F = 1.0850 × (1 + 0.045 × 0.5) / (1 + 0.0325 × 0.5) = 1.091673. The USD payment requires about €916,025 forward, compared with €921,659 at today’s spot. The EUR forward premium gives a benefit relative to that spot comparison; it is not a risk-free profit.'
+                };
+            }
+            const amounts = [500000, 1000000, 1500000, 2000000];
+            const amount = amounts[Math.floor(Math.random() * amounts.length)];
+            const tenors = [
+                { label: '3 months', t: 0.25 },
+                { label: '6 months', t: 0.50 },
+                { label: '12 months', t: 1.00 }
+            ];
+            const tenorObj = tenors[Math.floor(Math.random() * tenors.length)];
+            const spot = [1.0750, 1.0800, 1.0850, 1.0900, 1.0950][Math.floor(Math.random() * 5)];
+            const rUSD = [4.25, 4.50, 4.75, 5.00][Math.floor(Math.random() * 4)] / 100;
+            const rEUR = [2.75, 3.00, 3.25, 3.50][Math.floor(Math.random() * 4)] / 100;
+
+            const F = spot * (1 + rUSD * tenorObj.t) / (1 + rEUR * tenorObj.t);
+            const pips = (F - spot) * 10000;
+            const reqEUR = Math.round(amount / F);
+            const spotEUR = Math.round(amount / spot);
+            const multEUR = Math.round(amount * F);
+
+            const rawOptions = [
+                { val: 'opt-1', text: `€${reqEUR.toLocaleString()} · Hedging Benefit (EUR buys more USD forward than spot)`, correct: true },
+                { val: 'opt-2', text: `€${spotEUR.toLocaleString()} · Same as converting at spot`, correct: false },
+                { val: 'opt-3', text: `€${multEUR.toLocaleString()} · Hedging Benefit (multiply by F instead of divide)`, correct: false },
+                { val: 'opt-4', text: `€${reqEUR.toLocaleString()} · Hedging Cost (EUR buys fewer USD forward than spot)`, correct: false }
+            ];
+            for (let i = rawOptions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [rawOptions[i], rawOptions[j]] = [rawOptions[j], rawOptions[i]];
+            }
+
+            return {
+                pairKey: 'EUR/USD',
+                badge: 'Challenge 2 · Practice Round',
+                title: 'Challenge 2: Corporate CFO Hedging Dilemma',
+                prompt: `You are the CFO of a European importer paying <strong>US$${amount.toLocaleString()} in ${tenorObj.label}</strong> (EUR/USD Spot = ${spot.toFixed(4)}). US interest rate (${(rUSD*100).toFixed(2)}%) > Euro rate (${(rEUR*100).toFixed(2)}%). Under CIP, the ${tenorObj.label} forward is <strong>F = ${F.toFixed(6)}</strong> (${pips >= 0 ? '+' : ''}${pips.toFixed(1)} pips). How many Euros must you commit forward to hedge, and do forward points provide a hedging pickup or cost?`,
+                hint: `Hint: Required EUR = USD payment / F. Compare with USD payment / S. Because F > S (EUR trades at a forward premium against USD), 1 EUR buys more USD forward, requiring fewer Euros today.`,
+                options: rawOptions,
+                explanation: `Correct! Under CIP, F = ${spot.toFixed(4)} × (1 + ${(rUSD*100).toFixed(2)}% × ${tenorObj.t}) / (1 + ${(rEUR*100).toFixed(2)}% × ${tenorObj.t}) = ${F.toFixed(6)}. Paying US$${amount.toLocaleString()} requires €${reqEUR.toLocaleString()} forward, vs €${spotEUR.toLocaleString()} at spot. Because EUR is at a forward premium, you enjoy a hedging benefit vs spot.`
+            };
+        }
+
+        function getChallenge3Config(randomize) {
+            if (!randomize) {
+                return {
+                    pairKey: 'USD/HKD',
+                    badge: 'Challenge 3 · Slide Baseline',
+                    title: 'Challenge 3: Central Bank Rate Shock & Forward Curve Pivot',
+                    prompt: 'The US Federal Reserve unexpectedly <strong>hikes the USD rate by 50 pips</strong> (from 4.60% to 5.10%) while Hong Kong\'s HKD rate stays at 4.50%. What happens to the USD/HKD forward curve and forward points?',
+                    hint: 'Hint: Interest rate gap (r_HKD - r_USD) becomes more negative, widening from -0.10% to -0.60%. Recall F(T) ≈ S × [1 + (r_HKD - r_USD) × T/360].',
+                    options: [
+                        { val: 'opt-1', text: 'The forward curve slopes more steeply DOWNWARD (forward points become more negative / deeper discount)', correct: true },
+                        { val: 'opt-2', text: 'The forward curve FLATTENS to zero (points disappear)', correct: false },
+                        { val: 'opt-3', text: 'The forward curve INVERTS upward (points turn positive)', correct: false },
+                        { val: 'opt-4', text: 'No change because spot exchange rate is pegged', correct: false }
+                    ],
+                    explanation: 'Correct! When the Fed hikes USD rates, the gap (r_HKD - r_USD) widens from -0.10% to -0.60%. Under CIP, USD forward points become more negative, deepening the downward slope of the forward curve (a larger forward discount on the higher-yielding USD). The spot convertibility band does not constrain forward rates.',
+                    postLockAction: () => {
+                        document.getElementById('input-rbase').value = '5.10';
+                        syncAndRecalculate();
+                    }
+                };
+            }
+            const scenarios = [
+                {
+                    prompt: 'The US Federal Reserve unexpectedly <strong>cuts the USD rate by 60 pips</strong> (from 4.60% to 4.00%) while HKD interest rate remains at 4.50%. What happens to the USD/HKD forward curve and forward points?',
+                    hint: 'Hint: The interest rate gap (r_HKD - r_USD) switches from negative (4.50% - 4.60% = -0.10%) to positive (4.50% - 4.00% = +0.50%).',
+                    options: [
+                        { val: 'opt-1', text: 'The forward curve INVERTS upward (forward points turn positive / USD at forward premium)', correct: true },
+                        { val: 'opt-2', text: 'The forward curve slopes more steeply DOWNWARD (deeper discount)', correct: false },
+                        { val: 'opt-3', text: 'The forward curve FLATTENS completely to zero', correct: false },
+                        { val: 'opt-4', text: 'No change because the spot rate is pegged within 7.75 - 7.85', correct: false }
+                    ],
+                    explanation: 'Correct! Because HKD rate (4.50%) is now higher than USD rate (4.00%), r_quote > r_base. Under CIP, F(T) > S: forward points become positive and the curve inverts to an upward-sloping premium curve.',
+                    postLockAction: () => {
+                        document.getElementById('input-rbase').value = '4.00';
+                        syncAndRecalculate();
+                    }
+                },
+                {
+                    prompt: 'The HKMA raises the HKD interest rate to exactly match the USD rate at <strong>4.60%</strong> (from 4.50%). What happens to the USD/HKD forward curve?',
+                    hint: 'Hint: When r_quote = r_base, the interest differential is 0.',
+                    options: [
+                        { val: 'opt-1', text: 'The forward curve FLATTENS to a horizontal line at spot (forward points equal zero / par)', correct: true },
+                        { val: 'opt-2', text: 'The forward curve slopes steeply downward', correct: false },
+                        { val: 'opt-3', text: 'The forward curve inverts upward to a steep premium', correct: false },
+                        { val: 'opt-4', text: 'Forward rates diverge to the 7.85 upper convertibility bound', correct: false }
+                    ],
+                    explanation: 'Correct! When domestic and foreign rates are identical (r_HKD = r_USD = 4.60%), F(T) = S for all tenors. Forward points are zero (par) and the forward curve is completely flat.',
+                    postLockAction: () => {
+                        document.getElementById('input-rquote').value = '4.60';
+                        syncAndRecalculate();
+                    }
+                },
+                {
+                    prompt: 'The US Federal Reserve aggressively <strong>hikes USD rates by 100 pips</strong> (from 4.60% to 5.60%) while the HKD rate is held at 4.50%. What happens to the forward curve?',
+                    hint: 'Hint: The gap (r_HKD - r_USD) widens substantially from -0.10% to -1.10%.',
+                    options: [
+                        { val: 'opt-1', text: 'The forward curve slopes much more steeply DOWNWARD (USD forward discount widens significantly)', correct: true },
+                        { val: 'opt-2', text: 'The forward curve inverts upward into a forward premium', correct: false },
+                        { val: 'opt-3', text: 'The forward curve flattens toward zero', correct: false },
+                        { val: 'opt-4', text: 'Forward points remain capped by the HKMA convertibility undertaking', correct: false }
+                    ],
+                    explanation: 'Correct! Widening the interest differential to -1.10% causes USD forward points to become much more negative across all tenors, steepening the downward slope.',
+                    postLockAction: () => {
+                        document.getElementById('input-rbase').value = '5.60';
+                        syncAndRecalculate();
+                    }
+                }
+            ];
+            const s = scenarios[Math.floor(Math.random() * scenarios.length)];
+            const rawOptions = [...s.options];
+            for (let i = rawOptions.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [rawOptions[i], rawOptions[j]] = [rawOptions[j], rawOptions[i]];
+            }
+            return {
+                pairKey: 'USD/HKD',
+                badge: 'Challenge 3 · Practice Round',
+                title: 'Challenge 3: Central Bank Rate Shock & Forward Curve Pivot',
+                prompt: s.prompt,
+                hint: s.hint,
+                options: rawOptions,
+                explanation: s.explanation,
+                postLockAction: s.postLockAction
+            };
+        }
+
+        function startRound(roundNum, randomize = false) {
+            activeRound = roundNum;
             predictionLocked = false;
             document.getElementById('prediction-select').disabled = false;
+            document.getElementById('lock-prediction').disabled = false;
             document.getElementById('reflection-section').style.display = 'none';
             document.getElementById('reflection-input').value = '';
             document.getElementById('selected-answer').textContent = '';
             document.getElementById('submit-reflection').disabled = false;
             document.getElementById('submit-reflection').textContent = 'Record Response';
             document.getElementById('desk-hint').open = false;
-            document.body.classList.toggle('slide-baseline', roundNum === 1);
-            document.getElementById('baseline-note').hidden = roundNum !== 1;
-            document.getElementById('explorer-note').hidden = roundNum === 1;
-            document.querySelectorAll('.pair-pill, .controls-panel input').forEach(el => el.disabled = roundNum === 1);
-            document.querySelectorAll('.round-step-btn').forEach(el => el.disabled = !practiceStarted);
-            activeRound = roundNum;
+
             document.querySelectorAll('.round-step-btn').forEach((btn, idx) => {
-                if (idx + 1 === roundNum) btn.classList.add('active');
-                else btn.classList.remove('active');
+                btn.classList.toggle('active', idx + 1 === roundNum);
+                btn.disabled = false;
             });
 
-            const config = ROUND_CONFIGS[roundNum];
+            document.querySelectorAll('.pair-pill, .controls-panel input').forEach(el => el.disabled = false);
+
+            let config;
+            if (roundNum === 1) {
+                config = getChallenge1Config(randomize);
+                selectPair(config.pairKey);
+            } else if (roundNum === 2) {
+                config = getChallenge2Config(randomize);
+                selectPair(config.pairKey);
+            } else {
+                config = getChallenge3Config(randomize);
+                selectPair(config.pairKey);
+            }
+            currentConfig = config;
+
             document.getElementById('round-badge').textContent = config.badge;
             document.getElementById('round-title').textContent = config.title;
             document.getElementById('round-prompt').innerHTML = config.prompt;
@@ -914,17 +1079,14 @@
 
             document.getElementById('round-feedback').textContent = 'Choose an answer and lock your choice to test your intuition.';
             document.getElementById('round-feedback').style.color = 'var(--text-secondary)';
-            document.getElementById('lock-prediction').disabled = false;
-
-            if (roundNum === 2) {
-                selectPair('EUR/USD');
-            } else if (roundNum === 1 || roundNum === 3) {
-                selectPair('USD/HKD');
-            }
         }
 
         function handleLockChoice() {
-            if (!canPlay() || predictionLocked) return;
+            if (!canPlay()) {
+                FINA3020Utils.ensureStudentCredentials(true);
+                return;
+            }
+            if (predictionLocked) return;
             const select = document.getElementById('prediction-select');
             const val = select.value;
             if (!val) {
@@ -932,15 +1094,14 @@
                 return;
             }
 
-            const config = ROUND_CONFIGS[activeRound];
-            const chosen = config.options.find(o => o.val === val);
+            const chosen = currentConfig.options.find(o => o.val === val);
             const feedbackEl = document.getElementById('round-feedback');
 
             if (chosen && chosen.correct) {
-                feedbackEl.innerHTML = '<span style="color:#4ade80; font-weight:700;">&#10003; Excellent!</span> ' + config.explanation;
+                feedbackEl.innerHTML = '<span style="color:#4ade80; font-weight:700;">&#10003; Excellent!</span> ' + currentConfig.explanation;
                 roundStatus[activeRound] = true;
             } else {
-                feedbackEl.innerHTML = '<span style="color:#f87171; font-weight:700;">&#10007; Not quite.</span> ' + config.explanation;
+                feedbackEl.innerHTML = '<span style="color:#f87171; font-weight:700;">&#10007; Not quite.</span> ' + currentConfig.explanation;
                 roundStatus[activeRound] = false;
             }
 
@@ -948,16 +1109,19 @@
             select.disabled = true;
             document.getElementById('lock-prediction').disabled = true;
 
-            if (activeRound === 3) {
-                document.getElementById('input-rbase').value = 5.10;
-                syncAndRecalculate();
+            if (currentConfig.postLockAction) {
+                currentConfig.postLockAction();
             }
 
             document.getElementById('reflection-section').style.display = 'block';
         }
 
         async function handleSubmitReflection() {
-            if (!canPlay() || !predictionLocked) return;
+            if (!canPlay()) {
+                FINA3020Utils.ensureStudentCredentials(true);
+                return;
+            }
+            if (!predictionLocked) return;
             const reflectionText = document.getElementById('reflection-input').value.trim();
             if (!reflectionText) {
                 alert('Please enter your 1-sentence analytical reflection.');
