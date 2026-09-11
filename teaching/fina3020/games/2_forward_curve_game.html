@@ -55,6 +55,23 @@
             transform: none;
         }
 
+        .round-pending #curve-status-badge {
+            display: none !important;
+        }
+
+        #forward-curve-visualizer {
+            position: relative;
+            overflow: hidden;
+            transition: filter 0.3s ease, opacity 0.3s ease;
+        }
+
+        .round-pending #forward-curve-visualizer {
+            filter: blur(8px);
+            opacity: 0.4;
+            pointer-events: none;
+            user-select: none;
+        }
+
         .pair-pills {
             display: flex;
             flex-wrap: wrap;
@@ -197,7 +214,7 @@
         }
     </style>
 </head>
-<body class="identity-locked">
+<body class="identity-locked round-pending">
 <nav class="course-navigation" aria-label="Course games">
     <a href="./">← Game list</a>
     <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
@@ -229,7 +246,7 @@
         <aside class="controls-panel glass-panel">
             <div class="panel-header">
                 <h2 class="panel-title">Currency Pair & Money Market</h2>
-                <span class="badge badge-warning" id="curve-status-badge">Curve: Premium</span>
+                <span class="badge badge-warning" id="curve-status-badge" style="display: none;">Curve: Premium</span>
             </div>
 
             <div class="pair-pills" role="tablist" aria-label="Select currency pair">
@@ -346,7 +363,7 @@
             </div>
 
             <!-- Forward Curve Visualizer -->
-            <div class="glass-panel">
+            <div class="glass-panel" id="forward-curve-visualizer">
                 <div class="panel-header">
                     <div>
                         <h2 class="panel-title">Forward Curve Visualization</h2>
@@ -636,18 +653,21 @@
             statDiff.textContent = (rDiff >= 0 ? '+' : '') + rDiff.toFixed(2) + '%';
 
             const badge = document.getElementById('curve-status-badge');
-            if (Math.abs(rDiff) < 0.001) {
-                badge.textContent = 'Curve: Flat';
-                badge.className = 'badge stat-badge badge-flat';
-                statDiffDesc.textContent = 'Equal rates \u2192 Flat curve';
-            } else if (rDiff > 0) {
-                badge.textContent = 'Curve: Forward Premium';
-                badge.className = 'badge stat-badge badge-premium';
-                statDiffDesc.textContent = m.pair.quote + ' rate higher \u2192 Premium';
-            } else {
-                badge.textContent = 'Curve: Forward Discount';
-                badge.className = 'badge stat-badge badge-discount';
-                statDiffDesc.textContent = m.pair.base + ' rate higher \u2192 Discount';
+            if (badge) {
+                if (Math.abs(rDiff) < 0.001) {
+                    badge.textContent = 'Curve: Flat';
+                    badge.className = 'badge stat-badge badge-flat';
+                    statDiffDesc.textContent = 'Equal rates \u2192 Flat curve';
+                } else if (rDiff > 0) {
+                    badge.textContent = 'Curve: Forward Premium';
+                    badge.className = 'badge stat-badge badge-premium';
+                    statDiffDesc.textContent = m.pair.quote + ' rate higher \u2192 Premium';
+                } else {
+                    badge.textContent = 'Curve: Forward Discount';
+                    badge.className = 'badge stat-badge badge-discount';
+                    statDiffDesc.textContent = m.pair.base + ' rate higher \u2192 Discount';
+                }
+                badge.style.display = predictionLocked ? '' : 'none';
             }
 
             document.getElementById('stat-spot-val').textContent = m.spot.toFixed(m.decimals);
@@ -1034,6 +1054,9 @@
         function startRound(roundNum, randomize = false) {
             activeRound = roundNum;
             predictionLocked = false;
+            document.body.classList.add('round-pending');
+            const badge = document.getElementById('curve-status-badge');
+            if (badge) badge.style.display = 'none';
             document.getElementById('prediction-select').disabled = false;
             document.getElementById('lock-prediction').disabled = false;
             document.getElementById('reflection-section').style.display = 'none';
@@ -1106,6 +1129,9 @@
             }
 
             predictionLocked = true;
+            document.body.classList.remove('round-pending');
+            const badge = document.getElementById('curve-status-badge');
+            if (badge) badge.style.display = '';
             select.disabled = true;
             document.getElementById('lock-prediction').disabled = true;
 
