@@ -526,7 +526,17 @@
 
             currentRoundResponse = {
                 mode: 'CIP',
+                game: 'CIP_Funding_Desk',
                 targetTab: 'CIP',
+                question: 'Which covered funding trade is profitable at these quotes?',
+                answerText: predictionLabel(prediction), correctAnswerText: predictionLabel(correct),
+                pair: 'USD/HKD',
+                spot: document.getElementById('input-spot').value,
+                forward: document.getElementById('input-forward').value,
+                rquote: document.getElementById('input-rd').value,
+                rbase: document.getElementById('input-rf').value,
+                days: document.getElementById('input-days').value,
+                spreadBps: document.getElementById('input-spread').value,
                 roundNumber: roundNumber,
                 prediction: prediction,
                 correctAnswer: correct,
@@ -572,6 +582,7 @@
                 return;
             }
             currentRoundResponse.exitReflection = reflection;
+            const submittedRound = currentRoundResponse;
 
             const submitBtn = document.getElementById('submit-reflection');
             const statusEl = document.getElementById('reflection-status');
@@ -583,6 +594,7 @@
             try {
                 const saved = FINA3020Utils.recordResponse(currentRoundResponse);
                 const confirmed = await saved.deliveryPromise;
+                if (currentRoundResponse !== submittedRound) return;
                 if (confirmed) {
                     reflectionInput.disabled = true;
                     submitBtn.innerText = 'Submitted ✓';

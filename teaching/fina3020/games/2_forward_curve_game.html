@@ -520,6 +520,7 @@
 
         let practiceStarted = false;
         let predictionLocked = false;
+        let lockedResponse = null;
         function canPlay() {
             return /^\d{10}$/.test(FINA3020Utils.getStudentID()) && !!FINA3020Utils.getFullName().trim() &&
                 !!FINA3020Utils.getSection() && FINA3020Utils.isIdentityConfirmedForSession();
@@ -1096,6 +1097,7 @@
         function startRound(roundNum, randomize = false) {
             activeRound = roundNum;
             predictionLocked = false;
+            lockedResponse = null;
             document.body.classList.add('round-pending');
             const badge = document.getElementById('curve-status-badge');
             if (badge) badge.style.display = 'none';
@@ -1188,6 +1190,20 @@
                 roundStatus[activeRound] = false;
             }
 
+            lockedResponse = {
+                mode: 'CIP', targetTab: 'CIP', game: 'Forward_Curve_Explorer',
+                roundNumber: activeRound, roundCompleted: activeRound,
+                question: document.getElementById('round-prompt').textContent,
+                challenge: currentConfig.title,
+                prediction: val, answerText: chosen ? chosen.text : '',
+                correctAnswer: correctOpt ? correctOpt.val : '',
+                correctAnswerText: correctOpt ? correctOpt.text : '',
+                options: currentConfig.options.map(o => ({value: o.val, text: o.text})),
+                matched: !!(chosen && chosen.correct), pair: currentConfig.pairKey,
+                spot: document.getElementById('input-spot').value,
+                rbase: document.getElementById('input-rbase').value,
+                rquote: document.getElementById('input-rquote').value
+            };
             predictionLocked = true;
             document.body.classList.remove('round-pending');
             const badge = document.getElementById('curve-status-badge');
@@ -1223,19 +1239,8 @@
                 if (!ok) return;
             }
 
-            const payload = {
-                mode: 'CIP',
-                game: 'Forward_Curve_Explorer',
-                targetTab: 'CIP',
-                roundCompleted: activeRound,
-                prediction: document.getElementById('prediction-select').value,
-                matched: roundStatus[activeRound],
-                pair: currentPairKey,
-                spot: document.getElementById('input-spot').value,
-                rbase: document.getElementById('input-rbase').value,
-                rquote: document.getElementById('input-rquote').value,
-                reflection: reflectionText
-            };
+            const submittedRound = lockedResponse;
+            const payload = { ...submittedRound, reflection: reflectionText, exitReflection: reflectionText };
 
             const submitBtn = document.getElementById('submit-reflection');
             submitBtn.disabled = true;
@@ -1244,6 +1249,7 @@
             try {
                 const res = FINA3020Utils.recordResponse(payload);
                 const delivered = await res.deliveryPromise;
+                if (lockedResponse !== submittedRound) return;
                 if (delivered) {
                     alert('Response successfully submitted and recorded for participation!');
                     submitBtn.textContent = 'Submitted \u2713';
