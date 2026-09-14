@@ -510,7 +510,27 @@ const FINA3020Utils = {
                 serverTimestamp: ack.serverTimestamp || null
             };
         });
-        return Promise.race([request, timeout]).finally(() => clearTimeout(timer));
+        return Promise.race([request, timeout]).catch(originalError => {
+            // Apps Script can commit a POST even when its redirect response times out.
+            // Confirm the existing row by its opaque submission ID before retrying.
+            const receiptUrl = `${webhookUrl}?submissionId=${encodeURIComponent(payload.submissionId)}&targetTab=${encodeURIComponent(payload.targetTab)}`;
+            const receiptController = typeof AbortController !== 'undefined' ? new AbortController() : null;
+            let receiptTimer;
+            const receiptTimeout = new Promise((resolve, reject) => {
+                receiptTimer = setTimeout(() => {
+                    if (receiptController) receiptController.abort();
+                    reject(originalError);
+                }, 12000);
+            });
+            const receiptRequest = fetch(receiptUrl, {
+                credentials: 'omit', redirect: 'follow', referrerPolicy: 'no-referrer',
+                signal: receiptController ? receiptController.signal : undefined
+            }).then(response => response.json()).then(ack => {
+                if (!ack || ack.ok !== true || ack.submissionId !== payload.submissionId || !ack.receiptId || !ack.serverTimestamp) throw originalError;
+                return ack;
+            });
+            return Promise.race([receiptRequest, receiptTimeout]).finally(() => clearTimeout(receiptTimer));
+        }).finally(() => clearTimeout(timer));
     },
 
     _markDelivered: function(submissionId, serverTimestamp, receiptId) {
