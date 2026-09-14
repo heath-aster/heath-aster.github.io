@@ -100,3 +100,9 @@ After modifying files, report:
 3. Assumptions, unavailable inputs, and remaining risks.
 
 For read-only reviews, distinguish verified facts from inferences and say what was not run. For RA validation, first identify the narrow requested test; prefer a focused diagnostic over a broad rebuild unless the user explicitly expands the scope.
+
+### FINA3020 participation recording
+
+- Each future game must have its own Sheet tab and a **Response** text column containing the student’s unabridged written response, plus name, ID, section, choices, and timestamps. Keep Week 2’s existing combined CIP records intact.
+- Before releasing a course game or changing submissions, follow the private game source’s `AGENTS.md`: run `tests/participation_contract.cjs --fixtures`, `tests/mobile_reliability_smoke.js`, and `tests/verify_live_participation.py`. Require an actual browser confirmation and matching receipts plus hashes of complete payloads read back from the intended Sheet tabs. Static inspection or a successful POST alone is insufficient.
+- Use the current `apps_script/Live_Code.gs` receiver and shared utilities. Reconcile the ignored `local/fina3020-games` staging copy with the teaching source before release. Never deploy the obsolete roster-based `Code.gs` by accident or release future game pages as part of a submission-only repair.

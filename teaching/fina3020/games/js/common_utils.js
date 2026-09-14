@@ -441,14 +441,14 @@ const FINA3020Utils = {
     _readPending: function() {
         try {
             const value = JSON.parse(FINA3020Storage.getItem('fina3020_pending_submissions') || '[]');
-            return Array.isArray(value) ? value.slice(-50) : [];
+            return Array.isArray(value) ? value : [];
         } catch (e) {
             return [];
         }
     },
 
     _writePending: function(queue) {
-        FINA3020Storage.setItem('fina3020_pending_submissions', JSON.stringify(queue.slice(-50)));
+        FINA3020Storage.setItem('fina3020_pending_submissions', JSON.stringify(queue));
     },
 
     getPendingCount: function() {
@@ -485,14 +485,6 @@ const FINA3020Utils = {
             return res.text();
         }).then(text => {
             const cleanText = String(text || '').trim();
-            if (cleanText === 'Success') {
-                return {
-                    ok: true,
-                    submissionId: payload.submissionId,
-                    receiptId: payload.submissionId,
-                    serverTimestamp: null // Legacy receiver supplies no server timestamp.
-                };
-            }
             let ack;
             try { ack = JSON.parse(cleanText); } catch (e) {
                 throw new Error('Submission endpoint did not return a valid receipt.');
@@ -500,14 +492,15 @@ const FINA3020Utils = {
             if (!ack || ack.ok !== true) {
                 throw new Error(ack && ack.error ? `Submission rejected: ${ack.error}` : 'Submission endpoint returned an invalid receipt.');
             }
-            if (ack.submissionId && ack.submissionId !== payload.submissionId) {
+            if (ack.submissionId !== payload.submissionId || !ack.receiptId || !ack.serverTimestamp || !Number.isFinite(Date.parse(ack.serverTimestamp))) {
                 throw new Error('Submission endpoint returned a receipt for a different submission.');
             }
             return {
                 ok: true,
-                submissionId: ack.submissionId || payload.submissionId,
-                receiptId: ack.receiptId || payload.submissionId,
-                serverTimestamp: ack.serverTimestamp || null
+                submissionId: ack.submissionId,
+                receiptId: ack.receiptId,
+                serverTimestamp: ack.serverTimestamp,
+                responseSha256: ack.responseSha256
             };
         });
         return Promise.race([request, timeout]).catch(originalError => {
@@ -526,7 +519,7 @@ const FINA3020Utils = {
                 credentials: 'omit', redirect: 'follow', referrerPolicy: 'no-referrer',
                 signal: receiptController ? receiptController.signal : undefined
             }).then(response => response.json()).then(ack => {
-                if (!ack || ack.ok !== true || ack.submissionId !== payload.submissionId || !ack.receiptId || !ack.serverTimestamp) throw originalError;
+                if (!ack || ack.ok !== true || ack.submissionId !== payload.submissionId || !ack.receiptId || !ack.serverTimestamp || !Number.isFinite(Date.parse(ack.serverTimestamp))) throw originalError;
                 return ack;
             });
             return Promise.race([receiptRequest, receiptTimeout]).finally(() => clearTimeout(receiptTimer));
@@ -620,7 +613,10 @@ const FINA3020Utils = {
         // Map mode to exact Google Sheet tab names
         let modeTab = data.targetTab || data.mode || data.game || 'Course_Survey';
         const modeLower = String(modeTab).toLowerCase();
-        if (modeLower.includes('survey') || modeLower.includes('icebreaker')) modeTab = 'Course_Survey';
+        const exactTabs = ['Course_Survey', 'Order_Book', 'Locational_Arb', 'Triangular_Arb', 'CIP', 'Carry_Trade', 'CFO_Hedge', 'Project_Committee', 'BOP_Ledger', 'Bank_Run', 'Bank_Funding', 'Payment_Route', 'Sudden_Stop', 'Blended_Finance'];
+        if (data.targetTab && !exactTabs.includes(data.targetTab)) throw new Error('Unknown submission tab.');
+        if (data.targetTab) modeTab = data.targetTab;
+        else if (modeLower.includes('survey') || modeLower.includes('icebreaker')) modeTab = 'Course_Survey';
         else if (modeLower.includes('order')) modeTab = 'Order_Book';
         else if (modeLower.includes('loc')) modeTab = 'Locational_Arb';
         else if (modeLower.includes('tri')) modeTab = 'Triangular_Arb';
@@ -654,6 +650,8 @@ const FINA3020Utils = {
         if (responseJson.length > 20000) throw new Error('Response is too large to submit.');
 
         const fullPayload = {
+            activityVersion: '2026-09-14-all-weeks',
+            sourcePage: window.location ? window.location.pathname : '',
             schemaVersion: 2,
             ...response,
             submissionId: submissionId,
@@ -674,9 +672,14 @@ const FINA3020Utils = {
         queue.push(deliveryPayload);
         this._writePending(queue);
 
-        const promise = this._deliver(deliveryPayload);
-
         const result = { ...fullPayload };
+        const promise = this._deliver(deliveryPayload).then(confirmed => {
+            if (confirmed) {
+                const receipt = this._readHistory().find(item => item.submissionId === submissionId);
+                if (receipt) Object.assign(result, { delivered: true, receiptId: receipt.receiptId, serverTimestamp: receipt.serverTimestamp });
+            }
+            return confirmed;
+        });
         Object.defineProperty(result, 'deliveryPromise', { value: promise, enumerable: false });
         return result;
     },
@@ -701,7 +704,7 @@ const FINA3020Utils = {
         const csvRows = [headers.join(',')];
         history.forEach(row => {
             const values = headers.map(header => {
-                let val = row[header] !== undefined && row[header] !== null ? String(row[header]) : '';
+                let val = row[header] !== undefined && row[header] !== null ? (typeof row[header] === 'object' ? JSON.stringify(row[header]) : String(row[header])) : '';
                 // Prevent spreadsheet-formula execution when a CSV is opened in Excel/Sheets.
                 if (/^[\s]*[=+\-@]/.test(val)) val = `'${val}`;
                 return `"${val.replace(/"/g, '""')}"`;
