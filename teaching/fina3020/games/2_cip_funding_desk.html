@@ -13,6 +13,23 @@
     <link rel="stylesheet" href="css/design_system.css?v=20260914b">
     <script src="js/common_utils.js?v=20260914b"></script>
     <style>
+        .order-books { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+        .order-book { border: 1px solid var(--border-color); border-radius: 10px; overflow: hidden; min-width: 0; }
+        .order-book h3 { padding: 1rem; font-size: 1.1rem; border-bottom: 1px solid var(--border-color); }
+        .order-book h3 span { display: block; color: var(--text-secondary); font-size: .85rem; font-weight: 400; margin-top: .25rem; }
+        .book-quotes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .book-side { padding: 1rem .75rem; text-align: center; min-width: 0; }
+        .book-side.bid { background: rgba(74, 222, 128, .08); color: #86efac; }
+        .book-side.ask { background: rgba(248, 113, 113, .08); color: #fca5a5; }
+        .book-side output { display: block; font-size: clamp(1.3rem, 2.5vw, 2rem); font-weight: 700; font-variant-numeric: tabular-nums; margin: .5rem 0; }
+        .book-side small { display: block; color: var(--text-secondary); }
+        .book-note { color: var(--text-secondary); font-size: .9rem; margin-top: 1rem; }
+        @media (max-width: 480px) {
+            .order-books { gap: .5rem; }
+            .order-book h3 { padding: .6rem; min-height: 6rem; }
+            .book-side { padding: .75rem .2rem; font-size: .8rem; }
+            .book-side small { font-size: .75rem; }
+        }
         .game-panel {
             border-color: var(--border-gold);
         }
@@ -170,30 +187,16 @@
         <aside class="controls-panel glass-panel">
             <div class="panel-header">
                 <h2 class="panel-title">Money Market Inputs</h2>
-                <span class="badge badge-warning" id="market-mode">Slide baseline</span>
+                <span class="badge badge-warning" id="market-mode">Mental-math round</span>
             </div>
 
             <div class="control-section">
                 <div class="control-group">
                     <div class="control-label">
-                        <span>Spot rate S (HKD per USD)</span>
-                        <span class="control-value" id="val-spot">7.8000</span>
-                    </div>
-                    <input type="range" id="input-spot" min="7.7000" max="7.9000" step="any" value="7.8000">
-                </div>
-                <div class="control-group">
-                    <div class="control-label">
-                        <span>Market forward rate F (HKD per USD)</span>
-                        <span class="control-value" id="val-forward">7.76148</span>
-                    </div>
-                    <input type="range" id="input-forward" min="7.3000" max="8.3000" step="any" value="7.76148">
-                </div>
-                <div class="control-group">
-                    <div class="control-label">
                         <span>HKD interest rate (r_d)</span>
-                        <span class="control-value" id="val-rd">3.00%</span>
+                        <span class="control-value" id="val-rd">10.00%</span>
                     </div>
-                    <input type="range" id="input-rd" min="0.00" max="10.00" step="any" value="3.00">
+                    <input type="range" id="input-rd" min="0.00" max="10.00" step="any" value="10.00">
                 </div>
                 <div class="control-group">
                     <div class="control-label">
@@ -205,20 +208,13 @@
                 <div class="control-group">
                     <div class="control-label">
                         <span>Maturity</span>
-                        <span class="control-value" id="val-days">90 Days</span>
+                        <span class="control-value" id="val-days">360 Days</span>
                     </div>
                     <select id="input-days" style="margin-top: 0.25rem;">
-                        <option value="90" selected>90 Days (3 Months)</option>
+                        <option value="90">90 Days (3 Months)</option>
                         <option value="180">180 Days (6 Months)</option>
-                        <option value="360">360 Days (1 Year)</option>
+                        <option value="360" selected>360 Days (1 Year)</option>
                     </select>
-                </div>
-                <div class="control-group">
-                    <div class="control-label">
-                        <span>Bid-ask spread (basis points)</span>
-                        <span class="control-value" id="val-spread">0 bps</span>
-                    </div>
-                    <input type="range" id="input-spread" min="0" max="100" step="any" value="0">
                 </div>
             </div>
 
@@ -233,6 +229,31 @@
         <!-- Main Workspace Area -->
         <section class="workspace-area">
             
+
+            <div class="glass-panel" style="margin-bottom: 1rem;">
+                <div class="panel-header">
+                    <h2 class="panel-title">USD/HKD Order Books</h2>
+                    <span class="badge badge-gold">HKD per USD</span>
+                </div>
+                <div class="order-books">
+                    <section class="order-book" aria-labelledby="spot-book-title">
+                        <h3 id="spot-book-title">Spot <span>Exchange today</span></h3>
+                        <div class="book-quotes">
+                            <div class="book-side bid"><span>Bid · S<sub>bid</sub></span><output id="quote-spot-bid">8.00</output><small>You sell USD</small></div>
+                            <div class="book-side ask"><span>Ask · S<sub>ask</sub></span><output id="quote-spot-ask">8.20</output><small>You buy USD</small></div>
+                        </div>
+                    </section>
+                    <section class="order-book" aria-labelledby="forward-book-title">
+                        <h3 id="forward-book-title">Forward <span id="forward-book-tenor">Exchange in 360 days</span></h3>
+                        <div class="book-quotes">
+                            <div class="book-side bid"><span>Bid · F<sub>bid</sub></span><output id="quote-fwd-bid">7.80</output><small>You sell USD</small></div>
+                            <div class="book-side ask"><span>Ask · F<sub>ask</sub></span><output id="quote-fwd-ask">8.00</output><small>You buy USD</small></div>
+                        </div>
+                    </section>
+                </div>
+                <p class="book-note">Best dealer quotes for 1 USD. Sell USD at the bid; buy USD at the ask. Quotes stay fixed until New Round.</p>
+            </div>
+
             <!-- Prediction Header Panel -->
             <div class="glass-panel game-panel">
                 <div class="panel-header">
@@ -242,7 +263,7 @@
                 <div class="game-grid">
                     <div>
                         <p class="game-prompt" id="round-prompt">Compare covered returns. Should you borrow USD, borrow HKD, or do nothing?</p>
-                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">Calculate theoretical forward rate F* vs market quote F before locking your choice.</p>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem;">Use the spot and forward bid/ask quotes to compare both covered trades before locking your choice.</p>
                     </div>
                     <div>
                         <label class="control-label" for="prediction-select"><span>Your Strategy</span></label>
@@ -302,7 +323,7 @@
                     <!-- Step 3 Pane: Cash Flow Ledger & Friction Limits -->
                     <div class="debrief-pane" id="pane-debrief-step-3" style="display: none;">
                         <div class="debrief-step-header">
-                            <h4 class="debrief-step-title">Step 3: Cash Flow Ledger &amp; Breakeven Arbitrage Spread</h4>
+                            <h4 class="debrief-step-title">Step 3: Cash Flow Ledger &amp; Executable Prices</h4>
                             <span class="badge badge-success">Net Arbitrage P&amp;L</span>
                         </div>
                         <div class="debrief-step-body" id="debrief-step-3-content">
@@ -318,12 +339,12 @@
                     </div>
                 </div>
 
-                <p id="baseline-note">Round 1 matches the slides’ 90-day HKD/USD example: S = 7.8000, HKD 3%, USD 5%, and zero spread. Quotes stay fixed until you press New Round.</p>
+                <p id="baseline-note">Round 1 uses simplified classroom quotes and a full year (360/360): HKD interest is 10% and USD interest is 5%. Try the cash flows with US$100 first, then scale up to US$1,000,000.</p>
                 <details id="desk-hint" class="edu-callout">
                     <summary>Show hint: compare covered returns</summary>
-                    <p>Use T = days / 360 and annual rates as decimals. With HKD per USD quotes, the fair forward is F* = S × (1 + r_HKD × T) / (1 + r_USD × T).</p>
+                    <p>Use T = days / 360 and annual rates as decimals. With HKD per USD quotes, the midpoint benchmark is F* = S × (1 + r_HKD × T) / (1 + r_USD × T), where S is the spot midpoint.</p>
                     <p>If F is below F*, consider borrowing USD, selling USD spot, investing HKD, and buying USD forward to repay. If F is above F*, consider the reverse trade.</p>
-                    <p>Check executable prices: sell at the bid and buy at the ask. For each spot or forward midpoint, bid = midpoint × (1 − spread / 20,000) and ask = midpoint × (1 + spread / 20,000), with spread in basis points.</p>
+                    <p>Check executable prices: sell at the bid and buy at the ask. Read all four prices directly from the two order books above; there is no extra spread to apply.</p>
                     <p>Borrowing USD works only if S_bid × (1 + r_HKD × T) / F_ask exceeds 1 + r_USD × T. Borrowing HKD works only if F_bid × (1 + r_USD × T) / S_ask exceeds 1 + r_HKD × T. Otherwise choose no profitable trade.</p>
                 </details>
                 <div id="reflection-section" style="display: none; margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
@@ -341,8 +362,8 @@
             <div class="glass-panel">
                 <div class="stats-grid answer-area">
                     <div class="stat-card neutral">
-                        <div class="stat-label">No-Arbitrage Forward Rate F*</div>
-                        <div class="stat-number gold" id="stat-theoretical-fwd">7.76148</div>
+                        <div class="stat-label">Midpoint CIP Benchmark F*</div>
+                        <div class="stat-number gold" id="stat-theoretical-fwd">8.48571</div>
                         <div style="font-size: 0.75rem; color: var(--text-secondary);">Calculated from spot and interest rates</div>
                     </div>
                     <div class="stat-card" id="card-deviation">
@@ -387,6 +408,17 @@
     </footer>
 
     <script>
+        // Executable quotes are the source of truth; midpoints are only benchmarks.
+        let marketQuotes = { spotBid: 8, spotAsk: 8.2, fwdBid: 7.8, fwdAsk: 8 };
+        function getMarket() {
+            const { spotBid, spotAsk, fwdBid, fwdAsk } = marketQuotes;
+            const spot = (spotBid + spotAsk) / 2;
+            const forward = (fwdBid + fwdAsk) / 2;
+            const spotSpreadBps = (spotAsk - spotBid) / spot * 10000;
+            const forwardSpreadBps = (fwdAsk - fwdBid) / forward * 10000;
+            return { ...marketQuotes, spot, forward, spotSpreadBps, forwardSpreadBps,
+                spreadBps: (spotSpreadBps + forwardSpreadBps) / 2 };
+        }
         let cipChartInstance = null;
         let roundNumber = 0;
         let predictionLocked = false;
@@ -425,7 +457,7 @@
         function initApp() {
             updateStudentIDDisplay();
 
-            ['spot', 'forward', 'rd', 'rf', 'spread'].forEach(id => {
+            ['rd', 'rf'].forEach(id => {
                 document.getElementById(`input-${id}`).addEventListener('input', updateCIP);
             });
             document.getElementById('input-days').addEventListener('change', updateCIP);
@@ -477,10 +509,11 @@
 
             document.getElementById('desk-hint').open = false;
             document.getElementById('baseline-note').hidden = randomize;
-            document.getElementById('market-mode').textContent = randomize ? 'Practice quotes' : 'Slide baseline';
+            document.getElementById('market-mode').textContent = randomize ? 'Practice quotes' : 'Mental-math round';
             document.querySelectorAll('.controls-panel input, .controls-panel select').forEach(input => input.disabled = !randomize);
             if (!randomize) {
-                const baseline = { spot: 7.8, forward: 7.8 * 1.0075 / 1.0125, rd: 3, rf: 5, days: 90, spread: 0 };
+                marketQuotes = { spotBid: 8, spotAsk: 8.2, fwdBid: 7.8, fwdAsk: 8 };
+                const baseline = { rd: 10, rf: 5, days: 360 };
                 Object.entries(baseline).forEach(([key, value]) => document.getElementById(`input-${key}`).value = value);
                 updateCIP();
                 return;
@@ -494,26 +527,27 @@
             const fair = spot * (1 + (rd / 100) * t) / (1 + (rf / 100) * t);
             const shockBps = [-45, -25, 0, 25, 45][Math.floor(Math.random() * 5)];
 
-            document.getElementById('input-spot').value = spot.toFixed(4);
+            const forward = fair * (1 + shockBps / 10000);
+            const halfSpread = spread / 20000;
+            marketQuotes = {
+                spotBid: Number((spot * (1 - halfSpread)).toFixed(4)),
+                spotAsk: Number((spot * (1 + halfSpread)).toFixed(4)),
+                fwdBid: Number((forward * (1 - halfSpread)).toFixed(4)),
+                fwdAsk: Number((forward * (1 + halfSpread)).toFixed(4))
+            };
             document.getElementById('input-rd').value = rd.toFixed(2);
             document.getElementById('input-rf').value = rf.toFixed(2);
             document.getElementById('input-days').value = String(days);
-            document.getElementById('input-spread').value = String(spread);
-            document.getElementById('input-forward').value = (fair * (1 + shockBps / 10000)).toFixed(4);
             updateCIP();
         }
 
         function getCorrectPrediction() {
-            const spot = parseFloat(document.getElementById('input-spot').value);
-            const forward = parseFloat(document.getElementById('input-forward').value);
+            const spot = getMarket().spot;
+            const forward = getMarket().forward;
             const rd = parseFloat(document.getElementById('input-rd').value) / 100;
             const rf = parseFloat(document.getElementById('input-rf').value) / 100;
             const t = parseInt(document.getElementById('input-days').value) / 360;
-            const spreadPct = parseFloat(document.getElementById('input-spread').value) / 10000;
-            const spotBid = spot * (1 - spreadPct / 2);
-            const spotAsk = spot * (1 + spreadPct / 2);
-            const fwdBid = forward * (1 - spreadPct / 2);
-            const fwdAsk = forward * (1 + spreadPct / 2);
+            const { spotBid, spotAsk, fwdBid, fwdAsk } = getMarket();
             const usdNotional = 1000000;
 
             const profitBorrowUsd = (usdNotional * spotBid * (1 + rd * t) / fwdAsk) - (usdNotional * (1 + rf * t));
@@ -534,18 +568,13 @@
         }
 
         function getExecutionExplanation(correct, prediction) {
-            const spot = parseFloat(document.getElementById('input-spot').value);
-            const forward = parseFloat(document.getElementById('input-forward').value);
+            const spot = getMarket().spot;
+            const forward = getMarket().forward;
             const rd = parseFloat(document.getElementById('input-rd').value) / 100;
             const rf = parseFloat(document.getElementById('input-rf').value) / 100;
             const days = parseInt(document.getElementById('input-days').value);
             const t = days / 360;
-            const spreadBps = parseFloat(document.getElementById('input-spread').value);
-            const spreadPct = spreadBps / 10000;
-            const spotBid = spot * (1 - spreadPct / 2);
-            const spotAsk = spot * (1 + spreadPct / 2);
-            const fwdBid = forward * (1 - spreadPct / 2);
-            const fwdAsk = forward * (1 + spreadPct / 2);
+            const { spotBid, spotAsk, fwdBid, fwdAsk } = getMarket();
             const usdNotional = 1000000;
 
             const fTheoretical = spot * (1 + rd * t) / (1 + rf * t);
@@ -556,12 +585,15 @@
             const profitBorrowHkd = ((hkdNotional / spotAsk) * (1 + rf * t) * fwdBid - hkdNotional) - (hkdNotional * rd * t);
             const profitHkdInUsd = profitBorrowHkd / spot;
 
+            if (roundNumber === 1) {
+                return 'With US$100: sell spot at 8 to get HK$800, invest at 10% to get HK$880, then buy USD forward at 8 to receive US$110. Repay US$105 (5% interest). <strong>Profit: US$5 per US$100, or US$50,000 per US$1,000,000.</strong>';
+            }
             if (correct === 'borrow-usd') {
-                return `Market quote F (${forward.toFixed(4)}) trades below no-arbitrage fair value F* (${fTheoretical.toFixed(4)}) by ${Math.abs(devBps).toFixed(1)} bps. Forward USD is underpriced. Borrowing USD, selling spot at S_bid (${spotBid.toFixed(4)}), investing HKD at ${(rd * 100).toFixed(2)}%, and locking USD forward repurchase at F_ask (${fwdAsk.toFixed(4)}) secures <strong>+US$${profitBorrowUsd.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong> net profit per $1M notional.`;
+                return `Forward midpoint F (${forward.toFixed(4)}) trades below midpoint CIP benchmark F* (${fTheoretical.toFixed(4)}) by ${Math.abs(devBps).toFixed(1)} bps. Forward USD is underpriced. Borrowing USD, selling spot at S_bid (${spotBid.toFixed(4)}), investing HKD at ${(rd * 100).toFixed(2)}%, and locking USD forward repurchase at F_ask (${fwdAsk.toFixed(4)}) secures <strong>+US$${profitBorrowUsd.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong> net profit per $1M notional.`;
             } else if (correct === 'borrow-hkd') {
-                return `Market quote F (${forward.toFixed(4)}) trades above no-arbitrage fair value F* (${fTheoretical.toFixed(4)}) by +${devBps.toFixed(1)} bps. Forward USD is overpriced. Borrowing HKD, buying USD spot at S_ask (${spotAsk.toFixed(4)}), investing USD at ${(rf * 100).toFixed(2)}%, and selling USD forward at F_bid (${fwdBid.toFixed(4)}) secures <strong>+US$${profitHkdInUsd.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong> net profit per $1M notional.`;
+                return `Forward midpoint F (${forward.toFixed(4)}) trades above midpoint CIP benchmark F* (${fTheoretical.toFixed(4)}) by +${devBps.toFixed(1)} bps. Forward USD is overpriced. Borrowing HKD, buying USD spot at S_ask (${spotAsk.toFixed(4)}), investing USD at ${(rf * 100).toFixed(2)}%, and selling USD forward at F_bid (${fwdBid.toFixed(4)}) secures <strong>+US$${profitHkdInUsd.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</strong> net profit per $1M notional.`;
             } else {
-                return `Market quote F (${forward.toFixed(4)}) lies inside the ${spreadBps} bps transaction-cost band around fair value F* (${fTheoretical.toFixed(4)}) (deviation: ${devBps > 0 ? '+' : ''}${devBps.toFixed(1)} bps). Crossing bid-ask spreads wipes out gross margins (USD borrowing yields -$${Math.abs(profitBorrowUsd).toFixed(2)}, HKD borrowing yields -$${Math.abs(profitHkdInUsd).toFixed(2)} per $1M), leaving no executable arbitrage.`;
+                return `Neither covered trade is profitable at the displayed prices. USD borrowing uses spot bid ${spotBid.toFixed(4)} and forward ask ${fwdAsk.toFixed(4)}; HKD borrowing uses spot ask ${spotAsk.toFixed(4)} and forward bid ${fwdBid.toFixed(4)}. The respective profits are US$${profitBorrowUsd.toFixed(2)} and US$${profitHkdInUsd.toFixed(2)} per $1M equivalent.`;
             }
         }
 
@@ -623,20 +655,15 @@
         }
 
         function renderSteppedDebrief(correct, prediction) {
-            const spot = parseFloat(document.getElementById('input-spot').value);
-            const forward = parseFloat(document.getElementById('input-forward').value);
+            const spot = getMarket().spot;
+            const forward = getMarket().forward;
             const rd = parseFloat(document.getElementById('input-rd').value) / 100;
             const rf = parseFloat(document.getElementById('input-rf').value) / 100;
             const days = parseInt(document.getElementById('input-days').value);
-            const spreadBps = parseFloat(document.getElementById('input-spread').value);
             const t = days / 360;
             const fTheoretical = spot * (1 + rd * t) / (1 + rf * t);
             const devBps = ((forward - fTheoretical) / fTheoretical) * 10000;
-            const spreadPct = spreadBps / 10000;
-            const spotBid = spot * (1 - spreadPct / 2);
-            const spotAsk = spot * (1 + spreadPct / 2);
-            const fwdBid = forward * (1 - spreadPct / 2);
-            const fwdAsk = forward * (1 + spreadPct / 2);
+            const { spotBid, spotAsk, fwdBid, fwdAsk } = getMarket();
             const notionalUSD = 1000000;
             const repayUSD = notionalUSD * (1 + rf * t);
             const hkdProceeds = notionalUSD * spotBid;
@@ -655,7 +682,7 @@
             // Step 1: Parity check & Mispricing Diagnosis
             let step1HTML = `
                 <div class="formula-highlight-box">
-                    <strong>Theoretical CIP Forward Rate Formula (Slide 15):</strong><br>
+                    <strong>Midpoint CIP Benchmark:</strong><br>
                     F* = <span class="text-spot">S</span> &times; (1 + r<sub>HKD</sub> &times; T/360) / (1 + r<sub>USD</sub> &times; T/360)<br>
                     F* = <span class="text-spot">${spot.toFixed(4)}</span> &times; (1 + ${(rd*100).toFixed(2)}% &times; ${days}/360) / (1 + ${(rf*100).toFixed(2)}% &times; ${days}/360) = <span class="text-gold" style="font-size:1.15em; font-weight:700;">${fTheoretical.toFixed(5)}</span>
                 </div>
@@ -663,17 +690,17 @@
                     <div class="misprice-card">
                         <div class="stat-label">Theoretical Parity F*</div>
                         <div class="stat-number gold">${fTheoretical.toFixed(5)}</div>
-                        <div style="font-size:0.8rem; color:var(--text-secondary);">Benchmark no-arbitrage rate</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Benchmark using the spot midpoint</div>
                     </div>
                     <div class="misprice-card highlight">
-                        <div class="stat-label">Quoted Market Rate F</div>
+                        <div class="stat-label">Forward Midpoint F</div>
                         <div class="stat-number" style="color:var(--forward-blue-light);">${forward.toFixed(5)}</div>
-                        <div style="font-size:0.8rem; color:var(--text-secondary);">Dealer screen quote</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Average of forward bid and ask</div>
                     </div>
                     <div class="misprice-card">
                         <div class="stat-label">Quoted Deviation (\u0394)</div>
                         <div class="stat-number ${devBps > 0 ? 'profit' : (devBps < 0 ? 'loss' : 'gold')}">${devBps >= 0 ? '+' : ''}${devBps.toFixed(1)} bps</div>
-                        <div style="font-size:0.8rem; color:var(--text-secondary);">${Math.abs(devBps) <= spreadBps ? 'Inside friction band' : 'Outside friction band'}</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">${getCorrectPrediction() === 'none' ? 'Inside friction band' : 'Outside friction band'}</div>
                     </div>
                 </div>
             `;
@@ -704,13 +731,28 @@
                 step1HTML += `
                     <div class="decision-rule-box neutral">
                         <strong style="color:var(--warning); font-size:1.05rem;">&bull; Economic Diagnosis: Rates Lie INSIDE the No-Arbitrage Band</strong><br>
-                        Market quote deviation is only <strong>${devBps >= 0 ? '+' : ''}${devBps.toFixed(1)} bps</strong>, while crossing the bid-ask spread costs <strong>${spreadBps} bps</strong>.<br>
+                        Neither route earns enough at the displayed bid/ask prices to cover its loan repayment.<br>
                         <div style="margin-top:0.4rem; padding:0.4rem 0.6rem; background:rgba(0,0,0,0.25); border-radius:6px;">
-                            <strong>Arbitrage Decision Rule:</strong> When transaction friction exceeds gross mispricing, executing either direction loses money after crossing bid-ask spreads.<br>
+                            <strong>Arbitrage Decision Rule:</strong> Compare the cash returned with the loan repayment in each direction; a midpoint deviation alone does not establish a profitable trade.<br>
                             &rarr; <strong>Optimal Action:</strong> <span style="color:#FCE79C; font-weight:700;">No Profitable Trade (Stay Flat)</span>.
                         </div>
                     </div>
                 `;
+            }
+            if (roundNumber === 1) {
+                step1HTML = `
+                    <div class="formula-highlight-box">
+                        <strong>Start with US$100 — no calculator needed</strong><br>
+                        Spot bid 8: US$100 × 8 = HK$800.<br>
+                        HKD deposit at 10% for one year: HK$800 + HK$80 = HK$880.<br>
+                        Forward ask 8: HK$880 ÷ 8 = US$110.<br>
+                        USD loan at 5% for one year: repay US$100 + US$5 = US$105.<br>
+                        <strong class="text-gold">US$110 − US$105 = US$5 profit.</strong>
+                    </div>
+                    <div class="decision-rule-box">
+                        <strong>Borrow USD and invest HKD.</strong> The spot bid and forward ask are both 8, so the FX conversions cancel. You earn 10% and pay 5%.<br>
+                        The reverse direction buys USD at the higher spot ask (8.20), earns the lower USD interest rate (5%), then sells USD at the lower forward bid (7.80) while owing 10% on the HKD loan. That direction loses money.
+                    </div>`;
             }
             document.getElementById('debrief-step-1-content').innerHTML = step1HTML;
 
@@ -816,9 +858,9 @@
                         <div style="font-size:0.8rem; color:var(--text-secondary);">${profitVal > 0 ? 'Locked risk-free at t=0' : 'Inside no-arbitrage band'}</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-label">Breakeven Market Friction</div>
-                        <div class="stat-number" style="color:var(--cuhk-gold-light);">${Math.abs(devBps).toFixed(1)} bps</div>
-                        <div style="font-size:0.8rem; color:var(--text-secondary);">Current spread: ${spreadBps} bps &middot; Headroom: ${(Math.max(0, Math.abs(devBps) - spreadBps)).toFixed(1)} bps</div>
+                        <div class="stat-label">Executable Forward Thresholds</div>
+                        <div class="stat-number" style="color:var(--cuhk-gold-light);">${(spotBid * (1 + rd * t) / (1 + rf * t)).toFixed(4)} / ${(spotAsk * (1 + rd * t) / (1 + rf * t)).toFixed(4)}</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Borrow USD if forward ask is below the first; borrow HKD if forward bid is above the second.</div>
                     </div>
                 </div>
                 <div style="background:rgba(0,32,96,0.25); border:1px solid rgba(218,165,32,0.3); border-radius:8px; padding:1rem 1.25rem; margin-top:1rem; font-size:0.95rem; line-height:1.6;">
@@ -844,13 +886,14 @@
                 return;
             }
 
+            document.querySelectorAll('.controls-panel input, .controls-panel select').forEach(input => input.disabled = true);
             predictionLocked = true;
             document.body.classList.remove('round-pending');
             document.getElementById('lock-prediction').disabled = true;
             document.getElementById('prediction-select').disabled = true;
 
-            const spotVal = parseFloat(document.getElementById('input-spot').value);
-            const fwdVal = parseFloat(document.getElementById('input-forward').value);
+            const spotVal = getMarket().spot;
+            const fwdVal = getMarket().forward;
             const rdVal = parseFloat(document.getElementById('input-rd').value) / 100;
             const rfVal = parseFloat(document.getElementById('input-rf').value) / 100;
             const daysVal = parseInt(document.getElementById('input-days').value);
@@ -868,12 +911,13 @@
                 question: 'Which covered funding trade is profitable at these quotes?',
                 answerText: predictionLabel(prediction), correctAnswerText: predictionLabel(correct),
                 pair: 'USD/HKD',
-                spot: document.getElementById('input-spot').value,
-                forward: document.getElementById('input-forward').value,
+                spot: String(spotVal),
+                forward: String(fwdVal),
                 rquote: document.getElementById('input-rd').value,
                 rbase: document.getElementById('input-rf').value,
                 days: document.getElementById('input-days').value,
-                spreadBps: document.getElementById('input-spread').value,
+                spreadBps: getMarket().spreadBps.toFixed(4),
+                ...marketQuotes,
                 roundNumber: roundNumber,
                 prediction: prediction,
                 correctAnswer: correct,
@@ -961,47 +1005,44 @@
         }
 
         function updateCIP() {
-            const spot = parseFloat(document.getElementById('input-spot').value);
-            const forward = parseFloat(document.getElementById('input-forward').value);
+            const spot = getMarket().spot;
+            const forward = getMarket().forward;
             const rd = parseFloat(document.getElementById('input-rd').value) / 100;
             const rf = parseFloat(document.getElementById('input-rf').value) / 100;
             const days = parseInt(document.getElementById('input-days').value);
-            const spreadBps = parseFloat(document.getElementById('input-spread').value);
 
-            document.getElementById('val-spot').innerText = spot.toFixed(4);
-            document.getElementById('val-forward').innerText = forward.toFixed(5);
+            Object.entries(marketQuotes).forEach(([key, value]) => {
+                const id = key.replace(/[A-Z]/g, letter => '-' + letter.toLowerCase());
+                document.getElementById(`quote-${id}`).textContent = value.toFixed(roundNumber <= 1 ? 2 : 4);
+            });
+            document.getElementById('forward-book-tenor').textContent = `Exchange in ${days} days`;
             document.getElementById('val-rd').innerText = `${(rd * 100).toFixed(2)}%`;
             document.getElementById('val-rf').innerText = `${(rf * 100).toFixed(2)}%`;
             document.getElementById('val-days').innerText = `${days} Days`;
-            document.getElementById('val-spread').innerText = `${spreadBps} bps`;
 
             const t = days / 360;
             const fTheoretical = spot * (1 + rd * t) / (1 + rf * t);
-            const spreadPct = (spreadBps / 10000);
-            const fUpperBand = fTheoretical * (1 + spreadPct);
-            const fLowerBand = fTheoretical * (1 - spreadPct);
+            const fUpperBand = getMarket().spotAsk * (1 + rd * t) / (1 + rf * t);
+            const fLowerBand = getMarket().spotBid * (1 + rd * t) / (1 + rf * t);
             const devBps = ((forward - fTheoretical) / fTheoretical) * 10000;
 
             document.getElementById('stat-theoretical-fwd').innerText = fTheoretical.toFixed(5);
             document.getElementById('stat-fwd-dev').innerText = `${devBps > 0 ? '+' : ''}${devBps.toFixed(1)} bps`;
 
             const cardDev = document.getElementById('card-deviation');
-            if (Math.abs(devBps) <= spreadBps) {
+            if (getCorrectPrediction() === 'none') {
                 cardDev.className = 'stat-card neutral';
                 document.getElementById('stat-dev-desc').innerText = 'Inside the no-arbitrage band';
-            } else if (devBps > spreadBps) {
+            } else if (getCorrectPrediction() === 'borrow-hkd') {
                 cardDev.className = 'stat-card profit';
-                document.getElementById('stat-dev-desc').innerText = 'Forward rate above the band';
+                document.getElementById('stat-dev-desc').innerText = 'Forward bid above the upper threshold';
             } else {
                 cardDev.className = 'stat-card loss';
-                document.getElementById('stat-dev-desc').innerText = 'Forward rate below the band';
+                document.getElementById('stat-dev-desc').innerText = 'Forward ask below the lower threshold';
             }
 
             const notionalForeign = 1000000;
-            const spotBid = spot * (1 - spreadPct/2);
-            const spotAsk = spot * (1 + spreadPct/2);
-            const fwdBid = forward * (1 - spreadPct/2);
-            const fwdAsk = forward * (1 + spreadPct/2);
+            const { spotBid, spotAsk, fwdBid, fwdAsk } = getMarket();
 
             const repayUSD = notionalForeign * (1 + rf * t);
             const hkdProceeds = notionalForeign * spotBid;
@@ -1063,7 +1104,7 @@
                 renderSteppedDebrief(getCorrectPrediction(), document.getElementById('prediction-select').value);
             }
 
-            updateChart(spot, rd, rf, t, fTheoretical, fUpperBand, fLowerBand, forward);
+            updateChart(spot, rd, rf, fTheoretical, fUpperBand, fLowerBand);
         }
 
         function initChart() {
@@ -1080,36 +1121,38 @@
                 data: {
                     labels: ['30 Days', '60 Days', '90 Days', '180 Days', '270 Days', '360 Days'],
                     datasets: [
-                        { label: 'No-Arbitrage Forward F*', data: [], borderColor: '#DAA520', borderWidth: 3, tension: 0.1 },
-                        { label: 'Upper Bound', data: [], borderColor: 'rgba(255,255,255,0.2)', borderDash: [5,5], pointRadius: 0 },
-                        { label: 'Lower Bound', data: [], borderColor: 'rgba(255,255,255,0.2)', borderDash: [5,5], pointRadius: 0, fill: '-1', backgroundColor: 'rgba(218, 165, 32, 0.12)' },
-                        { label: 'Market Forward F', data: [], borderColor: '#00F2FE', backgroundColor: '#00F2FE', pointRadius: 6, showLine: false }
+                        { label: 'Midpoint CIP Benchmark F*', data: [], borderColor: '#DAA520', borderWidth: 3, tension: 0.1 },
+                        { label: 'HKD borrowing threshold', data: [], borderColor: 'rgba(255,255,255,0.2)', borderDash: [5,5], pointRadius: 0 },
+                        { label: 'USD borrowing threshold', data: [], borderColor: 'rgba(255,255,255,0.2)', borderDash: [5,5], pointRadius: 0, fill: '-1', backgroundColor: 'rgba(218, 165, 32, 0.12)' },
+                        { label: 'Forward bid', data: [], borderColor: '#86efac', backgroundColor: '#86efac', pointRadius: 6, showLine: false },
+                        { label: 'Forward ask', data: [], borderColor: '#fca5a5', backgroundColor: '#fca5a5', pointRadius: 6, showLine: false }
                     ]
                 },
                 options: {
                     ...defaults,
                     plugins: {
                         ...defaults.plugins,
-                        title: { display: true, text: 'CIP No-Arbitrage Band by Maturity', color: '#F8FAFC', font: { family: 'system-ui, sans-serif', size: 14 } }
+                        title: { display: true, text: 'Covered thresholds and executable forward quotes', color: '#F8FAFC', font: { family: 'system-ui, sans-serif', size: 14 } }
                     }
                 }
             });
         }
 
-        function updateChart(spot, rd, rf, currentT, fTheoretical, fUpper, fLower, currentFwd) {
+        function updateChart(spot, rd, rf, fTheoretical, fUpper, fLower) {
             if (!cipChartInstance) return;
             const tenors = [30, 60, 90, 180, 270, 360];
-            const spreadPct = parseFloat(document.getElementById('input-spread').value) / 10000;
             const theoreticalData = tenors.map(days => spot * (1 + rd * (days/360)) / (1 + rf * (days/360)));
-            const upperData = theoreticalData.map(f => f * (1 + spreadPct));
-            const lowerData = theoreticalData.map(f => f * (1 - spreadPct));
+            const upperData = theoreticalData.map(f => f * fUpper / fTheoretical);
+            const lowerData = theoreticalData.map(f => f * fLower / fTheoretical);
             const currentDays = parseInt(document.getElementById('input-days').value);
-            const marketQuoteData = tenors.map(days => days === currentDays ? currentFwd : null);
+            const forwardBidData = tenors.map(days => days === currentDays ? getMarket().fwdBid : null);
+            const forwardAskData = tenors.map(days => days === currentDays ? getMarket().fwdAsk : null);
 
             cipChartInstance.data.datasets[0].data = theoreticalData;
             cipChartInstance.data.datasets[1].data = upperData;
             cipChartInstance.data.datasets[2].data = lowerData;
-            cipChartInstance.data.datasets[3].data = marketQuoteData;
+            cipChartInstance.data.datasets[3].data = forwardBidData;
+            cipChartInstance.data.datasets[4].data = forwardAskData;
             cipChartInstance.update();
         }
 
