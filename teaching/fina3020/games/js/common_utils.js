@@ -613,14 +613,15 @@ const FINA3020Utils = {
         // Map mode to exact Google Sheet tab names
         let modeTab = data.targetTab || data.mode || data.game || 'Course_Survey';
         const modeLower = String(modeTab).toLowerCase();
-        const exactTabs = ['Course_Survey', 'Order_Book', 'Locational_Arb', 'Triangular_Arb', 'CIP', 'Carry_Trade', 'CFO_Hedge', 'Project_Committee', 'BOP_Ledger', 'Bank_Run', 'Bank_Funding', 'Payment_Route', 'Sudden_Stop', 'Blended_Finance'];
+        const exactTabs = ['Course_Survey', 'Order_Book', 'Locational_Arb', 'Triangular_Arb', 'CIP', 'Forward_Curve', 'Carry_Trade', 'CFO_Hedge', 'Project_Committee', 'BOP_Ledger', 'Bank_Run', 'Bank_Funding', 'Payment_Route', 'Sudden_Stop', 'Blended_Finance'];
         if (data.targetTab && !exactTabs.includes(data.targetTab)) throw new Error('Unknown submission tab.');
         if (data.targetTab) modeTab = data.targetTab;
         else if (modeLower.includes('survey') || modeLower.includes('icebreaker')) modeTab = 'Course_Survey';
         else if (modeLower.includes('order')) modeTab = 'Order_Book';
         else if (modeLower.includes('loc')) modeTab = 'Locational_Arb';
         else if (modeLower.includes('tri')) modeTab = 'Triangular_Arb';
-        else if (modeLower.includes('cip') || modeLower.includes('curve') || modeLower.includes('forward')) modeTab = 'CIP';
+        else if (modeLower.includes('curve') || modeLower.includes('forward')) modeTab = 'Forward_Curve';
+        else if (modeLower.includes('cip')) modeTab = 'CIP';
         else if (modeLower.includes('carry')) modeTab = 'Carry_Trade';
         else if (modeLower.includes('cfo') || modeLower.includes('hedge')) modeTab = 'CFO_Hedge';
         else if (modeLower.includes('committee') || modeLower.includes('project')) modeTab = 'Project_Committee';
@@ -725,6 +726,48 @@ const FINA3020Utils = {
         return String(value === undefined || value === null ? '' : value)
             .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    },
+
+    /**
+     * Projector / Large Screen Mode for Lecture Hall Visibility
+     */
+    initProjectorMode: function() {
+        let isProjector = false;
+        try {
+            isProjector = localStorage.getItem('fina3020_projector_mode') === 'true';
+        } catch (e) {}
+        if (isProjector && typeof document !== 'undefined' && document.body) {
+            document.body.classList.add('projector-mode');
+        }
+        this.updateProjectorButton(isProjector);
+        if (typeof window !== 'undefined' && window.addEventListener) {
+            window.addEventListener('keydown', (e) => {
+                if ((e.key === 'P' || e.key === 'p') && !['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+                    this.toggleProjectorMode();
+                }
+            });
+        }
+    },
+
+    toggleProjectorMode: function() {
+        if (typeof document === 'undefined' || !document.body) return false;
+        const active = document.body.classList.toggle('projector-mode');
+        try {
+            localStorage.setItem('fina3020_projector_mode', active ? 'true' : 'false');
+        } catch (e) {}
+        this.updateProjectorButton(active);
+        return active;
+    },
+
+    updateProjectorButton: function(active) {
+        if (typeof document === 'undefined') return;
+        const btn = document.getElementById('btn-projector-toggle');
+        if (btn) {
+            btn.classList.toggle('btn-gold', active);
+            btn.classList.toggle('btn-secondary', !active);
+            btn.innerHTML = active ? '📽️ Big Screen: ON' : '📽️ Big Screen';
+            btn.title = active ? 'Click or press "P" to return to standard view' : 'Click or press "P" to enlarge fonts for classroom projection';
+        }
     }
 };
 
@@ -732,6 +775,7 @@ const FINA3020Utils = {
 document.addEventListener('DOMContentLoaded', () => {
     FINA3020Utils.purgeLegacyStorage();
     FINA3020Utils.setupTabs();
+    FINA3020Utils.initProjectorMode();
     FINA3020Storage.setItem('fina3020_storage_check', '1');
     FINA3020Storage.removeItem('fina3020_storage_check');
     const status = document.createElement('section');

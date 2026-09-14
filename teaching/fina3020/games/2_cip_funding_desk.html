@@ -10,8 +10,8 @@
     <!-- Chart.js -->
     <script src="vendor/chart.umd-4.4.7.js"></script>
     <!-- Custom Design System & Shared Utils -->
-    <link rel="stylesheet" href="css/design_system.css">
-    <script src="js/common_utils.js?v=20260914-allweeks"></script>
+    <link rel="stylesheet" href="css/design_system.css?v=20260914b">
+    <script src="js/common_utils.js?v=20260914b"></script>
     <style>
         .game-panel {
             border-color: var(--border-gold);
@@ -152,6 +152,7 @@
             </div>
         </div>
         <div class="header-actions">
+            <button class="btn btn-secondary" id="btn-projector-toggle" onclick="FINA3020Utils.toggleProjectorMode()" title="Toggle big screen projection mode (Press P)">📽️ Big Screen</button>
             <button class="btn btn-gold" id="btn-student-id" onclick="FINA3020Utils.ensureStudentCredentials(true)">CUHK ID: Not Set</button>
             <button class="btn btn-secondary" data-requires-identity disabled onclick="if (canPlay()) FINA3020Utils.exportResponsesCSV()">Export Responses (.csv)</button>
             <button class="btn btn-secondary" data-requires-identity disabled onclick="resetDefaults()">Reset Market</button>
@@ -259,6 +260,62 @@
 
                 <div class="game-feedback" id="round-feedback" aria-live="polite">
                     <div style="font-size: 0.9rem; color: var(--text-secondary);">Select a strategy and lock your choice to test your intuition.</div>
+                </div>
+
+                <!-- Interactive Stepped Debrief Container -->
+                <div id="stepped-debrief" class="stepped-debrief-container" style="display: none;">
+                    <div class="debrief-header-bar">
+                        <div class="debrief-title-area">
+                            <span class="badge badge-gold">Classroom Debrief</span>
+                            <h3 class="debrief-main-title">Stepped Solution Walkthrough</h3>
+                        </div>
+                        <div class="debrief-steps-nav">
+                            <button type="button" class="debrief-tab-btn active" id="btn-debrief-step-1" onclick="setDebriefStep(1)">1. Parity Check</button>
+                            <button type="button" class="debrief-tab-btn" id="btn-debrief-step-2" onclick="setDebriefStep(2)">2. 4-Leg Execution</button>
+                            <button type="button" class="debrief-tab-btn" id="btn-debrief-step-3" onclick="setDebriefStep(3)">3. P&amp;L &amp; Friction</button>
+                            <button type="button" class="btn btn-secondary" id="btn-toggle-all-debrief" onclick="toggleAllDebriefSteps()" style="font-size:0.8rem; padding:0.35rem 0.75rem;">Show All</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 1 Pane: Parity & Mispricing Check -->
+                    <div class="debrief-pane active" id="pane-debrief-step-1">
+                        <div class="debrief-step-header">
+                            <h4 class="debrief-step-title">Step 1: Check CIP Parity &amp; Identify Mispricing</h4>
+                            <span class="badge badge-gold" id="debrief-step-1-badge">Parity Benchmark</span>
+                        </div>
+                        <div class="debrief-step-body" id="debrief-step-1-content">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Step 2 Pane: 4-Leg Execution Mechanics -->
+                    <div class="debrief-pane" id="pane-debrief-step-2" style="display: none;">
+                        <div class="debrief-step-header">
+                            <h4 class="debrief-step-title">Step 2: Construct the 4-Leg Covered Arbitrage Trade</h4>
+                            <span class="badge badge-spot">Bid / Ask Rules</span>
+                        </div>
+                        <div class="debrief-step-body" id="debrief-step-2-content">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Step 3 Pane: Cash Flow Ledger & Friction Limits -->
+                    <div class="debrief-pane" id="pane-debrief-step-3" style="display: none;">
+                        <div class="debrief-step-header">
+                            <h4 class="debrief-step-title">Step 3: Cash Flow Ledger &amp; Breakeven Arbitrage Spread</h4>
+                            <span class="badge badge-success">Net Arbitrage P&amp;L</span>
+                        </div>
+                        <div class="debrief-step-body" id="debrief-step-3-content">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Debrief Navigation Footer -->
+                    <div class="debrief-footer-nav">
+                        <button type="button" class="btn btn-secondary" id="btn-prev-debrief" onclick="changeDebriefStep(-1)" disabled>&larr; Previous Step</button>
+                        <span id="debrief-step-indicator" style="font-size: 0.95rem; font-weight: 600; color: var(--cuhk-gold-light);">Step 1 of 3: Check Parity &amp; Direction</span>
+                        <button type="button" class="btn btn-gold" id="btn-next-debrief" onclick="changeDebriefStep(1)">Next Step: 4-Leg Execution &rarr;</button>
+                    </div>
                 </div>
 
                 <p id="baseline-note">Round 1 matches the slides’ 90-day HKD/USD example: S = 7.8000, HKD 3%, USD 5%, and zero spread. Quotes stay fixed until you press New Round.</p>
@@ -396,6 +453,9 @@
             predictionLocked = false;
             currentRoundResponse = null;
             document.body.classList.add('round-pending');
+            const debriefEl = document.getElementById('stepped-debrief');
+            if (debriefEl) debriefEl.style.display = 'none';
+            setDebriefStep(1);
             document.getElementById('round-title').innerText = `Round ${roundNumber}: CIP Funding Desk Decision`;
             document.getElementById('round-feedback').innerHTML = '<span style="color: var(--text-secondary);">Select a strategy and lock your choice to test your intuition.</span>';
             document.getElementById('lock-prediction').disabled = false;
@@ -505,6 +565,274 @@
             }
         }
 
+        let currentDebriefStep = 1;
+        let showAllDebriefSteps = false;
+
+        function setDebriefStep(step) {
+            currentDebriefStep = step;
+            showAllDebriefSteps = false;
+            const toggleBtn = document.getElementById('btn-toggle-all-debrief');
+            if (toggleBtn) toggleBtn.innerText = 'Show All';
+
+            [1, 2, 3].forEach(s => {
+                const pane = document.getElementById(`pane-debrief-step-${s}`);
+                const tab = document.getElementById(`btn-debrief-step-${s}`);
+                if (pane) pane.style.display = (s === step) ? 'block' : 'none';
+                if (tab) tab.classList.toggle('active', s === step);
+            });
+
+            const prevBtn = document.getElementById('btn-prev-debrief');
+            const nextBtn = document.getElementById('btn-next-debrief');
+            const indicator = document.getElementById('debrief-step-indicator');
+
+            if (prevBtn) prevBtn.disabled = (step === 1);
+            if (nextBtn) {
+                if (step === 3) {
+                    nextBtn.innerHTML = 'Complete Debrief ✓';
+                    nextBtn.disabled = true;
+                } else {
+                    nextBtn.disabled = false;
+                    nextBtn.innerHTML = (step === 1) ? 'Next Step: 4-Leg Execution &rarr;' : 'Next Step: P&amp;L &amp; Friction &rarr;';
+                }
+            }
+            const stepTitles = [
+                'Step 1 of 3: Check Parity & Direction',
+                'Step 2 of 3: 4-Leg Covered Execution',
+                'Step 3 of 3: Cash Flow Ledger & Breakeven'
+            ];
+            if (indicator) indicator.innerText = stepTitles[step - 1];
+        }
+
+        function changeDebriefStep(delta) {
+            const next = currentDebriefStep + delta;
+            if (next >= 1 && next <= 3) {
+                setDebriefStep(next);
+            }
+        }
+
+        function toggleAllDebriefSteps() {
+            showAllDebriefSteps = !showAllDebriefSteps;
+            const btn = document.getElementById('btn-toggle-all-debrief');
+            if (btn) btn.innerText = showAllDebriefSteps ? 'Show Stepped' : 'Show All';
+            [1, 2, 3].forEach(s => {
+                const pane = document.getElementById(`pane-debrief-step-${s}`);
+                const tab = document.getElementById(`btn-debrief-step-${s}`);
+                if (pane) pane.style.display = showAllDebriefSteps ? 'block' : (s === currentDebriefStep ? 'block' : 'none');
+                if (tab) tab.classList.toggle('active', showAllDebriefSteps || s === currentDebriefStep);
+            });
+        }
+
+        function renderSteppedDebrief(correct, prediction) {
+            const spot = parseFloat(document.getElementById('input-spot').value);
+            const forward = parseFloat(document.getElementById('input-forward').value);
+            const rd = parseFloat(document.getElementById('input-rd').value) / 100;
+            const rf = parseFloat(document.getElementById('input-rf').value) / 100;
+            const days = parseInt(document.getElementById('input-days').value);
+            const spreadBps = parseFloat(document.getElementById('input-spread').value);
+            const t = days / 360;
+            const fTheoretical = spot * (1 + rd * t) / (1 + rf * t);
+            const devBps = ((forward - fTheoretical) / fTheoretical) * 10000;
+            const spreadPct = spreadBps / 10000;
+            const spotBid = spot * (1 - spreadPct / 2);
+            const spotAsk = spot * (1 + spreadPct / 2);
+            const fwdBid = forward * (1 - spreadPct / 2);
+            const fwdAsk = forward * (1 + spreadPct / 2);
+            const notionalUSD = 1000000;
+            const repayUSD = notionalUSD * (1 + rf * t);
+            const hkdProceeds = notionalUSD * spotBid;
+            const hkdAtMaturity = hkdProceeds * (1 + rd * t);
+            const usdReturned = hkdAtMaturity / fwdAsk;
+            const profitUSD = usdReturned - repayUSD;
+
+            const notionalHKD = notionalUSD * spot;
+            const repayHKD = notionalHKD * (1 + rd * t);
+            const usdProceeds = notionalHKD / spotAsk;
+            const usdAtMaturity = usdProceeds * (1 + rf * t);
+            const hkdReturned = usdAtMaturity * fwdBid;
+            const profitHKD = hkdReturned - repayHKD;
+            const profitHkdInUsd = profitHKD / spot;
+
+            // Step 1: Parity check & Mispricing Diagnosis
+            let step1HTML = `
+                <div class="formula-highlight-box">
+                    <strong>Theoretical CIP Forward Rate Formula (Slide 15):</strong><br>
+                    F* = <span class="text-spot">S</span> &times; (1 + r<sub>HKD</sub> &times; T/360) / (1 + r<sub>USD</sub> &times; T/360)<br>
+                    F* = <span class="text-spot">${spot.toFixed(4)}</span> &times; (1 + ${(rd*100).toFixed(2)}% &times; ${days}/360) / (1 + ${(rf*100).toFixed(2)}% &times; ${days}/360) = <span class="text-gold" style="font-size:1.15em; font-weight:700;">${fTheoretical.toFixed(5)}</span>
+                </div>
+                <div class="misprice-grid">
+                    <div class="misprice-card">
+                        <div class="stat-label">Theoretical Parity F*</div>
+                        <div class="stat-number gold">${fTheoretical.toFixed(5)}</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Benchmark no-arbitrage rate</div>
+                    </div>
+                    <div class="misprice-card highlight">
+                        <div class="stat-label">Quoted Market Rate F</div>
+                        <div class="stat-number" style="color:var(--forward-blue-light);">${forward.toFixed(5)}</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Dealer screen quote</div>
+                    </div>
+                    <div class="misprice-card">
+                        <div class="stat-label">Quoted Deviation (\u0394)</div>
+                        <div class="stat-number ${devBps > 0 ? 'profit' : (devBps < 0 ? 'loss' : 'gold')}">${devBps >= 0 ? '+' : ''}${devBps.toFixed(1)} bps</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">${Math.abs(devBps) <= spreadBps ? 'Inside friction band' : 'Outside friction band'}</div>
+                    </div>
+                </div>
+            `;
+
+            if (correct === 'borrow-usd') {
+                step1HTML += `
+                    <div class="decision-rule-box">
+                        <strong style="color:var(--success); font-size:1.05rem;">&bull; Economic Diagnosis: Forward USD is UNDERPRICED (Cheap)</strong><br>
+                        Market quote <span class="text-forward">F (${forward.toFixed(4)})</span> sits <strong>${Math.abs(devBps).toFixed(1)} bps below</strong> fair value <span class="text-gold">F* (${fTheoretical.toFixed(4)})</span>.<br>
+                        <div style="margin-top:0.4rem; padding:0.4rem 0.6rem; background:rgba(0,0,0,0.25); border-radius:6px;">
+                            <strong>Arbitrage Decision Rule:</strong> Buy the cheap contract forward, borrow the underlying spot asset!<br>
+                            &rarr; <strong>Lock Action:</strong> <span style="color:#86efac; font-weight:700;">Borrow USD &rarr; Convert to HKD Spot &rarr; Invest in HKD &rarr; Buy USD Forward to Repay</span>.
+                        </div>
+                    </div>
+                `;
+            } else if (correct === 'borrow-hkd') {
+                step1HTML += `
+                    <div class="decision-rule-box">
+                        <strong style="color:var(--success); font-size:1.05rem;">&bull; Economic Diagnosis: Forward USD is OVERPRICED (Expensive)</strong><br>
+                        Market quote <span class="text-forward">F (${forward.toFixed(4)})</span> sits <strong>+${devBps.toFixed(1)} bps above</strong> fair value <span class="text-gold">F* (${fTheoretical.toFixed(4)})</span>.<br>
+                        <div style="margin-top:0.4rem; padding:0.4rem 0.6rem; background:rgba(0,0,0,0.25); border-radius:6px;">
+                            <strong>Arbitrage Decision Rule:</strong> Sell the expensive contract forward, borrow the domestic funding asset!<br>
+                            &rarr; <strong>Lock Action:</strong> <span style="color:#86efac; font-weight:700;">Borrow HKD &rarr; Convert to USD Spot &rarr; Invest in USD &rarr; Sell USD Forward to Repay</span>.
+                        </div>
+                    </div>
+                `;
+            } else {
+                step1HTML += `
+                    <div class="decision-rule-box neutral">
+                        <strong style="color:var(--warning); font-size:1.05rem;">&bull; Economic Diagnosis: Rates Lie INSIDE the No-Arbitrage Band</strong><br>
+                        Market quote deviation is only <strong>${devBps >= 0 ? '+' : ''}${devBps.toFixed(1)} bps</strong>, while crossing the bid-ask spread costs <strong>${spreadBps} bps</strong>.<br>
+                        <div style="margin-top:0.4rem; padding:0.4rem 0.6rem; background:rgba(0,0,0,0.25); border-radius:6px;">
+                            <strong>Arbitrage Decision Rule:</strong> When transaction friction exceeds gross mispricing, executing either direction loses money after crossing bid-ask spreads.<br>
+                            &rarr; <strong>Optimal Action:</strong> <span style="color:#FCE79C; font-weight:700;">No Profitable Trade (Stay Flat)</span>.
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('debrief-step-1-content').innerHTML = step1HTML;
+
+            // Step 2: 4-Leg Execution Mechanics
+            let step2HTML = `
+                <div class="spread-rule-callout">
+                    <strong>Microstructure Principle (Slide 12):</strong> You are a price taker trading with a dealer bank. You always <strong>SELL at the BID</strong> and <strong>BUY at the ASK</strong>.
+                </div>
+            `;
+
+            if (correct === 'borrow-usd' || (correct === 'none' && Math.abs(profitUSD) >= Math.abs(profitHkdInUsd))) {
+                step2HTML += `
+                    <div class="leg-card-grid">
+                        <div class="leg-card leg-interest">
+                            <span class="leg-card-num">1</span>
+                            <h5 class="leg-card-title">Leg 1: Borrow USD</h5>
+                            <div class="leg-card-detail">
+                                Borrow <strong>US$1,000,000.00</strong> for ${days} days at ${(rf*100).toFixed(2)}%.<br>
+                                &bull; Today (t=0): <span style="color:var(--success); font-weight:700;">+US$1,000,000.00</span><br>
+                                &bull; Maturity (t=T): <span style="color:var(--danger); font-weight:700;">-US$${repayUSD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            </div>
+                        </div>
+                        <div class="leg-card leg-spot">
+                            <span class="leg-card-num">2</span>
+                            <h5 class="leg-card-title">Leg 2: Convert Spot (Sell USD)</h5>
+                            <div class="leg-card-detail">
+                                Sell US$1,000,000 at dealer bid <span class="badge badge-spot">S_bid = ${spotBid.toFixed(4)}</span>.<br>
+                                &bull; Today (t=0): Deliver US$1,000,000<br>
+                                &bull; Receive: <span style="color:var(--success); font-weight:700;">+HK$${hkdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            </div>
+                        </div>
+                        <div class="leg-card leg-interest">
+                            <span class="leg-card-num">3</span>
+                            <h5 class="leg-card-title">Leg 3: Invest HKD</h5>
+                            <div class="leg-card-detail">
+                                Invest HK$ proceeds at ${(rd*100).toFixed(2)}% in HK money market.<br>
+                                &bull; Today (t=0): -HK$${hkdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}<br>
+                                &bull; Maturity (t=T): <span style="color:var(--success); font-weight:700;">+HK$${hkdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            </div>
+                        </div>
+                        <div class="leg-card leg-forward">
+                            <span class="leg-card-num">4</span>
+                            <h5 class="leg-card-title">Leg 4: Forward Repurchase (Buy USD)</h5>
+                            <div class="leg-card-detail">
+                                Buy USD forward at dealer ask <span class="badge badge-forward">F_ask = ${fwdAsk.toFixed(4)}</span>.<br>
+                                &bull; Deliver HK$ at maturity: -HK$${hkdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}<br>
+                                &bull; Receive USD: <span style="color:var(--success); font-weight:700;">+US$${usdReturned.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                step2HTML += `
+                    <div class="leg-card-grid">
+                        <div class="leg-card leg-interest">
+                            <span class="leg-card-num">1</span>
+                            <h5 class="leg-card-title">Leg 1: Borrow HKD</h5>
+                            <div class="leg-card-detail">
+                                Borrow <strong>HK$${notionalHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</strong> for ${days} days at ${(rd*100).toFixed(2)}%.<br>
+                                &bull; Today (t=0): <span style="color:var(--success); font-weight:700;">+HK$${notionalHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span><br>
+                                &bull; Maturity (t=T): <span style="color:var(--danger); font-weight:700;">-HK$${repayHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            </div>
+                        </div>
+                        <div class="leg-card leg-spot">
+                            <span class="leg-card-num">2</span>
+                            <h5 class="leg-card-title">Leg 2: Convert Spot (Buy USD)</h5>
+                            <div class="leg-card-detail">
+                                Buy USD spot at dealer ask <span class="badge badge-spot">S_ask = ${spotAsk.toFixed(4)}</span>.<br>
+                                &bull; Today (t=0): Deliver HK$${notionalHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}<br>
+                                &bull; Receive: <span style="color:var(--success); font-weight:700;">+US$${usdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            </div>
+                        </div>
+                        <div class="leg-card leg-interest">
+                            <span class="leg-card-num">3</span>
+                            <h5 class="leg-card-title">Leg 3: Invest USD</h5>
+                            <div class="leg-card-detail">
+                                Invest USD proceeds at ${(rf*100).toFixed(2)}% in US money market.<br>
+                                &bull; Today (t=0): -US$${usdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}<br>
+                                &bull; Maturity (t=T): <span style="color:var(--success); font-weight:700;">+US$${usdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            </div>
+                        </div>
+                        <div class="leg-card leg-forward">
+                            <span class="leg-card-num">4</span>
+                            <h5 class="leg-card-title">Leg 4: Forward Sale (Sell USD)</h5>
+                            <div class="leg-card-detail">
+                                Sell USD forward at dealer bid <span class="badge badge-forward">F_bid = ${fwdBid.toFixed(4)}</span>.<br>
+                                &bull; Deliver USD at maturity: -US$${usdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}<br>
+                                &bull; Receive HK$: <span style="color:var(--success); font-weight:700;">+HK$${hkdReturned.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            document.getElementById('debrief-step-2-content').innerHTML = step2HTML;
+
+            // Step 3: Cash Flow Ledger & Net Arbitrage P&L
+            const profitVal = (correct === 'borrow-usd') ? profitUSD : (correct === 'borrow-hkd' ? profitHkdInUsd : 0);
+            let step3HTML = `
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:1rem; margin-bottom:1.25rem;">
+                    <div class="stat-card ${profitVal > 0 ? 'profit' : 'neutral'}">
+                        <div class="stat-label">Net Arbitrage Profit per $1M</div>
+                        <div class="stat-number ${profitVal > 0 ? 'profit' : 'gold'}">${profitVal > 0 ? '+' : ''}US$${profitVal.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">${profitVal > 0 ? 'Locked risk-free at t=0' : 'Inside no-arbitrage band'}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Breakeven Market Friction</div>
+                        <div class="stat-number" style="color:var(--cuhk-gold-light);">${Math.abs(devBps).toFixed(1)} bps</div>
+                        <div style="font-size:0.8rem; color:var(--text-secondary);">Current spread: ${spreadBps} bps &middot; Headroom: ${(Math.max(0, Math.abs(devBps) - spreadBps)).toFixed(1)} bps</div>
+                    </div>
+                </div>
+                <div style="background:rgba(0,32,96,0.25); border:1px solid rgba(218,165,32,0.3); border-radius:8px; padding:1rem 1.25rem; margin-top:1rem; font-size:0.95rem; line-height:1.6;">
+                    <strong style="color:var(--cuhk-gold-light);">💡 Classroom Discussion Prompt (Pacing &amp; Mechanism):</strong><br>
+                    If covered interest parity deviations offer positive risk-free profit on paper, why don't banks eliminate them instantaneously?
+                    <ul style="margin: 0.5rem 0 0 1.25rem; color:#CBD5E1;">
+                        <li><strong>Pre-2008:</strong> CIP held tightly (within &plusmn;1&ndash;2 bps) because banks faced negligible balance sheet costs.</li>
+                        <li><strong>Post-2008:</strong> Basel III leverage ratios, capital surcharges, and USD funding constraints impose real balance sheet costs on holding offsetting repo/FX claims, creating persistent cross-currency basis spreads!</li>
+                    </ul>
+                </div>
+            `;
+            document.getElementById('debrief-step-3-content').innerHTML = step3HTML;
+        }
+
         function lockPrediction() {
             if (!canPlay() || predictionLocked) return;
             if (!FINA3020Utils.ensureStudentCredentials()) return;
@@ -520,6 +848,15 @@
             document.body.classList.remove('round-pending');
             document.getElementById('lock-prediction').disabled = true;
             document.getElementById('prediction-select').disabled = true;
+
+            const spotVal = parseFloat(document.getElementById('input-spot').value);
+            const fwdVal = parseFloat(document.getElementById('input-forward').value);
+            const rdVal = parseFloat(document.getElementById('input-rd').value) / 100;
+            const rfVal = parseFloat(document.getElementById('input-rf').value) / 100;
+            const daysVal = parseInt(document.getElementById('input-days').value);
+            const tVal = daysVal / 360;
+            const fTheoVal = spotVal * (1 + rdVal * tVal) / (1 + rfVal * tVal);
+            const devBpsVal = ((fwdVal - fTheoVal) / fTheoVal) * 10000;
 
             const correct = getCorrectPrediction();
             const matched = prediction === correct;
@@ -540,7 +877,10 @@
                 roundNumber: roundNumber,
                 prediction: prediction,
                 correctAnswer: correct,
-                matched: matched
+                matched: matched,
+                fTheoretical: fTheoVal.toFixed(5),
+                devBps: devBpsVal.toFixed(1),
+                direction: predictionLabel(correct)
             };
 
             document.getElementById('round-title').innerText = `Round ${roundNumber}: Result Revealed`;
@@ -569,6 +909,11 @@
                 `;
             }
 
+            renderSteppedDebrief(correct, prediction);
+            const debriefEl = document.getElementById('stepped-debrief');
+            if (debriefEl) debriefEl.style.display = 'block';
+            setDebriefStep(1);
+
             document.getElementById('reflection-section').style.display = 'block';
         }
 
@@ -582,6 +927,7 @@
                 return;
             }
             currentRoundResponse.exitReflection = reflection;
+            currentRoundResponse.responseText = reflection;
             const submittedRound = currentRoundResponse;
 
             const submitBtn = document.getElementById('submit-reflection');
@@ -682,11 +1028,11 @@
                 statNetProfit.innerText = `+${FINA3020Utils.formatCurrency(profitStrat1, '$', 2)}`;
                 statStrategy.innerText = 'Borrow USD, invest HKD, buy USD forward';
                 ledgerHtml = `
-                    <tr><td>1</td><td>Borrow USD for ${days} days at ${(rf*100).toFixed(2)}%</td><td>+$1,000,000.00 USD</td><td>-$${repayUSD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} USD</td></tr>
-                    <tr><td>2</td><td>Sell USD at spot bid S_bid = ${spotBid.toFixed(4)}</td><td>-US$1,000,000.00 &rarr; +HK$${hkdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>--</td></tr>
-                    <tr><td>3</td><td>Invest HKD at ${(rd*100).toFixed(2)}%</td><td>-HK$${hkdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>+HK$${hkdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
-                    <tr><td>4</td><td>Buy USD forward at F_ask = ${fwdAsk.toFixed(4)}</td><td>--</td><td>-HK$${hkdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} &rarr; +US$${usdReturned.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
-                    <tr style="background: rgba(16,185,129,0.1); font-weight:700;"><td colspan="3">Net profit after transaction costs</td><td style="color:var(--success);">+US$${profitStrat1.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
+                    <tr><td><strong>1</strong></td><td>Borrow USD for ${days} days at ${(rf*100).toFixed(2)}%</td><td style="color:var(--success); font-weight:600;">+$1,000,000.00 USD</td><td style="color:var(--danger); font-weight:600;">-$${repayUSD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} USD</td></tr>
+                    <tr><td><strong>2</strong></td><td>Sell USD at spot bid <span class="badge badge-spot">S_bid = ${spotBid.toFixed(4)}</span></td><td>-US$1,000,000.00 &rarr; <span style="color:var(--success); font-weight:600;">+HK$${hkdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span></td><td>--</td></tr>
+                    <tr><td><strong>3</strong></td><td>Invest HKD in money market at ${(rd*100).toFixed(2)}%</td><td>-HK$${hkdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:var(--success); font-weight:600;">+HK$${hkdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
+                    <tr><td><strong>4</strong></td><td>Buy USD forward at ask <span class="badge badge-forward">F_ask = ${fwdAsk.toFixed(4)}</span></td><td>--</td><td>-HK$${hkdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} &rarr; <span style="color:var(--success); font-weight:600;">+US$${usdReturned.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span></td></tr>
+                    <tr style="background: rgba(16,185,129,0.15); font-weight:700; font-size:1.05rem;"><td colspan="3">Net Risk-Free Profit (Arbitrage Return)</td><td style="color:var(--success); font-size:1.15rem;">+US$${profitStrat1.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
                 `;
             } else if (profitStrat2USD > 1.0) {
                 cardProfit.className = 'stat-card profit';
@@ -694,24 +1040,28 @@
                 statNetProfit.innerText = `+${FINA3020Utils.formatCurrency(profitStrat2USD, '$', 2)} USD`;
                 statStrategy.innerText = 'Borrow HKD, invest USD, sell USD forward';
                 ledgerHtml = `
-                    <tr><td>1</td><td>Borrow HKD for ${days} days at ${(rd*100).toFixed(2)}%</td><td>+$${notionalHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} HKD</td><td>-$${repayHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} HKD</td></tr>
-                    <tr><td>2</td><td>Buy USD at spot ask S_ask = ${spotAsk.toFixed(4)}</td><td>-HK$${notionalHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} &rarr; +US$${usdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>--</td></tr>
-                    <tr><td>3</td><td>Invest USD at ${(rf*100).toFixed(2)}%</td><td>-US$${usdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td>+US$${usdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
-                    <tr><td>4</td><td>Sell USD forward at F_bid = ${fwdBid.toFixed(4)}</td><td>--</td><td>+HK$${hkdReturned.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}; repay loan</td></tr>
-                    <tr style="background: rgba(16,185,129,0.1); font-weight:700;"><td colspan="3">Net profit after transaction costs</td><td style="color:var(--success);">+US$${profitStrat2USD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
+                    <tr><td><strong>1</strong></td><td>Borrow HKD for ${days} days at ${(rd*100).toFixed(2)}%</td><td style="color:var(--success); font-weight:600;">+$${notionalHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} HKD</td><td style="color:var(--danger); font-weight:600;">-$${repayHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} HKD</td></tr>
+                    <tr><td><strong>2</strong></td><td>Buy USD at spot ask <span class="badge badge-spot">S_ask = ${spotAsk.toFixed(4)}</span></td><td>-HK$${notionalHKD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})} &rarr; <span style="color:var(--success); font-weight:600;">+US$${usdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</span></td><td>--</td></tr>
+                    <tr><td><strong>3</strong></td><td>Invest USD in money market at ${(rf*100).toFixed(2)}%</td><td>-US$${usdProceeds.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td><td style="color:var(--success); font-weight:600;">+US$${usdAtMaturity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
+                    <tr><td><strong>4</strong></td><td>Sell USD forward at bid <span class="badge badge-forward">F_bid = ${fwdBid.toFixed(4)}</span></td><td>--</td><td>+HK$${hkdReturned.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}; repay loan</td></tr>
+                    <tr style="background: rgba(16,185,129,0.15); font-weight:700; font-size:1.05rem;"><td colspan="3">Net Risk-Free Profit (Arbitrage Return)</td><td style="color:var(--success); font-size:1.15rem;">+US$${profitStrat2USD.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})}</td></tr>
                 `;
             } else {
                 cardProfit.className = 'stat-card neutral';
                 statNetProfit.className = 'stat-number gold';
                 statNetProfit.innerText = `$0.00 USD`;
                 statStrategy.innerText = 'Inside no-arbitrage band';
-                ledgerHtml = `<tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding:2rem;">Rates inside no-arbitrage band.</td></tr>`;
+                ledgerHtml = `<tr><td colspan="4" style="text-align:center; color:var(--text-secondary); padding:2rem;">Rates inside no-arbitrage band. Transaction costs eliminate arbitrage profits.</td></tr>`;
             }
             document.getElementById('cip-ledger-body').innerHTML = ledgerHtml;
             document.querySelectorAll('#cip-ledger-body tr').forEach(row => {
                 if (row.cells.length !== 4) return;
                 [...row.cells].forEach((cell, index) => cell.dataset.label = ['Step', 'Action', 'Today', 'At maturity'][index]);
             });
+
+            if (predictionLocked) {
+                renderSteppedDebrief(getCorrectPrediction(), document.getElementById('prediction-select').value);
+            }
 
             updateChart(spot, rd, rf, t, fTheoretical, fUpperBand, fLowerBand, forward);
         }

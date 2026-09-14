@@ -10,8 +10,8 @@
     <!-- Chart.js -->
     <script src="vendor/chart.umd-4.4.7.js"></script>
     <!-- Custom Design System & Shared Utils -->
-    <link rel="stylesheet" href="css/design_system.css">
-    <script src="js/common_utils.js?v=20260914-allweeks"></script>
+    <link rel="stylesheet" href="css/design_system.css?v=20260914b">
+    <script src="js/common_utils.js?v=20260914b"></script>
     <link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
     <script src="js/numeric_controls.js?v=20260909" defer></script>
     <link rel="stylesheet" href="css/mobile.css?v=20260909">
@@ -271,6 +271,7 @@
             </div>
         </div>
         <div class="header-actions">
+            <button class="btn btn-secondary" id="btn-projector-toggle" onclick="FINA3020Utils.toggleProjectorMode()" title="Toggle big screen projection mode (Press P)">📽️ Big Screen</button>
             <button class="btn btn-gold" id="btn-student-id" onclick="FINA3020Utils.ensureStudentCredentials(true)">CUHK ID: Not Set</button>
             <button class="btn btn-secondary" data-requires-identity disabled onclick="if (canPlay()) FINA3020Utils.exportResponsesCSV()">Export Responses (.csv)</button>
             <button class="btn btn-secondary" data-requires-identity disabled onclick="resetToCurrentPair()">Reset Curve</button>
@@ -391,6 +392,56 @@
                 </div>
 
                 <div class="game-feedback" id="round-feedback" aria-live="polite">Choose an answer and lock your choice to test your intuition.</div>
+
+                <!-- Interactive Stepped Debrief Container -->
+                <div id="stepped-debrief" class="stepped-debrief-container" style="display: none;">
+                    <div class="debrief-header-bar">
+                        <div class="debrief-title-area">
+                            <span class="badge badge-gold">Classroom Debrief</span>
+                            <h3 class="debrief-main-title" id="forward-debrief-title">Stepped Solution Walkthrough</h3>
+                        </div>
+                        <div class="debrief-steps-nav">
+                            <button type="button" class="debrief-tab-btn active" id="btn-fwd-step-1" onclick="setForwardDebriefStep(1)">1. Pricing Rules</button>
+                            <button type="button" class="debrief-tab-btn" id="btn-fwd-step-2" onclick="setForwardDebriefStep(2)">2. Step-by-Step Math</button>
+                            <button type="button" class="debrief-tab-btn" id="btn-fwd-step-3" onclick="setForwardDebriefStep(3)">3. Economic Takeaway</button>
+                            <button type="button" class="btn btn-secondary" id="btn-toggle-all-fwd" onclick="toggleAllForwardDebriefSteps()" style="font-size:0.8rem; padding:0.35rem 0.75rem;">Show All</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 1 Pane: Formulation & Rules -->
+                    <div class="debrief-pane active" id="pane-fwd-step-1">
+                        <div class="debrief-step-header">
+                            <h4 class="debrief-step-title" id="fwd-step-1-title">Step 1: Core Formula &amp; Pricing Conventions</h4>
+                            <span class="badge badge-gold" id="fwd-step-1-badge">Conventions</span>
+                        </div>
+                        <div class="debrief-step-body" id="fwd-step-1-content"></div>
+                    </div>
+
+                    <!-- Step 2 Pane: Calculation -->
+                    <div class="debrief-pane" id="pane-fwd-step-2" style="display: none;">
+                        <div class="debrief-step-header">
+                            <h4 class="debrief-step-title" id="fwd-step-2-title">Step 2: Step-by-Step Calculation</h4>
+                            <span class="badge badge-spot" id="fwd-step-2-badge">Execution</span>
+                        </div>
+                        <div class="debrief-step-body" id="fwd-step-2-content"></div>
+                    </div>
+
+                    <!-- Step 3 Pane: Economic Takeaway -->
+                    <div class="debrief-pane" id="pane-fwd-step-3" style="display: none;">
+                        <div class="debrief-step-header">
+                            <h4 class="debrief-step-title" id="fwd-step-3-title">Step 3: Economic Interpretation &amp; Slide Connection</h4>
+                            <span class="badge badge-success" id="fwd-step-3-badge">Core Concept</span>
+                        </div>
+                        <div class="debrief-step-body" id="fwd-step-3-content"></div>
+                    </div>
+
+                    <!-- Debrief Navigation Footer -->
+                    <div class="debrief-footer-nav">
+                        <button type="button" class="btn btn-secondary" id="btn-prev-fwd" onclick="changeForwardDebriefStep(-1)" disabled>&larr; Previous Step</button>
+                        <span id="fwd-step-indicator" style="font-size: 0.95rem; font-weight: 600; color: var(--cuhk-gold-light);">Step 1 of 3: Pricing Rules &amp; Formulation</span>
+                        <button type="button" class="btn btn-gold" id="btn-next-fwd" onclick="changeForwardDebriefStep(1)">Next Step: Math Walkthrough &rarr;</button>
+                    </div>
+                </div>
 
                 <button class="btn btn-gold" id="new-round" onclick="newRound()">New Round</button>
                 <p id="selected-answer" aria-live="polite"></p>
@@ -517,6 +568,7 @@
         let chartInstance = null;
         let activeRound = 1;
         let roundStatus = { 1: false, 2: false, 3: false };
+        let currentConfig = null;
 
         let practiceStarted = false;
         let predictionLocked = false;
@@ -909,7 +961,12 @@
                         { val: 'opt-3', text: '7.7970 · USD at Forward Premium', correct: false },
                         { val: 'opt-4', text: '7.8030 · USD at Forward Discount', correct: false }
                     ],
-                    explanation: 'Outright F = 7.8000 + (-30.0 / 10,000) = 7.8000 - 0.0030 = 7.7970. Because F < S (points < 0), the USD buys fewer HKD forward than spot: the USD trades at a forward discount (-0.0769% = -7.7 bps annualized).'
+                    explanation: 'Outright F = 7.8000 + (-30.0 / 10,000) = 7.8000 - 0.0030 = 7.7970. Because F < S (points < 0), the USD buys fewer HKD forward than spot: the USD trades at a forward discount (-0.0769% = -7.7 bps annualized).',
+                    data: {
+                        pair: 'USD/HKD', base: 'USD', quote: 'HKD',
+                        spot: 7.8000, points: -30.0, forward: 7.7970,
+                        decimals: 4, mult: 10000, tenor: '6-month', days: 180, isPrem: false
+                    }
                 };
             }
             const pool = [
@@ -947,7 +1004,14 @@
                 prompt: `A dealer quotes <strong>Spot bid = ${S.toFixed(item.decimals)}</strong> and <strong>${tenor} Forward Points bid = ${P >= 0 ? '+' : ''}${P.toFixed(1)}</strong> pips on ${item.pair}. What is the outright ${tenor} forward bid, and is the ${item.base} at a forward premium or discount?`,
                 hint: `Hint: 1 pip = ${(1/item.mult)} for ${item.decimals}-decimal pairs. Outright F = Spot + (Points / ${item.mult}). If Points > 0 (${item.base} buys more ${item.quote} forward), ${item.base} is at a premium; if Points < 0, at a discount.`,
                 options: rawOptions,
-                explanation: `Outright F = ${S.toFixed(item.decimals)} + (${P >= 0 ? '+' : ''}${P.toFixed(1)} / ${item.mult}) = ${correctRateStr}. Because ${P >= 0 ? 'F > S' : 'F < S'}, the ${item.base} trades at a forward ${isPrem ? 'premium' : 'discount'}.`
+                explanation: `Outright F = ${S.toFixed(item.decimals)} + (${P >= 0 ? '+' : ''}${P.toFixed(1)} / ${item.mult}) = ${correctRateStr}. Because ${P >= 0 ? 'F > S' : 'F < S'}, the ${item.base} trades at a forward ${isPrem ? 'premium' : 'discount'}.`,
+                data: {
+                    pair: item.pair, base: item.base, quote: item.quote,
+                    spot: S, points: P, forward: parseFloat(correctRateStr),
+                    decimals: item.decimals, mult: item.mult, tenor: tenor,
+                    days: (tenor.includes('3') ? 90 : (tenor.includes('6') ? 180 : 360)),
+                    isPrem: isPrem
+                }
             };
         }
 
@@ -965,7 +1029,13 @@
                         { val: 'opt-3', text: '€1,091,673 · Hedging Benefit (multiply by F)', correct: false },
                         { val: 'opt-4', text: '€916,025 · Hedging Cost (EUR buys fewer USD forward than spot)', correct: false }
                     ],
-                    explanation: 'CIP gives F = 1.0850 × (1 + 0.045 × 0.5) / (1 + 0.0325 × 0.5) = 1.091673. The USD payment requires about €916,025 forward, compared with €921,659 at today’s spot. The EUR forward premium gives a benefit relative to that spot comparison; it is not a risk-free profit.'
+                    explanation: 'CIP gives F = 1.0850 × (1 + 0.045 × 0.5) / (1 + 0.0325 × 0.5) = 1.091673. The USD payment requires about €916,025 forward, compared with €921,659 at today’s spot. The EUR forward premium gives a benefit relative to that spot comparison; it is not a risk-free profit.',
+                    data: {
+                        pair: 'EUR/USD', amount: 1000000, spot: 1.0850,
+                        rUSD: 0.045, rEUR: 0.0325, F: 1.091673,
+                        t: 0.5, days: 180, tenorLabel: '6 months',
+                        reqEUR: 916025, spotEUR: 921659, savingsEUR: 5634
+                    }
                 };
             }
             const amounts = [500000, 1000000, 1500000, 2000000];
@@ -1004,7 +1074,13 @@
                 prompt: `You are the CFO of a European importer paying <strong>US$${amount.toLocaleString()} in ${tenorObj.label}</strong> (EUR/USD Spot = ${spot.toFixed(4)}). US interest rate (${(rUSD*100).toFixed(2)}%) > Euro rate (${(rEUR*100).toFixed(2)}%). Under CIP, the ${tenorObj.label} forward is <strong>F = ${F.toFixed(6)}</strong> (${pips >= 0 ? '+' : ''}${pips.toFixed(1)} pips). How many Euros must you commit forward to hedge, and do forward points provide a hedging pickup or cost?`,
                 hint: `Hint: Required EUR = USD payment / F. Compare with USD payment / S. Because F > S (EUR trades at a forward premium against USD), 1 EUR buys more USD forward, requiring fewer Euros today.`,
                 options: rawOptions,
-                explanation: `Under CIP, F = ${spot.toFixed(4)} × (1 + ${(rUSD*100).toFixed(2)}% × ${tenorObj.t}) / (1 + ${(rEUR*100).toFixed(2)}% × ${tenorObj.t}) = ${F.toFixed(6)}. Paying US$${amount.toLocaleString()} requires €${reqEUR.toLocaleString()} forward, vs €${spotEUR.toLocaleString()} at spot. Because EUR is at a forward premium, you enjoy a hedging benefit vs spot.`
+                explanation: `Under CIP, F = ${spot.toFixed(4)} × (1 + ${(rUSD*100).toFixed(2)}% × ${tenorObj.t}) / (1 + ${(rEUR*100).toFixed(2)}% × ${tenorObj.t}) = ${F.toFixed(6)}. Paying US$${amount.toLocaleString()} requires €${reqEUR.toLocaleString()} forward, vs €${spotEUR.toLocaleString()} at spot. Because EUR is at a forward premium, you enjoy a hedging benefit vs spot.`,
+                data: {
+                    pair: 'EUR/USD', amount: amount, spot: spot,
+                    rUSD: rUSD, rEUR: rEUR, F: F,
+                    t: tenorObj.t, days: Math.round(tenorObj.t * 360), tenorLabel: tenorObj.label,
+                    reqEUR: reqEUR, spotEUR: spotEUR, savingsEUR: spotEUR - reqEUR
+                }
             };
         }
 
@@ -1026,6 +1102,13 @@
                     postLockAction: () => {
                         document.getElementById('input-rbase').value = '5.10';
                         syncAndRecalculate();
+                    },
+                    data: {
+                        pair: 'USD/HKD', spot: 7.8400,
+                        rbaseOld: 4.60, rbaseNew: 5.10, rquoteOld: 4.50, rquoteNew: 4.50,
+                        gapOld: -0.10, gapNew: -0.60,
+                        shockText: 'Fed hikes USD rate by 50 bps (+0.50%) to 5.10%',
+                        days: 360, forward: (7.8400 * (1 + 0.045) / (1 + 0.051)).toFixed(5)
                     }
                 };
             }
@@ -1043,6 +1126,13 @@
                     postLockAction: () => {
                         document.getElementById('input-rbase').value = '4.00';
                         syncAndRecalculate();
+                    },
+                    data: {
+                        pair: 'USD/HKD', spot: 7.8400,
+                        rbaseOld: 4.60, rbaseNew: 4.00, rquoteOld: 4.50, rquoteNew: 4.50,
+                        gapOld: -0.10, gapNew: 0.50,
+                        shockText: 'Fed cuts USD rate by 60 bps (-0.60%) to 4.00%',
+                        days: 360, forward: (7.8400 * (1 + 0.045) / (1 + 0.040)).toFixed(5)
                     }
                 },
                 {
@@ -1058,6 +1148,13 @@
                     postLockAction: () => {
                         document.getElementById('input-rquote').value = '4.60';
                         syncAndRecalculate();
+                    },
+                    data: {
+                        pair: 'USD/HKD', spot: 7.8400,
+                        rbaseOld: 4.60, rbaseNew: 4.60, rquoteOld: 4.50, rquoteNew: 4.60,
+                        gapOld: -0.10, gapNew: 0.00,
+                        shockText: 'HKMA hikes HKD rate to match USD at 4.60%',
+                        days: 360, forward: (7.8400).toFixed(5)
                     }
                 },
                 {
@@ -1073,6 +1170,13 @@
                     postLockAction: () => {
                         document.getElementById('input-rbase').value = '5.60';
                         syncAndRecalculate();
+                    },
+                    data: {
+                        pair: 'USD/HKD', spot: 7.8400,
+                        rbaseOld: 4.60, rbaseNew: 5.60, rquoteOld: 4.50, rquoteNew: 4.50,
+                        gapOld: -0.10, gapNew: -1.10,
+                        shockText: 'Fed hikes USD rate by 100 bps (+1.00%) to 5.60%',
+                        days: 360, forward: (7.8400 * (1 + 0.045) / (1 + 0.056)).toFixed(5)
                     }
                 }
             ];
@@ -1090,8 +1194,302 @@
                 hint: s.hint,
                 options: rawOptions,
                 explanation: s.explanation,
-                postLockAction: s.postLockAction
+                postLockAction: s.postLockAction,
+                data: s.data
             };
+        }
+
+        let currentFwdDebriefStep = 1;
+        let showAllFwdDebrief = false;
+
+        function setForwardDebriefStep(stepNum) {
+            showAllFwdDebrief = false;
+            currentFwdDebriefStep = stepNum;
+            for (let i = 1; i <= 3; i++) {
+                const pane = document.getElementById(`pane-fwd-step-${i}`);
+                const btn = document.getElementById(`btn-fwd-step-${i}`);
+                if (pane) pane.style.display = (i === stepNum) ? 'block' : 'none';
+                if (btn) btn.classList.toggle('active', i === stepNum);
+            }
+            const toggleAllBtn = document.getElementById('btn-toggle-all-fwd');
+            if (toggleAllBtn) toggleAllBtn.textContent = 'Show All';
+
+            const prevBtn = document.getElementById('btn-prev-fwd');
+            const nextBtn = document.getElementById('btn-next-fwd');
+            const indicator = document.getElementById('fwd-step-indicator');
+
+            if (prevBtn) prevBtn.disabled = (stepNum === 1);
+            if (nextBtn) {
+                if (stepNum === 3) {
+                    nextBtn.textContent = 'Completed \u2713';
+                    nextBtn.disabled = true;
+                } else {
+                    nextBtn.disabled = false;
+                    nextBtn.textContent = stepNum === 1 ? 'Next: Step-by-Step Math \u2192' : 'Next: Economic Takeaway \u2192';
+                }
+            }
+            if (indicator) {
+                const titles = [
+                    'Step 1 of 3: Pricing Rules & Formulation',
+                    'Step 2 of 3: Step-by-Step Math Walkthrough',
+                    'Step 3 of 3: Economic Interpretation & Slide Connection'
+                ];
+                indicator.textContent = titles[stepNum - 1] || `Step ${stepNum} of 3`;
+            }
+        }
+
+        function changeForwardDebriefStep(delta) {
+            const nextStep = Math.min(Math.max(currentFwdDebriefStep + delta, 1), 3);
+            setForwardDebriefStep(nextStep);
+        }
+
+        function toggleAllForwardDebriefSteps() {
+            showAllFwdDebrief = !showAllFwdDebrief;
+            const toggleAllBtn = document.getElementById('btn-toggle-all-fwd');
+            for (let i = 1; i <= 3; i++) {
+                const pane = document.getElementById(`pane-fwd-step-${i}`);
+                const btn = document.getElementById(`btn-fwd-step-${i}`);
+                if (pane) pane.style.display = showAllFwdDebrief ? 'block' : (i === currentFwdDebriefStep ? 'block' : 'none');
+                if (btn) btn.classList.toggle('active', showAllFwdDebrief || i === currentFwdDebriefStep);
+            }
+            if (toggleAllBtn) toggleAllBtn.textContent = showAllFwdDebrief ? 'Single Step' : 'Show All';
+        }
+
+        function renderForwardSteppedDebrief(roundNum, config, chosen, correctOpt) {
+            if (roundNum === 1) {
+                const d = config.data || { spot: 7.8000, points: -30.0, forward: 7.7970, tenor: '6-month', base: 'USD', quote: 'HKD', decimals: 4, mult: 10000, isPrem: false, days: 180, pair: 'USD/HKD' };
+                const annualizedBase = ((d.forward - d.spot) / d.spot) * (360 / d.days) * 100;
+                const annualizedQuote = -((d.forward - d.spot) / d.forward) * (360 / d.days) * 100;
+                const wedge = (d.spot / d.forward);
+
+                document.getElementById('fwd-step-1-title').textContent = 'Step 1: Pricing Rules & Market Quotation Conventions';
+                document.getElementById('fwd-step-1-badge').textContent = 'Conventions';
+                document.getElementById('fwd-step-1-content').innerHTML = `
+                    <div class="formula-highlight-box">
+                        <strong>Outright Forward Rate Formula (Slide 7):</strong><br>
+                        Outright F = <span class="text-spot">Spot S</span> + (<span class="text-forward">Forward Points</span> / Multiplier)<br>
+                        1 Pip = ${(1/d.mult)} &rarr; Multiplier = ${d.mult.toLocaleString()} for ${d.decimals}-decimal pairs
+                    </div>
+                    <div class="misprice-grid">
+                        <div class="misprice-card">
+                            <div class="stat-label">Spot Rate S (${d.pair})</div>
+                            <div class="stat-number text-spot">${d.spot.toFixed(d.decimals)}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">Immediate delivery price</div>
+                        </div>
+                        <div class="misprice-card highlight">
+                            <div class="stat-label">${d.tenor} Points Quoted</div>
+                            <div class="stat-number ${d.points >= 0 ? 'profit' : 'loss'}">${d.points >= 0 ? '+' : ''}${d.points.toFixed(1)} pips</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">${d.points >= 0 ? 'Trading at Premium' : 'Trading at Discount'}</div>
+                        </div>
+                        <div class="misprice-card">
+                            <div class="stat-label">Outright Forward F</div>
+                            <div class="stat-number text-forward">${d.forward.toFixed(d.decimals)}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">Agreed delivery rate at T</div>
+                        </div>
+                    </div>
+                    <div class="decision-rule-box">
+                        <strong>Base vs. Quote Decision Rule:</strong><br>
+                        &bull; Points ${d.points >= 0 ? '> 0 (F > S)' : '< 0 (F < S)'}: <strong>${d.base} trades at a forward ${d.isPrem ? 'PREMIUM' : 'DISCOUNT'}</strong> (buys ${d.isPrem ? 'more' : 'fewer'} ${d.quote} forward than spot).<br>
+                        &bull; Conversely, <strong>${d.quote} trades at a forward ${d.isPrem ? 'DISCOUNT' : 'PREMIUM'}</strong> against ${d.base}.
+                    </div>
+                `;
+
+                document.getElementById('fwd-step-2-title').textContent = 'Step 2: Step-by-Step Math & Annualized Premiums';
+                document.getElementById('fwd-step-2-badge').textContent = 'Calculation';
+                document.getElementById('fwd-step-2-content').innerHTML = `
+                    <div class="leg-card-grid">
+                        <div class="leg-card leg-spot">
+                            <span class="leg-card-num">1</span>
+                            <h5 class="leg-card-title">Convert Points to Price Units</h5>
+                            <div class="leg-card-detail">
+                                Points Offset = (${d.points >= 0 ? '+' : ''}${d.points.toFixed(1)} / ${d.mult.toLocaleString()})<br>
+                                = <strong style="color:${d.points >= 0 ? '#4ade80' : '#f87171'}">${(d.points / d.mult).toFixed(d.decimals)}</strong> ${d.quote} per ${d.base}
+                            </div>
+                        </div>
+                        <div class="leg-card leg-forward">
+                            <span class="leg-card-num">2</span>
+                            <h5 class="leg-card-title">Add to Spot to Obtain F</h5>
+                            <div class="leg-card-detail">
+                                F = <span class="text-spot">${d.spot.toFixed(d.decimals)}</span> + (<span style="color:${d.points >= 0 ? '#4ade80' : '#f87171'}">${(d.points / d.mult).toFixed(d.decimals)}</span>)<br>
+                                = <strong class="text-forward">${d.forward.toFixed(d.decimals)}</strong>
+                            </div>
+                        </div>
+                        <div class="leg-card leg-interest">
+                            <span class="leg-card-num">3</span>
+                            <h5 class="leg-card-title">Annualized % Rate</h5>
+                            <div class="leg-card-detail">
+                                p<sub>F,${d.base}</sub> = <span style="font-weight:700; color:${annualizedBase >= 0 ? '#4ade80' : '#f87171'}">${annualizedBase >= 0 ? '+' : ''}${annualizedBase.toFixed(4)}%</span><br>
+                                p<sub>F,${d.quote}</sub> = <span style="font-weight:700; color:${annualizedQuote >= 0 ? '#4ade80' : '#f87171'}">${annualizedQuote >= 0 ? '+' : ''}${annualizedQuote.toFixed(4)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="formula-highlight-box" style="margin-top:1rem;">
+                        <strong>Exact Mathematical Offset & Wedge (Slide 7):</strong><br>
+                        p<sub>F,${d.quote}</sub> = -p<sub>F,${d.base}</sub> &times; (S / F) = -(${annualizedBase.toFixed(4)}%) &times; (${d.spot.toFixed(4)} / ${d.forward.toFixed(4)}) = <strong style="color:#4ade80;">${annualizedQuote >= 0 ? '+' : ''}${annualizedQuote.toFixed(4)}%</strong>.<br>
+                        Because S &ne; F, the S/F ratio (${wedge.toFixed(6)}) creates a small mathematical wedge: the discount on ${d.base} <em>approximately offsets</em> the premium on ${d.quote}, matching Slide 7!
+                    </div>
+                `;
+
+                document.getElementById('fwd-step-3-title').textContent = 'Step 3: Economic Intuition & Classroom Discussion';
+                document.getElementById('fwd-step-3-badge').textContent = 'Takeaway';
+                document.getElementById('fwd-step-3-content').innerHTML = `
+                    <div class="decision-rule-box">
+                        <strong style="color:var(--cuhk-gold-light); font-size:1.05rem;">&bull; Why do interbank dealers quote points rather than outright rates?</strong><br>
+                        Spot FX fluctuates second-by-second with high volatility. In contrast, <strong>forward points reflect the interest rate differential (r<sub>quote</sub> - r<sub>base</sub>)</strong> under Covered Interest Parity (Slide 8):
+                        <div style="margin:0.5rem 0; font-family:'JetBrains Mono', monospace; font-size:0.95rem; color:#fff;">
+                            F - S &approx; S &times; (r<sub>quote</sub> - r<sub>base</sub>) &times; T / 360
+                        </div>
+                        Interest rate differentials change slowly (primarily when central banks adjust policy rates). Quoting points separates spot risk from interest rate risk, enabling dealers to quote stable forward points all day without recalculating outright rates after every spot tick!
+                    </div>
+                    <div class="spread-rule-callout" style="margin-top:0.75rem;">
+                        <strong>Lecture Link:</strong> Review Slide 7 & 8 on quote conventions. In problem sets and exams, always check whether points are added or subtracted from spot bid and ask!
+                    </div>
+                `;
+            } else if (roundNum === 2) {
+                const d = config.data || { amount: 1000000, spot: 1.0850, rUSD: 0.045, rEUR: 0.0325, F: 1.091673, t: 0.5, days: 180, tenorLabel: '6 months', reqEUR: 916025, spotEUR: 921659, savingsEUR: 5634, pair: 'EUR/USD' };
+                const pips = ((d.F - d.spot) * 10000).toFixed(1);
+
+                document.getElementById('fwd-step-1-title').textContent = 'Step 1: Corporate Exposure & Hedging Objective';
+                document.getElementById('fwd-step-1-badge').textContent = 'Diagnosis';
+                document.getElementById('fwd-step-1-content').innerHTML = `
+                    <div class="decision-rule-box">
+                        <strong style="color:var(--cuhk-gold-light); font-size:1.05rem;">&bull; CFO Corporate Dilemma (Slide 10 & 16):</strong><br>
+                        A European importer owes <strong>US$ ${d.amount.toLocaleString()} in ${d.tenorLabel}</strong>.<br>
+                        &bull; <strong>Underlying Risk:</strong> The firm has a short USD exposure. If the USD appreciates (EUR/USD falls), the importer will need more Euros to pay the supplier.<br>
+                        &bull; <strong>Hedging Solution:</strong> Buy USD / Sell EUR forward at rate F = <span class="text-forward">${d.F.toFixed(6)}</span>.<br>
+                        &bull; <strong>Key Calculation:</strong> Importer needs EUR = (USD Liability) / F = US$ ${d.amount.toLocaleString()} / ${d.F.toFixed(6)}.
+                    </div>
+                    <div class="misprice-grid">
+                        <div class="misprice-card">
+                            <div class="stat-label">Spot EUR/USD</div>
+                            <div class="stat-number text-spot">${d.spot.toFixed(4)}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">Today's conversion rate</div>
+                        </div>
+                        <div class="misprice-card highlight">
+                            <div class="stat-label">Forward EUR/USD (F)</div>
+                            <div class="stat-number text-forward">${d.F.toFixed(6)}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">+${pips} pips (EUR at Premium)</div>
+                        </div>
+                        <div class="misprice-card">
+                            <div class="stat-label">Hedged Cash Outflow</div>
+                            <div class="stat-number profit">€${d.reqEUR.toLocaleString()}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">Locked in today</div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('fwd-step-2-title').textContent = 'Step 2: Mathematical Derivation & Spot Comparison';
+                document.getElementById('fwd-step-2-badge').textContent = 'Execution';
+                document.getElementById('fwd-step-2-content').innerHTML = `
+                    <div class="formula-highlight-box">
+                        <strong>1. Covered Parity Forward Rate (Slide 15):</strong><br>
+                        F = S &times; (1 + r<sub>USD</sub> &times; T) / (1 + r<sub>EUR</sub> &times; T)<br>
+                        F = ${d.spot.toFixed(4)} &times; (1 + ${(d.rUSD*100).toFixed(2)}% &times; ${d.t}) / (1 + ${(d.rEUR*100).toFixed(2)}% &times; ${d.t}) = <span class="text-forward">${d.F.toFixed(6)}</span>
+                    </div>
+                    <div class="leg-card-grid">
+                        <div class="leg-card leg-forward">
+                            <span class="leg-card-num">A</span>
+                            <h5 class="leg-card-title">Hedged Forward Outflow</h5>
+                            <div class="leg-card-detail">
+                                Required EUR = US$ ${d.amount.toLocaleString()} / ${d.F.toFixed(6)}<br>
+                                = <strong class="text-forward" style="font-size:1.15rem;">€${d.reqEUR.toLocaleString()}</strong>
+                            </div>
+                        </div>
+                        <div class="leg-card leg-spot">
+                            <span class="leg-card-num">B</span>
+                            <h5 class="leg-card-title">Spot Conversion Equivalent</h5>
+                            <div class="leg-card-detail">
+                                If converted at spot = US$ ${d.amount.toLocaleString()} / ${d.spot.toFixed(4)}<br>
+                                = <strong class="text-spot" style="font-size:1.15rem;">€${d.spotEUR.toLocaleString()}</strong>
+                            </div>
+                        </div>
+                        <div class="leg-card leg-interest">
+                            <span class="leg-card-num">C</span>
+                            <h5 class="leg-card-title">Hedging Benefit vs Spot</h5>
+                            <div class="leg-card-detail">
+                                €${d.spotEUR.toLocaleString()} - €${d.reqEUR.toLocaleString()}<br>
+                                = <strong style="color:#4ade80; font-size:1.15rem;">+€${d.savingsEUR.toLocaleString()}</strong> savings vs spot!
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('fwd-step-3-title').textContent = 'Step 3: Economic Interpretation: Pickup vs. "Free Lunch"';
+                document.getElementById('fwd-step-3-badge').textContent = 'Concept';
+                document.getElementById('fwd-step-3-content').innerHTML = `
+                    <div class="decision-rule-box">
+                        <strong style="color:var(--cuhk-gold-light); font-size:1.05rem;">&bull; Why does EUR enjoy a hedging benefit?</strong><br>
+                        Because US interest rates (4.50%) exceed Eurozone rates (3.25%), the USD trades at a <strong>forward discount</strong>, which means the EUR trades at a <strong>forward premium</strong> (F = 1.091673 > S = 1.0850).<br>
+                        1 Euro buys <em>more</em> dollars forward ($1.0917) than it does spot ($1.0850). Thus, fewer Euros are needed to settle the dollar bill.
+                    </div>
+                    <div class="formula-highlight-box" style="margin-top:0.75rem;">
+                        <strong>Referee/Exam Principle (Slide 16): Is this "Free Arbitrage Profit"?</strong><br>
+                        <span style="color:#f87171; font-weight:700;">NO!</span> A forward hedge locks in the cash flow with zero FX uncertainty. If the CFO stayed unhedged, EUR/USD could rise to 1.1500 (even cheaper) or drop to 1.0000 (catastrophic loss). The forward contract simply delivers the <strong>CIP interest rate differential</strong>, eliminating corporate balance sheet risk.
+                    </div>
+                `;
+            } else {
+                const d = config.data || { pair: 'USD/HKD', spot: 7.8400, rbaseOld: 4.60, rbaseNew: 5.10, rquoteOld: 4.50, rquoteNew: 4.50, gapOld: -0.10, gapNew: -0.60, shockText: 'Fed hikes USD rate by 50 bps (+0.50%) to 5.10%', days: 360, forward: (7.8400 * (1 + 0.045) / (1 + 0.051)).toFixed(5) };
+
+                document.getElementById('fwd-step-1-title').textContent = 'Step 1: Term Structure of Forward Points';
+                document.getElementById('fwd-step-1-badge').textContent = 'Theory';
+                document.getElementById('fwd-step-1-content').innerHTML = `
+                    <div class="formula-highlight-box">
+                        <strong>Linear Covered Interest Parity Slope (Slide 17):</strong><br>
+                        (F(T) - S) / S &approx; (r<sub>quote</sub> - r<sub>base</sub>) &times; (T / 360)<br>
+                        Points(T) &approx; S &times; (r<sub>quote</sub> - r<sub>base</sub>) &times; (T / 360) &times; Multiplier
+                    </div>
+                    <div class="decision-rule-box">
+                        <strong>Forward Curve Slope Governing Principle:</strong><br>
+                        &bull; If <strong>r<sub>quote</sub> &lt; r<sub>base</sub></strong> &rarr; Points &lt; 0: Forward curve slopes <strong>DOWNWARD</strong> (Forward Discount).<br>
+                        &bull; If <strong>r<sub>quote</sub> = r<sub>base</sub></strong> &rarr; Points = 0: Forward curve is completely <strong>FLAT</strong> at spot (Par).<br>
+                        &bull; If <strong>r<sub>quote</sub> &gt; r<sub>base</sub></strong> &rarr; Points &gt; 0: Forward curve slopes <strong>UPWARD</strong> (Forward Premium).
+                    </div>
+                `;
+
+                document.getElementById('fwd-step-2-title').textContent = 'Step 2: Pivot Mechanics Across Tenors';
+                document.getElementById('fwd-step-2-badge').textContent = 'Shock Impact';
+                document.getElementById('fwd-step-2-content').innerHTML = `
+                    <div class="misprice-grid">
+                        <div class="misprice-card">
+                            <div class="stat-label">Initial Rate Gap (r<sub>HKD</sub> - r<sub>USD</sub>)</div>
+                            <div class="stat-number gold">${(d.gapOld >= 0 ? '+' : '') + d.gapOld.toFixed(2)}%</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">${d.rquoteOld.toFixed(2)}% vs ${d.rbaseOld.toFixed(2)}%</div>
+                        </div>
+                        <div class="misprice-card highlight">
+                            <div class="stat-label">Shock Event</div>
+                            <div class="stat-number" style="color:#38bdf8; font-size:1.15rem;">${d.shockText}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">Central Bank Intervention</div>
+                        </div>
+                        <div class="misprice-card">
+                            <div class="stat-label">New Rate Gap (r<sub>HKD</sub> - r<sub>USD</sub>)</div>
+                            <div class="stat-number ${d.gapNew < d.gapOld ? 'loss' : 'profit'}">${(d.gapNew >= 0 ? '+' : '') + d.gapNew.toFixed(2)}%</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary);">${(d.rquoteNew || d.rquoteOld).toFixed(2)}% vs ${(d.rbaseNew || d.rbaseOld).toFixed(2)}%</div>
+                        </div>
+                    </div>
+                    <div class="formula-highlight-box" style="margin-top:1rem;">
+                        <strong>Why does the curve pivot rather than shifting parallel?</strong><br>
+                        Notice that &Delta;Points(T) is strictly proportional to maturity T:<br>
+                        &bull; <strong>1 Month (T = 30):</strong> Minor dip (~1/12th of annual gap).<br>
+                        &bull; <strong>6 Months (T = 180):</strong> Substantial dip.<br>
+                        &bull; <strong>12 Months (T = 360):</strong> Full annual gap &Delta;(r<sub>quote</sub> - r<sub>base</sub>) &times; Spot &times; 10,000 pips!<br>
+                        The curve anchors at today's spot rate (T = 0) and pivots around it!
+                    </div>
+                `;
+
+                document.getElementById('fwd-step-3-title').textContent = 'Step 3: Hong Kong Peg & Macro Implications';
+                document.getElementById('fwd-step-3-badge').textContent = 'Macro Link';
+                document.getElementById('fwd-step-3-content').innerHTML = `
+                    <div class="decision-rule-box">
+                        <strong style="color:var(--cuhk-gold-light); font-size:1.05rem;">&bull; Crucial Concept (Slide 18): Does the HKMA Peg Constrain Forward Rates?</strong><br>
+                        Under the Linked Exchange Rate System (LERS), the HKMA commits to buy/sell spot USD within <strong>7.7500 - 7.8500</strong>.<br>
+                        <span style="color:#fca5a5; font-weight:700;">COMMON STUDENT MISCONCEPTION:</span> "Forward rates cannot trade outside 7.75 - 7.85."<br>
+                        <strong style="color:#86efac;">REALITY:</strong> Forward rates are <strong>completely unconstrained</strong> by the 7.75 - 7.85 spot convertibility band! If US rates exceed HK rates by 200 bps, 1-year forward USD/HKD can trade at 7.6800 or lower. CIP dictates forward pricing, not central bank spot bounds!
+                    </div>
+                    <div class="spread-rule-callout" style="margin-top:0.75rem;">
+                        <strong>Exam & Interview Takeaway:</strong> Forward rates reflect interest differentials. Peg commitments only anchor spot. Any attempt by a central bank to fix forward rates would require infinite reserves against CIP arbitrageurs.
+                    </div>
+                `;
+            }
         }
 
         function startRound(roundNum, randomize = false) {
@@ -1109,6 +1507,10 @@
             document.getElementById('submit-reflection').disabled = false;
             document.getElementById('submit-reflection').textContent = 'Record Response';
             document.getElementById('desk-hint').open = false;
+
+            const debriefEl = document.getElementById('stepped-debrief');
+            if (debriefEl) debriefEl.style.display = 'none';
+            setForwardDebriefStep(1);
 
             document.querySelectorAll('.round-step-btn').forEach((btn, idx) => {
                 btn.classList.toggle('active', idx + 1 === roundNum);
@@ -1161,6 +1563,9 @@
                 return;
             }
 
+            if (!currentConfig) {
+                currentConfig = activeRound === 1 ? getChallenge1Config(false) : (activeRound === 2 ? getChallenge2Config(false) : getChallenge3Config(false));
+            }
             const chosen = currentConfig.options.find(o => o.val === val);
             const correctOpt = currentConfig.options.find(o => o.correct);
             const feedbackEl = document.getElementById('round-feedback');
@@ -1190,19 +1595,42 @@
                 roundStatus[activeRound] = false;
             }
 
+            // Calculate outright forward and days for complete logging
+            let fwdVal = '';
+            let fwdDays = 180;
+            const spreadVal = parseFloat(document.getElementById('input-spread').value) || 0;
+            if (currentConfig.data) {
+                if (currentConfig.data.forward != null) fwdVal = String(currentConfig.data.forward);
+                else if (currentConfig.data.F != null) fwdVal = String(typeof currentConfig.data.F === 'number' ? currentConfig.data.F.toFixed(6) : currentConfig.data.F);
+                if (currentConfig.data.days != null) fwdDays = currentConfig.data.days;
+            } else {
+                const s = parseFloat(document.getElementById('input-spot').value);
+                const rb = parseFloat(document.getElementById('input-rbase').value) / 100;
+                const rq = parseFloat(document.getElementById('input-rquote').value) / 100;
+                fwdVal = (s * (1 + rq * 0.5) / (1 + rb * 0.5)).toFixed(5);
+            }
+
             lockedResponse = {
-                mode: 'CIP', targetTab: 'CIP', game: 'Forward_Curve_Explorer',
-                roundNumber: activeRound, roundCompleted: activeRound,
-                question: document.getElementById('round-prompt').textContent,
+                mode: 'Forward_Curve',
+                targetTab: 'Forward_Curve',
+                game: 'Forward_Curve_Explorer',
+                roundNumber: activeRound,
+                roundCompleted: activeRound,
+                question: document.getElementById('round-prompt').textContent.trim(),
                 challenge: currentConfig.title,
-                prediction: val, answerText: chosen ? chosen.text : '',
+                prediction: val,
+                answerText: chosen ? chosen.text : '',
                 correctAnswer: correctOpt ? correctOpt.val : '',
                 correctAnswerText: correctOpt ? correctOpt.text : '',
                 options: currentConfig.options.map(o => ({value: o.val, text: o.text})),
-                matched: !!(chosen && chosen.correct), pair: currentConfig.pairKey,
+                matched: !!(chosen && chosen.correct),
+                pair: currentConfig.pairKey,
                 spot: document.getElementById('input-spot').value,
+                forward: fwdVal,
                 rbase: document.getElementById('input-rbase').value,
-                rquote: document.getElementById('input-rquote').value
+                rquote: document.getElementById('input-rquote').value,
+                days: fwdDays,
+                spreadBps: spreadVal
             };
             predictionLocked = true;
             document.body.classList.remove('round-pending');
@@ -1217,6 +1645,11 @@
             if (currentConfig.postLockAction) {
                 currentConfig.postLockAction();
             }
+
+            renderForwardSteppedDebrief(activeRound, currentConfig, chosen, correctOpt);
+            const debriefEl = document.getElementById('stepped-debrief');
+            if (debriefEl) debriefEl.style.display = 'block';
+            setForwardDebriefStep(1);
 
             document.getElementById('reflection-section').style.display = 'block';
         }
@@ -1240,7 +1673,12 @@
             }
 
             const submittedRound = lockedResponse;
-            const payload = { ...submittedRound, reflection: reflectionText, exitReflection: reflectionText };
+            const payload = {
+                ...submittedRound,
+                reflection: reflectionText,
+                exitReflection: reflectionText,
+                responseText: reflectionText
+            };
 
             const submitBtn = document.getElementById('submit-reflection');
             submitBtn.disabled = true;
