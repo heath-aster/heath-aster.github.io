@@ -613,7 +613,7 @@ const FINA3020Utils = {
         // Map mode to exact Google Sheet tab names
         let modeTab = data.targetTab || data.mode || data.game || 'Course_Survey';
         const modeLower = String(modeTab).toLowerCase();
-        const exactTabs = ['Course_Survey', 'Order_Book', 'Locational_Arb', 'Triangular_Arb', 'CIP', 'Forward_Curve', 'Carry_Trade', 'CFO_Hedge', 'Project_Committee', 'BOP_Ledger', 'Bank_Run', 'Bank_Funding', 'Payment_Route', 'Sudden_Stop', 'Blended_Finance'];
+        const exactTabs = ['Course_Survey', 'Order_Book', 'Locational_Arb', 'Triangular_Arb', 'CIP', 'Forward_Curve', 'Carry_Trade', 'Live_FX', 'CFO_Hedge', 'Project_Committee', 'BOP_Ledger', 'Bank_Run', 'Bank_Funding', 'Payment_Route', 'Sudden_Stop', 'Blended_Finance'];
         if (data.targetTab && !exactTabs.includes(data.targetTab)) throw new Error('Unknown submission tab.');
         if (data.targetTab) modeTab = data.targetTab;
         else if (modeLower.includes('survey') || modeLower.includes('icebreaker')) modeTab = 'Course_Survey';

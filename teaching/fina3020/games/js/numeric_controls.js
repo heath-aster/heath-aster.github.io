@@ -53,7 +53,9 @@
             slider.value = typed;
             slider.dispatchEvent(new Event('input', { bubbles: true }));
             // Preserve trailing decimals while typing unless the game adjusted this value.
-            if (Number(slider.value) === Number(typed)) number.value = typed;
+            // Never assign an unchanged value while editing: browsers expose "2."
+            // as "2", and assigning it back deletes the decimal point.
+            if (Number(slider.value) !== Number(typed)) number.value = slider.value;
         });
         number.addEventListener('change', () => {
             if (!number.validity.valid) number.reportValidity();

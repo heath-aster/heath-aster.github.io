@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Carry-Trade Tournament | FINA3020 CUHK</title>
+    <!-- Chart.js -->
+    <script src="vendor/chart.umd-4.4.7.js"></script>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js?v=20260914-allweeks"></script>
+    <style>
+        .stage-stepper {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            position: relative;
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+        }
+
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+        }
+
+        .stepper-step.active {
+            color: var(--cuhk-gold-light);
+        }
+
+        .stepper-step.completed {
+            color: var(--success);
+        }
+
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .stepper-step.active .step-num {
+            background: var(--cuhk-gold);
+            color: #000;
+            border-color: var(--cuhk-gold-light);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed .step-num {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+        }
+
+        .rates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .rate-card {
+            background: rgba(19, 24, 34, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            position: relative;
+            transition: var(--transition-smooth);
+        }
+
+        .rate-card.funding {
+            border-color: rgba(59, 130, 246, 0.4);
+        }
+
+        .rate-card.high-yield {
+            border-color: var(--border-gold);
+        }
+
+        .rate-currency {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .rate-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin: 0.25rem 0;
+        }
+
+        .rate-card.funding .rate-val { color: var(--info); }
+        .rate-card.high-yield .rate-val { color: var(--cuhk-gold-light); }
+
+        .slider-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .shock-banner {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(185, 28, 28, 0.3));
+            border: 1px solid var(--danger);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            animation: pulse-border 2s infinite;
+        }
+
+        @keyframes pulse-border {
+            0% { border-color: rgba(239, 68, 68, 0.5); }
+            50% { border-color: rgba(239, 68, 68, 1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+            100% { border-color: rgba(239, 68, 68, 0.5); }
+        }
+
+        .shock-headline {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--danger);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .decision-card {
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-align: center;
+        }
+
+        .decision-card:hover {
+            border-color: var(--cuhk-gold);
+            transform: translateY(-2px);
+            background: rgba(30, 40, 58, 0.9);
+        }
+
+        .decision-card.selected {
+            border-color: var(--cuhk-gold);
+            background: rgba(218, 165, 32, 0.15);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .results-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-box {
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .metric-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0.25rem;
+        }
+
+        .reflection-textarea {
+            width: 100%;
+            height: 100px;
+            background: rgba(11, 14, 20, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            resize: vertical;
+            margin-top: 0.5rem;
+        }
+
+        .reflection-textarea:focus {
+            outline: none;
+            border-color: var(--cuhk-gold);
+            box-shadow: 0 0 10px rgba(218, 165, 32, 0.2);
+        }
+
+        .formula-card {
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .formula-line {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.9rem;
+            margin: 0.4rem 0;
+            flex-wrap: wrap;
+        }
+
+        .formula-var {
+            color: var(--cuhk-gold-light);
+            font-weight: 700;
+        }
+
+        .formula-op {
+            color: var(--info);
+            font-weight: 700;
+        }
+
+        .formula-val {
+            color: var(--success);
+            font-weight: 700;
+        }
+
+        @media (max-width: 768px) {
+            .stage-stepper { flex-direction: column; gap: 0.5rem; }
+            .decision-cards { grid-template-columns: 1fr; }
+            .results-summary-grid { grid-template-columns: 1fr; }
+        }
+
+        .carry-main { max-width: 1200px; margin: 2rem auto; padding: 0 1.5rem; }
+        .header-actions { flex-wrap: wrap; }
+        .carry-main > *, .rates-grid > *, .mobile-stack > * { min-width: 0; }
+        .rates-grid { grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr)); }
+        .carry-main pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+        .carry-main button { white-space: normal; overflow-wrap: anywhere; }
+        body.projector-mode .carry-main { max-width: 1600px; }
+        body.projector-mode .carry-main p,
+        body.projector-mode .carry-main li,
+        body.projector-mode .carry-main label,
+        body.projector-mode .slider-header,
+        body.projector-mode .stepper-step,
+        body.projector-mode .formula-line,
+        body.projector-mode .carry-main pre { font-size: 1.2rem !important; line-height: 1.55; }
+        body.projector-mode .metric-title { font-size: 1rem; }
+        body.projector-mode .metric-value, body.projector-mode .rate-val { font-size: 2rem; }
+        body.projector-mode .step-num { flex-shrink: 0; }
+        @media (max-width: 700px) {
+            .carry-main { margin: 1rem auto; padding: 0 .75rem; }
+            .carry-main .glass-panel { padding: 1rem !important; }
+            .carry-main h2, .carry-main h3, .metric-value { overflow-wrap: anywhere; }
+            .stage-stepper { padding: 1rem; }
+            .carry-main .btn { width: 100%; }
+        }
+    </style>
+<link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
+<script src="js/numeric_controls.js?v=20260918" defer></script>
+<link rel="stylesheet" href="css/mobile.css?v=20260909">
+</head>
+<body>
+<nav class="course-navigation" aria-label="Course games">
+    <a href="week3/">← Week 3 game page</a>
+    <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
+</nav>
+
+    <header class="app-header">
+        <div class="brand-section">
+            <span class="cuhk-badge">FINA3020 &middot; Week 3 Game</span>
+            <div>
+                <h1 class="app-title">Carry-Trade Tournament</h1>
+                <p style="font-size:0.8rem; color:var(--text-secondary);">Risk Budgeting, Volatility Shocks &amp; Tail Risk</p>
+            </div>
+        </div>
+        <div class="header-actions" style="display:flex; align-items:center; gap:0.75rem;">
+            <button class="btn btn-secondary" id="btn-projector-toggle" onclick="FINA3020Utils.toggleProjectorMode()" title="Toggle big screen projection mode (Press P)">📽️ Big Screen</button>
+            <button class="btn btn-gold" id="btn-student-id" onclick="FINA3020Utils.ensureStudentCredentials(true)">Set Name & CUHK ID</button>
+            <button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export Responses (.csv)</button>
+        </div>
+    </header>
+
+    <main class="carry-main">
+
+        <!-- 5-STAGE STEPPER -->
+        <div class="stage-stepper">
+            <div class="stepper-step active" id="step1-indicator">
+                <div class="step-num">1</div>
+                <span>1. Identification</span>
+            </div>
+            <div class="stepper-step" id="step2-indicator">
+                <div class="step-num">2</div>
+                <span>2. Allocation</span>
+            </div>
+            <div class="stepper-step" id="step3-indicator">
+                <div class="step-num">3</div>
+                <span>3. Shock Event</span>
+            </div>
+            <div class="stepper-step" id="step4-indicator">
+                <div class="step-num">4</div>
+                <span>4. Payoff Debrief</span>
+            </div>
+            <div class="stepper-step" id="step5-indicator">
+                <div class="step-num">5</div>
+                <span>5. Exit Reflection</span>
+            </div>
+        </div>
+
+        <!-- STAGE 1: IDENTIFICATION & HYPOTHESIS -->
+        <div id="stage1" class="glass-panel" style="padding: 2rem;">
+            <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light); margin-bottom: 0.5rem;">Stage 1: Your Forecast</h2>
+            <p style="color:var(--text-secondary); margin-bottom: 1.5rem;">
+                Welcome to the FINA3020 Carry-Trade Tournament. You manage a foreign exchange funding desk with <strong>$100,000 USD equity</strong> base capital. Before building your portfolio, form your initial hypothesis:
+            </p>
+
+            <div class="mobile-stack form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">CUHK Student ID(s):</label>
+                    <input type="text" id="studentIdInput" class="input-field" placeholder="e.g. 1155123456" style="width:100%; box-sizing:border-box;" required>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Student Full Name(s) (given name SURNAME; ...):</label>
+                    <input type="text" id="studentNameInput" class="input-field" placeholder="e.g. Seon LOU; John CHAN" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:0.85rem;">Course Section:</label>
+                    <select id="sectionSelect" class="input-field" style="width:100%; box-sizing:border-box;" required>
+                        <option value="">-- Select Section --</option>
+                        <option value="A">Section A</option>
+                        <option value="B">Section B</option>
+                        <option value="C">Section C</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="background:rgba(11,14,20,0.6); border:1px solid var(--border-color); border-radius:10px; padding:1.5rem; margin-bottom:1.5rem;">
+                <h4 style="color:var(--text-primary); margin-bottom:0.75rem;">Initial Prediction Question:</h4>
+                <p style="color:var(--text-secondary); font-size:0.95rem; margin-bottom:1rem;">
+                    "According to Uncovered Interest Parity (UIP), currencies with high interest rates should depreciate against low interest rate currencies. In reality, over a 1-year horizon, what do you expect?"
+                </p>
+                <div style="display:flex; flex-direction:column; gap:0.75rem;">
+                    <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer;">
+                        <input type="radio" name="predictionRadio" value="uip_holds" checked>
+                        <span><strong>UIP Holds:</strong> High-yield currencies will depreciate, offsetting the interest rate differential. Expected excess return = 0%.</span>
+                    </label>
+                    <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer;">
+                        <input type="radio" name="predictionRadio" value="carry_wins">
+                        <span><strong>Carry Trade Wins (Forward Premium Puzzle):</strong> High-yield currencies will NOT depreciate enough or may appreciate, yielding systematic excess returns.</span>
+                    </label>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" onclick="goToStage(2)" style="width:100%;">Proceed to Stage 2: Portfolio Construction &rarr;</button>
+        </div>
+
+        <!-- STAGE 2: PORTFOLIO ALLOCATION & LEVERAGE -->
+        <div id="stage2" class="glass-panel" style="padding: 2rem; display:none;">
+            <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light); margin-bottom: 0.5rem;">Stage 2: Portfolio Allocation & Leverage Choice</h2>
+            <p style="color:var(--text-secondary); margin-bottom: 1.5rem;">
+                Borrow in the low-yield funding currency (<strong>JPY @ 1.00%</strong>) and allocate your equity + borrowed debt across high-yield target currencies. Select gross leverage (assets / equity) from 1 to 5. All rates are hypothetical annualized nominal rates; the game lasts one year. Unallocated funds remain USD cash earning 0%.
+            </p>
+
+            <!-- CURRENT MARKET RATES -->
+            <div class="rates-grid">
+                <div class="rate-card funding">
+                    <div style="font-size:0.7rem; color:var(--info); text-transform:uppercase;">Funding Currency</div>
+                    <div class="rate-currency">JPY (Japanese Yen)</div>
+                    <div class="rate-val">1.00%</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Spot: USD/JPY = 150.00 (JPY per USD)</div>
+                </div>
+                <div class="rate-card high-yield">
+                    <div style="font-size:0.7rem; color:var(--cuhk-gold-light); text-transform:uppercase;">Target 1</div>
+                    <div class="rate-currency">USD (US Dollar)</div>
+                    <div class="rate-val">3.75%</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Spread: +2.75%</div>
+                </div>
+                <div class="rate-card high-yield">
+                    <div style="font-size:0.7rem; color:var(--cuhk-gold-light); text-transform:uppercase;">Target 2</div>
+                    <div class="rate-currency">BRL (Brazilian Real)</div>
+                    <div class="rate-val">14.00%</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Spread: +13.00%</div>
+                </div>
+                <div class="rate-card high-yield">
+                    <div style="font-size:0.7rem; color:var(--cuhk-gold-light); text-transform:uppercase;">Target 3</div>
+                    <div class="rate-currency">MXN (Mexican Peso)</div>
+                    <div class="rate-val">6.50%</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted);">Spread: +5.50%</div>
+                </div>
+            </div>
+
+            <p id="allocationStatus" role="status" aria-live="polite">Allocated: 100%. USD cash: 0%.</p>
+            <!-- ALLOCATION SLIDERS -->
+            <div class="mobile-stack" style="display:grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem;">
+                <div>
+                    <h4 style="color:var(--text-primary); margin-bottom:1rem;">Allocation (% of total assets)</h4>
+                    
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>USD Allocation (3.75%)</span>
+                            <span id="usdPctText" style="font-family:'JetBrains Mono'; color:var(--cuhk-gold-light);">40%</span>
+                        </div>
+                        <input type="range" id="usdSlider" min="0" max="100" value="40" oninput="updateAllocation('usd')">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>BRL Allocation (14.00%)</span>
+                            <span id="brlPctText" style="font-family:'JetBrains Mono'; color:var(--cuhk-gold-light);">30%</span>
+                        </div>
+                        <input type="range" id="brlSlider" min="0" max="100" value="30" oninput="updateAllocation('brl')">
+                    </div>
+
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>MXN Allocation (6.50%)</span>
+                            <span id="mxnPctText" style="font-family:'JetBrains Mono'; color:var(--cuhk-gold-light);">30%</span>
+                        </div>
+                        <input type="range" id="mxnSlider" min="0" max="100" value="30" oninput="updateAllocation('mxn')">
+                    </div>
+                </div>
+
+                <div>
+                    <h4 style="color:var(--text-primary); margin-bottom:1rem;">Desk Risk & Leverage Setup</h4>
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>Leverage Multiplier</span>
+                            <span id="leverageText" style="font-family:'JetBrains Mono'; color:var(--danger); font-size:1.2rem; font-weight:700;">3.0x</span>
+                        </div>
+                        <input type="range" id="leverageSlider" min="1" max="5" step="0.5" value="3" oninput="updateLeverage()">
+                    </div>
+
+                    <div style="background:rgba(11,14,20,0.8); border:1px solid var(--border-color); border-radius:8px; padding:1rem; margin-bottom: 1rem;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                            <span style="color:var(--text-secondary); font-size:0.85rem;">Equity Base (E):</span>
+                            <span style="font-family:'JetBrains Mono';">$100,000 USD</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                            <span style="color:var(--text-secondary); font-size:0.85rem;">Total Portfolio Size (V = E × L):</span>
+                            <span id="totalPortSizeText" style="font-family:'JetBrains Mono'; color:var(--cuhk-gold-light);">$300,000 USD</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">
+                            <span style="color:var(--text-secondary); font-size:0.85rem;">Borrowed JPY Debt (D = V - E):</span>
+                            <span id="jpyDebtText" style="font-family:'JetBrains Mono'; color:var(--info);">30,000,000 JPY</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span style="color:var(--text-secondary); font-size:0.85rem;">One-year ROI if FX is unchanged:</span>
+                            <span id="baselineReturnText" style="font-family:'JetBrains Mono'; color:var(--success); font-weight:700;">+20.95% ROI</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-secondary" id="toggle-calc-guide" onclick="toggleCalcGuide()" style="width:100%; font-size:0.85rem;">
+                        📘 Show Step-by-Step Formula & Calculation Guide
+                    </button>
+                </div>
+            </div>
+
+            <!-- COLLAPSIBLE FORMULA & CALCULATION GUIDE -->
+            <div id="calc-guide-panel" style="display:none; background:rgba(19,24,34,0.95); border:1px solid var(--cuhk-gold-glow); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                <h4 style="color:var(--cuhk-gold-light); margin-bottom:0.75rem; font-family:'Outfit';">Step-by-Step Carry Trade Math Guide</h4>
+                <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.6;">
+                    <p style="margin-bottom:0.4rem;"><strong>1. Total Assets Funded (V):</strong></p>
+                    <div class="formula-card">
+                        <div class="formula-line"><span class="formula-var">Portfolio Size (V)</span> <span class="formula-op">=</span> Equity (E) &times; Leverage (L) <span class="formula-op">=</span> $100,000 &times; L</div>
+                    </div>
+
+                    <p style="margin-bottom:0.4rem;"><strong>2. Borrowed JPY Debt (D):</strong></p>
+                    <div class="formula-card">
+                        <div class="formula-line"><span class="formula-var">Debt USD</span> <span class="formula-op">=</span> V &minus; E <span class="formula-op">=</span> $100,000 &times; (L &minus; 1)</div>
+                        <div class="formula-line"><span class="formula-var">Debt JPY</span> <span class="formula-op">=</span> Debt USD &times; 150.00 JPY per USD</div>
+                    </div>
+
+                    <p style="margin-bottom:0.4rem;"><strong>3. Weighted Target Yield (i<sub>target</sub>):</strong></p>
+                    <div class="formula-card">
+                        <div class="formula-line"><span class="formula-var">i<sub>target</sub></span> <span class="formula-op">=</span> (w<sub>USD</sub> &times; 3.75%) + (w<sub>BRL</sub> &times; 14.00%) + (w<sub>MXN</sub> &times; 6.50%)</div>
+                    </div>
+
+                    <p style="margin-bottom:0.4rem;"><strong>4. Return on Equity with Unchanged FX (ROE):</strong></p>
+                    <div class="formula-card">
+                        <div class="formula-line"><span class="formula-var">ROE</span> <span class="formula-op">=</span> (Annual Interest Income &minus; Annual JPY Debt Cost) &divide; Equity</div>
+                        <div class="formula-line"><span class="formula-var">ROE Formula</span> <span class="formula-op">=</span> L &times; i<sub>target</sub> &minus; (L &minus; 1) &times; 1.00%</div>
+                    </div>
+                </div>
+
+                <!-- Live Dynamic Math Breakdown -->
+                <div style="margin-top:1rem; padding-top:1rem; border-top:1px dashed var(--border-color);">
+                    <h5 style="color:var(--text-primary); margin-bottom:0.5rem;">Current Live Portfolio Calculation Breakdown:</h5>
+                    <div id="live-step-breakdown" style="font-family:'JetBrains Mono'; font-size:0.8rem; color:var(--text-secondary); white-space:pre-line;">
+                        <!-- Updated dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="lockPortfolioButton" onclick="goToStage(3)" style="width:100%;">Lock Portfolio & Trigger Market Event &rarr;</button>
+        </div>
+
+        <!-- STAGE 3: EXOGENOUS VOLATILITY SHOCK -->
+        <div id="stage3" class="glass-panel" style="padding: 2rem; display:none;">
+            <div class="shock-banner">
+                <div class="shock-headline">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Six months later: funding conditions tighten
+                </div>
+                <p style="color:var(--text-primary); font-size:0.95rem;">
+                    VIX rises from 14 to 38. The BoJ raises its annualized rate by 50 bp, to 1.50%. In this exercise, FX is still at its initial level when you trade. Choose your response before the remaining six months. Existing loans stay fixed at 1%; new JPY borrowing costs 1.50% p.a. Early asset sales and debt repayment include six months of simple interest, with no fees.
+                    <br><br><strong>Stress scenario for the remaining six months:</strong> the moves below are a scenario for your decision, not prices that have already occurred. Returns are measured in USD.
+                </p>
+                <div class="mobile-stack" style="display:grid; grid-template-columns:repeat(4, 1fr); gap:1rem; margin-top:1rem; text-align:center;">
+                    <div style="background:rgba(0,0,0,0.4); padding:0.5rem; border-radius:6px;">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">JPY (Funding)</span>
+                        <div style="color:var(--success); font-weight:700; font-family:'JetBrains Mono';">+12.5% (Appreciates)</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.4); padding:0.5rem; border-radius:6px;">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">USD</span>
+                        <div style="color:var(--text-primary); font-weight:700; font-family:'JetBrains Mono';">0.0% (Base)</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.4); padding:0.5rem; border-radius:6px;">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">BRL</span>
+                        <div style="color:var(--danger); font-weight:700; font-family:'JetBrains Mono';">-14.0%</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.4); padding:0.5rem; border-radius:6px;">
+                        <span style="font-size:0.75rem; color:var(--text-muted);">MXN</span>
+                        <div style="color:var(--danger); font-weight:700; font-family:'JetBrains Mono';">-11.0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 style="font-family:'Outfit'; color:var(--text-primary); margin-bottom:1rem;">Choose a response</h3>
+
+            <div class="decision-cards">
+                <button type="button" class="decision-card selected" aria-pressed="true" id="card-deleverage" onclick="selectCrisisAction('deleverage')">
+                    <h4 style="color:var(--info); margin-bottom:0.5rem;">Option A: De-Leverage</h4>
+                    <p style="font-size:0.85rem; color:var(--text-secondary);">Sell up to half of the BRL and MXN positions, including accrued interest, and use the proceeds to repay JPY principal and accrued interest. Sales stop once debt is repaid.</p>
+                </button>
+                <button type="button" class="decision-card" aria-pressed="false" id="card-hold" onclick="selectCrisisAction('hold')">
+                    <h4 style="color:var(--warning); margin-bottom:0.5rem;">Option B: Hold Position</h4>
+                    <p style="font-size:0.85rem; color:var(--text-secondary);">Maintain full portfolio. Absorb full FX depreciation and JPY debt run-up, relying on accumulated interest yield to cushion losses.</p>
+                </button>
+                <button type="button" class="decision-card" aria-pressed="false" id="card-double" onclick="selectCrisisAction('double')">
+                    <h4 style="color:var(--danger); margin-bottom:0.5rem;">Option C: Increase Borrowing</h4>
+                    <p style="font-size:0.85rem; color:var(--text-secondary);">Borrow 50% more JPY principal (or USD50,000 equivalent if initially debt-free). Invest half in BRL and half in MXN for the remaining six months, at the current spot rates.</p>
+                </button>
+            </div>
+
+            <button class="btn btn-primary" onclick="executeShockAndGoToStage4()" style="width:100%; margin-top:1.5rem;">Execute Crisis Response & Calculate Net Payoffs &rarr;</button>
+        </div>
+
+        <!-- STAGE 4: PAYOFF DEBRIEF & RISK ANALYTICS -->
+        <div id="stage4" class="glass-panel" style="padding: 2rem; display:none;">
+            <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light); margin-bottom: 0.5rem;">Stage 4: Results</h2>
+            <p style="color:var(--text-secondary); margin-bottom: 1.5rem;">
+                Here is your desk's final net return on equity after accounting for interest earned, FX currency changes, and your shock response choice.
+            </p>
+
+            <div class="results-summary-grid">
+                <div class="metric-box">
+                    <div class="metric-title">Initial Equity</div>
+                    <div class="metric-value">$100,000</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Final Net Equity</div>
+                    <div class="metric-value" id="finalEquityVal" style="color:var(--danger);">$89,996</div>
+                </div>
+                <div class="metric-box">
+                    <div class="metric-title">Net ROI on Equity</div>
+                    <div class="metric-value" id="finalRoiVal" style="color:var(--danger);">-10.00%</div>
+                </div>
+            </div>
+
+            <!-- CHART COMPARISON -->
+            <div style="height: 300px; margin-bottom: 1.5rem;">
+                <canvas id="payoffChart"></canvas>
+            </div>
+
+            <button class="btn btn-secondary" id="toggle-shock-guide" onclick="toggleShockGuide()" style="width:100%; font-size:0.85rem; margin-bottom:1.25rem;">
+                📊 Show Step-by-Step Post-Shock Payoff Breakdown
+            </button>
+
+            <!-- COLLAPSIBLE POST-SHOCK MATH BREAKDOWN -->
+            <div id="shock-guide-panel" style="display:none; background:rgba(19,24,34,0.95); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                <h4 style="color:var(--cuhk-gold-light); margin-bottom:0.75rem; font-family:'Outfit';">Post-Shock Payoff Calculations Explained</h4>
+                <div id="live-shock-breakdown" style="font-family:'JetBrains Mono'; font-size:0.82rem; color:var(--text-secondary); line-height:1.7; white-space:pre-line;">
+                    <!-- Updated dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- PROBABILITY DISTRIBUTION & BREAKEVEN ANALYSIS -->
+            <div style="background:rgba(19, 24, 34, 0.95); border:1px solid var(--border-color); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:0.9rem;">
+                    <span>Assumed annual probability of this stress scenario (p):</span>
+                    <span id="crashProbText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--danger); font-size:1.15rem;">20%</span>
+                </div>
+                <input type="range" id="crashProbSlider" min="0" max="100" value="20" oninput="updateCrashProbability()" style="width:100%;">
+
+                <div class="mobile-stack" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Quiet Market ROE</div>
+                        <div id="probQuietRoeText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--success);">+20.95%</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Crash State ROE</div>
+                        <div id="probCrashRoeText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--danger);">-10.00%</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Expected Ex-Ante ROE</div>
+                        <div id="probExpectedRoeText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--cuhk-gold-light);">+14.76%</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
+                        <div style="font-size:0.75rem; color:var(--text-muted);">Probability for zero expected ROI</div>
+                        <div id="probBreakevenText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--info);">67.69%</div>
+                    </div>
+                </div>
+
+                <div style="font-size:0.82rem; color:var(--text-muted); margin-top:0.75rem; line-height:1.4;">
+                    <strong>Two-scenario calculation:</strong> expected ROI = (1 − p) × quiet ROI + p × stress ROI. The zero-ROI probability is quiet ROI ÷ (quiet ROI − stress ROI), when it lies between 0% and 100%. This is total USD ROI, not excess return over USD cash. The quiet scenario keeps the original portfolio; the stress scenario uses your response.
+                </div>
+            </div>
+
+            <div style="background:rgba(11,14,20,0.8); border:1px solid var(--cuhk-gold-glow); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                <h4 style="color:var(--cuhk-gold-light); margin-bottom:0.5rem;">Which risks did the trade retain?</h4>
+                <p style="font-size:0.9rem; color:var(--text-secondary);">
+                    BRL and MXN depreciation reduce the USD value of the assets. JPY appreciation increases the USD cost of debt repayment. Selling EM assets and repaying JPY reduces both exposures; merely switching EM assets to USD leaves the JPY debt exposure. A forward to buy JPY can fix that repayment cost, but its forward rate offsets the covered interest advantage under CIP. A JPY call can limit that risk while retaining upside, at the cost of an option premium. Neither hedge removes every risk in the EM assets.
+                </p>
+            </div>
+
+            <button class="btn btn-secondary" onclick="goToStage(3)" style="margin-bottom:1rem;">Compare another response</button>
+            <button class="btn btn-primary" onclick="goToStage(5)" style="width:100%;">Proceed to Final Stage 5: Exit Reflection &rarr;</button>
+        </div>
+
+        <!-- STAGE 5: EXIT REFLECTION & EXPORT -->
+        <div id="stage5" class="glass-panel" style="padding: 2rem; display:none;">
+            <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light); margin-bottom: 0.5rem;">Stage 5: Individual Exit Reflection & Submission</h2>
+            <p style="color:var(--text-secondary); margin-bottom: 1.5rem;">
+                Complete your 1-sentence reflection to log your participation score for Week 3.
+            </p>
+
+            <div style="margin-bottom:1.5rem;">
+                <label style="font-family:'Outfit'; color:var(--text-primary); font-weight:600; display:block;">
+                    Exit Prompt Question:
+                </label>
+                <p style="font-size:0.9rem; color:var(--text-secondary); margin-top:0.25rem;">
+                    "How did your leverage choice and risk budget affect your performance when the funding currency volatility shock hit?"
+                </p>
+                <textarea id="reflectionInput" class="reflection-textarea" placeholder="Type your 1-sentence analytical response here..."></textarea>
+            </div>
+
+            <div style="display:flex; gap:1rem;">
+                <button class="btn btn-primary" onclick="submitFinalResponse()" style="flex:1;">Submit Response to Instructor & Log Score</button>
+                <button class="btn" onclick="FINA3020Utils.exportResponsesCSV()" style="background:rgba(255,255,255,0.1); color:#fff; border:1px solid var(--border-color);">Export CSV</button>
+            </div>
+
+            <div id="submissionAck" style="display:none; margin-top:1rem; padding:1rem; background:var(--success-bg); border:1px solid var(--success); border-radius:8px; color:var(--success); text-align:center;">
+                Submission status will appear here.
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        let currentStage = 1;
+        let selectedCrisisAction = 'deleverage';
+        let payoffChart = null;
+        let lastResult = null;
+        let baselineRoi = 0;
+
+        // Portfolio State
+        let portfolioState = {
+            usdPct: 0.40,
+            brlPct: 0.30,
+            mxnPct: 0.30,
+            leverage: 3.0,
+            equity: 100000,
+            prediction: 'uip_holds',
+            cashPct: 0
+        };
+
+        function goToStage(stageNum) {
+            if (stageNum === 2 && currentStage === 1) {
+                const sId = document.getElementById('studentIdInput').value.trim();
+                const sName = document.getElementById('studentNameInput').value.trim();
+                const sec = document.getElementById('sectionSelect').value.trim();
+
+                if (!sId || !sName) {
+                    alert('Please enter your full name and 10-digit CUHK Student ID before proceeding.');
+                    return;
+                }
+                if (!sec || !['A', 'B', 'C'].includes(sec.toUpperCase())) {
+                    alert('Please select a valid Course Section (Section A, B, or C).');
+                    return;
+                }
+                if (!FINA3020Utils.setStudentCredentials(sId, sName, sec)) {
+                    alert('Please check your full name, 10-digit CUHK ID, and section.');
+                    return;
+                }
+            }
+
+            if (stageNum === 3) {
+                if (document.querySelector('#stage2 [aria-invalid="true"]')) {
+                    alert('Correct the highlighted allocation or leverage before continuing.');
+                    return;
+                }
+                updateAllocation();
+                portfolioState.prediction = document.querySelector('input[name="predictionRadio"]:checked').value;
+            }
+            document.querySelectorAll('[id^="stage"]').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('[id^="step"]').forEach(el => {
+                el.classList.remove('active', 'completed');
+            });
+
+            for(let i = 1; i <= stageNum; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                if (indicator) {
+                    if (i === stageNum) indicator.classList.add('active');
+                    else indicator.classList.add('completed');
+                }
+            }
+
+            const targetStage = document.getElementById(`stage${stageNum}`);
+            if (targetStage) targetStage.style.display = 'block';
+
+            currentStage = stageNum;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateAllocation(changed) {
+            const currencies = ['usd', 'brl', 'mxn'];
+            const values = Object.fromEntries(currencies.map(c => [c, Number(document.getElementById(c + 'Slider').value)]));
+            if (changed) {
+                const room = Math.max(0, 100 - currencies.filter(c => c !== changed).reduce((sum, c) => sum + values[c], 0));
+                values[changed] = Math.min(values[changed], room);
+                document.getElementById(changed + 'Slider').value = values[changed];
+            }
+            const total = currencies.reduce((sum, c) => sum + values[c], 0);
+            if (!Number.isFinite(total) || total > 100 + 1e-8) return;
+            for (const c of currencies) {
+                portfolioState[c + 'Pct'] = values[c] / 100;
+                document.getElementById(c + 'PctText').innerText = Number(values[c].toFixed(6)) + '%';
+                document.getElementById(c + 'Slider').max = Math.max(0, 100 - (total - values[c]));
+            }
+            portfolioState.cashPct = Math.max(0, 1 - total / 100);
+            document.getElementById('allocationStatus').innerText = `Allocated: ${Number(total.toFixed(6))}%. USD cash at 0%: ${Number((100-total).toFixed(6))}%. Reduce another allocation before increasing a fully allocated portfolio.`;
+            recalculateBaseline();
+        }
+
+        function updateLeverage() {
+            portfolioState.leverage = parseFloat(document.getElementById('leverageSlider').value);
+            document.getElementById('leverageText').innerText = Number(portfolioState.leverage.toFixed(6)) + 'x';
+            recalculateBaseline();
+        }
+
+        function toggleCalcGuide() {
+            const panel = document.getElementById('calc-guide-panel');
+            const btn = document.getElementById('toggle-calc-guide');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                btn.innerText = '📘 Hide Formula Guide';
+            } else {
+                panel.style.display = 'none';
+                btn.innerText = '📘 Show Step-by-Step Formula & Calculation Guide';
+            }
+        }
+
+        function toggleShockGuide() {
+            const panel = document.getElementById('shock-guide-panel');
+            const btn = document.getElementById('toggle-shock-guide');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                btn.innerText = '📊 Hide Post-Shock Payoff Breakdown';
+            } else {
+                panel.style.display = 'none';
+                btn.innerText = '📊 Show Step-by-Step Post-Shock Payoff Breakdown';
+            }
+        }
+
+        function recalculateBaseline() {
+            const totalPort = portfolioState.equity * portfolioState.leverage;
+            const debtUSD = totalPort - portfolioState.equity;
+            const debtJPY = debtUSD * 150.00;
+
+            const targetYield = (portfolioState.usdPct * 0.0375) + (portfolioState.brlPct * 0.14) + (portfolioState.mxnPct * 0.065);
+            const fundingCost = 0.01;
+
+            const totalIncomeUSD = totalPort * targetYield;
+            const totalDebtCostUSD = debtUSD * fundingCost;
+            const netCarryProfitUSD = totalIncomeUSD - totalDebtCostUSD;
+            baselineRoi = (netCarryProfitUSD / portfolioState.equity) * 100;
+
+            document.getElementById('totalPortSizeText').innerText = FINA3020Utils.formatCurrency(totalPort);
+            document.getElementById('jpyDebtText').innerText = FINA3020Utils.formatNumber(debtJPY, 0) + ' JPY';
+            document.getElementById('baselineReturnText').innerText = (baselineRoi >= 0 ? '+' : '') + baselineRoi.toFixed(2) + '% ROI';
+
+            // Live step-by-step breakdown text
+            const liveBreakdownEl = document.getElementById('live-step-breakdown');
+            if (liveBreakdownEl) {
+                liveBreakdownEl.innerText = 
+`• Total Asset Exposure (V): $100,000 × ${Number(portfolioState.leverage.toFixed(6))}x = $${totalPort.toLocaleString()} USD
+• Borrowed JPY Debt (D): $${debtUSD.toLocaleString()} USD × 150.00 = ${Math.round(debtJPY).toLocaleString()} JPY
+• Weighted nominal interest rate: (${(portfolioState.usdPct*100).toFixed(2)}% × 3.75%) + (${(portfolioState.brlPct*100).toFixed(2)}% × 14.0%) + (${(portfolioState.mxnPct*100).toFixed(2)}% × 6.50%) = ${(targetYield*100).toFixed(2)}%
+• Annual Interest Earned: $${totalPort.toLocaleString()} × ${(targetYield*100).toFixed(2)}% = +$${totalIncomeUSD.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} USD
+• Annual JPY Loan Interest Cost: $${debtUSD.toLocaleString()} × 1.00% = -$${totalDebtCostUSD.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} USD
+• Net Interest Carry Profit: $${netCarryProfitUSD.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} USD
+• One-year ROI if FX is unchanged: $${netCarryProfitUSD.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} / $100,000 = +${baselineRoi.toFixed(2)}%`;
+            }
+        }
+
+        function selectCrisisAction(action) {
+            selectedCrisisAction = action;
+            document.querySelectorAll('.decision-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`card-${action}`).classList.add('selected');
+            document.querySelectorAll('.decision-card').forEach(c => c.setAttribute('aria-pressed', String(c.id === `card-${action}`)));
+        }
+
+        // Six months pass at unchanged spot. All interest is simple; existing
+        // contracts are fixed for one year and permit pro-rata early settlement.
+        function calculatePayoff(state, action) {
+            const E = state.equity, V = E * state.leverage, D = V - E;
+            const i = {usd: .0375, brl: .14, mxn: .065, jpy: .01};
+            const fx = {usd: 1, brl: .86, mxn: .89, jpy: 1.125};
+            const em = V * (state.brlPct * (1 + i.brl * .5) + state.mxnPct * (1 + i.mxn * .5));
+            let soldFraction = 0, earlyDebtPaid = 0, additionalDebt = 0;
+            if (action === 'deleverage' && em > 0) {
+                earlyDebtPaid = Math.min(.5 * em, D * (1 + i.jpy * .5));
+                soldFraction = earlyDebtPaid / em;
+            }
+            if (action === 'double') additionalDebt = D > 0 ? D * .5 : E * .5;
+            const remainingPrincipal = D - earlyDebtPaid / (1 + i.jpy * .5);
+            const originalAssets = V * (state.usdPct * (1 + i.usd) +
+                (1-soldFraction) * (state.brlPct * (1+i.brl)*fx.brl + state.mxnPct * (1+i.mxn)*fx.mxn) + (state.cashPct || 0));
+            const newAssets = additionalDebt * .5 * ((1+i.brl*.5)*fx.brl + (1+i.mxn*.5)*fx.mxn);
+            const assets = originalAssets + newAssets;
+            const debt = (remainingPrincipal * (1+i.jpy) + additionalDebt * (1+.015*.5)) * fx.jpy;
+            const finalEquity = assets - debt;
+            return {assets, debt, finalEquity, roi: 100*(finalEquity/E-1), earlyDebtPaid,
+                soldFraction, remainingPrincipal, additionalDebt};
+        }
+
+        function executeShockAndGoToStage4() {
+            lastResult = calculatePayoff(portfolioState, selectedCrisisAction);
+            const r = lastResult, money = n => FINA3020Utils.formatCurrency(n);
+            goToStage(4);
+            document.getElementById('finalEquityVal').innerText = money(r.finalEquity);
+            document.getElementById('finalRoiVal').innerText = (r.roi >= 0 ? '+' : '') + r.roi.toFixed(2) + '%';
+            for (const id of ['finalEquityVal','finalRoiVal']) document.getElementById(id).style.color = r.roi < 0 ? 'var(--danger)' : 'var(--success)';
+            const actions = {hold: 'Hold the original portfolio', deleverage: 'Sell EM assets and repay JPY debt', double: 'Borrow more JPY and buy BRL / MXN'};
+            document.getElementById('live-shock-breakdown').innerText =
+`At month 6: ${actions[selectedCrisisAction]}
+• EM assets sold: ${(r.soldFraction*100).toFixed(2)}% of each original EM position.
+• Early debt settlement, including six months of interest: ${money(r.earlyDebtPaid)}.
+• Original debt principal remaining, at initial spot: ${money(r.remainingPrincipal)}.
+• New borrowing, at initial spot: ${money(r.additionalDebt)}.
+
+At year-end: convert all assets and liabilities to USD.
+• Original USD assets: principal × 1.0375.
+• Unsold BRL assets: principal × 1.14 × 0.86.
+• Unsold MXN assets: principal × 1.065 × 0.89.
+• New BRL / MXN investments earn six months of interest: 7% / 3.25%, then face the same FX moves.
+• USD cash earns 0%; it is included in assets.
+• Old JPY debt: remaining principal × 1.01 × 1.125.
+• New JPY debt: new principal × 1.0075 × 1.125 (1.50% p.a. for six months).
+• JPY appreciation of 12.5% means USD/JPY falls from 150 to 133.33, not by 12.5%.
+
+Final assets: ${money(r.assets)}. Final debt: ${money(r.debt)}.
+Equity = assets − debt = ${money(r.finalEquity)}.
+ROI = (final equity − USD100,000) ÷ USD100,000 = ${r.roi.toFixed(2)}%.
+${r.finalEquity < 0 ? 'Debt exceeds assets: the shortfall is ' + money(-r.finalEquity) + '.' : 'Positive terminal equity does not rule out earlier margin calls.'}
+No intraperiod margin rule or transaction costs are modeled; this result cannot certify that the position survives to maturity.`;
+            renderPayoffChart(portfolioState.equity, r.finalEquity);
+            updateCrashProbability();
+        }
+
+        function renderPayoffChart(baseEquity, finalEquity) {
+            const ctx = document.getElementById('payoffChart').getContext('2d');
+            if (payoffChart) payoffChart.destroy();
+
+            const quietRoi = baselineRoi;
+            const quietEquity = baseEquity * (1 + quietRoi / 100);
+
+            const defaults = FINA3020Utils.getChartDefaults();
+            payoffChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Initial Base Equity', 'Unchanged FX, original portfolio', 'Post-Shock Executed Equity'],
+                    datasets: [{
+                        label: 'Desk Equity ($ USD)',
+                        data: [baseEquity, quietEquity, finalEquity],
+                        backgroundColor: [
+                            'rgba(59, 130, 246, 0.7)', 
+                            'rgba(218, 165, 32, 0.7)', 
+                            finalEquity >= baseEquity ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)'
+                        ],
+                        borderColor: [
+                            '#3B82F6', 
+                            '#DAA520', 
+                            finalEquity >= baseEquity ? '#10B981' : '#EF4444'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    ...defaults,
+                    plugins: {
+                        ...defaults.plugins,
+                        title: {
+                            display: true,
+                            text: ['Carry Trade Performance', 'Quiet Market vs Executed Shock'],
+                            color: '#F8FAFC',
+                            font: { family: 'Outfit', size: 14 }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCrashProbability() {
+            const prob = parseFloat(document.getElementById('crashProbSlider').value) / 100;
+            document.getElementById('crashProbText').innerText = Number((prob * 100).toFixed(6)) + '%';
+            const quietRoi = baselineRoi;
+            const shockRoi = lastResult ? lastResult.roi : 0;
+            const expectedRoi = (1 - prob) * quietRoi + prob * shockRoi;
+            document.getElementById('probQuietRoeText').innerText = (quietRoi >= 0 ? '+' : '') + quietRoi.toFixed(2) + '%';
+            document.getElementById('probCrashRoeText').innerText = (shockRoi >= 0 ? '+' : '') + shockRoi.toFixed(2) + '%';
+            document.getElementById('probExpectedRoeText').innerText = (expectedRoi >= 0 ? '+' : '') + expectedRoi.toFixed(2) + '%';
+            const pStar = (quietRoi / (quietRoi - shockRoi)) * 100;
+            if (Number.isFinite(pStar) && pStar >= 0 && pStar <= 100) {
+                document.getElementById('probBreakevenText').innerText = pStar.toFixed(2) + '%';
+            } else {
+                document.getElementById('probBreakevenText').innerText = 'N/A';
+            }
+        }
+
+        function submitFinalResponse() {
+            const reflectionText = document.getElementById('reflectionInput').value;
+            if (!reflectionText || !reflectionText.trim()) {
+                alert('Please enter your 1-sentence exit reflection before submitting.');
+                return;
+            }
+
+            const payload = {
+                game: 'Carry-Trade Tournament (Week 3)',
+                targetTab: 'Carry_Trade',
+                question: 'Choose a carry portfolio, predict returns, respond to the crisis, and explain the outcome.',
+                responseText: document.getElementById('reflectionInput').value,
+                activityName: 'Carry Trade Tournament',
+                week: 3,
+                scenario: { ...portfolioState },
+                crashProbability: Number(document.getElementById('crashProbSlider').value) / 100,
+                section: document.getElementById('sectionSelect').value,
+                prediction: document.querySelector('input[name="predictionRadio"]:checked').value,
+                leverage: portfolioState.leverage,
+                allocations: { usd: portfolioState.usdPct, brl: portfolioState.brlPct, mxn: portfolioState.mxnPct },
+                crisisAction: selectedCrisisAction,
+                finalRoi: document.getElementById('finalRoiVal').innerText,
+                reflection: reflectionText.trim()
+            };
+
+            const saved = FINA3020Utils.recordResponse(payload);
+            const ack = document.getElementById('submissionAck');
+            ack.style.display = 'block';
+            ack.innerText = 'Submitting response…';
+            saved.deliveryPromise.then(confirmed => {
+                ack.innerText = confirmed
+                    ? 'Response confirmed. Participation credit logged for Week 3.'
+                    : 'Response saved in this tab but NOT confirmed. Leave it open for retry, or export the CSV and contact the TA.';
+            });
+        }
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedId = FINA3020Utils.getStudentID();
+            if (savedId) document.getElementById('studentIdInput').value = savedId;
+            document.getElementById('studentNameInput').value = FINA3020Utils.getFullName() || '';
+            document.getElementById('sectionSelect').value = FINA3020Utils.getSection() || '';
+            updateAllocation();
+        });
+    </script>
+</body>
+</html>
