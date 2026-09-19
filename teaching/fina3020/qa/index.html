@@ -225,6 +225,7 @@
         }
 
         .qa-card-title {
+            overflow-wrap: anywhere;
             font-family: 'Outfit', sans-serif;
             font-size: 1.05rem;
             font-weight: 600;
@@ -421,7 +422,7 @@
             <span class="cuhk-badge">FINA3020 &middot; Knowledge Base</span>
             <div>
                 <h1 class="app-title">Conceptual Q&amp;A Clearinghouse</h1>
-                <p class="app-subtitle">Searchable lecture principles, parity conditions, and international finance mechanics</p>
+                <p class="app-subtitle">2026 course Q&amp;A · Weeks 1–2 and PS1 checked September 19, 2026</p>
             </div>
         </div>
         <div class="header-actions">
@@ -438,12 +439,13 @@
                 <svg class="search-icon-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
-                <input type="text" class="search-input-field" id="qaSearchInput" placeholder="Search concepts (e.g. CIP formula, forward premium, Triffin, balance of payments, hedging, basis)..." autocomplete="off" spellcheck="false">
+                <input type="text" class="search-input-field" id="qaSearchInput" aria-label="Search course questions and answers" placeholder="Search: PS1 deadline, bid or ask, forward size, notation, CIP, PPP..." autocomplete="off" spellcheck="false">
                 <span class="search-shortcut-hint">Press / to search</span>
             </div>
 
             <div class="filters-group" id="filterPillsContainer">
                 <span class="filters-label">Topic:</span>
+                <button class="filter-chip-btn" data-cat="Problem Set 1: Submission &amp; Working">PS1: Submission <span class="chip-count" id="count-ps1">0</span></button>
                 <button class="filter-chip-btn active" data-cat="all">All Topics <span class="chip-count" id="count-all">0</span></button>
                 <button class="filter-chip-btn" data-cat="Week 1: FX Markets &amp; Quotations">Week 1: Quotes <span class="chip-count" id="count-w1">0</span></button>
                 <button class="filter-chip-btn" data-cat="Week 2: Parity Conditions &amp; Forward Markets">Week 2: Parity &amp; CIP <span class="chip-count" id="count-w2">0</span></button>
@@ -475,39 +477,158 @@
     <script>
         const QA_DATA = [
             {
+                "id": "ps1_submission",
+                "category": "Problem Set 1: Submission & Working",
+                "subject": "PS1: Deadline, What to Submit, and Gradescope",
+                "question": "Do I submit all three parts, and what format is required?",
+                "instructor_answer": "<strong>Submit Part C only</strong>, as a typed or typeset PDF on Gradescope, by <strong>noon on Wednesday, September 23, 2026</strong>. Assign uploaded pages to the corresponding numbered problems and omit the question text.\n\nShow the main steps or a succinct explanation for Part C questions 3–6. Numbers without working do not receive full credit. Attempt Parts A and B for practice: the question sheet says exams use similar styles. Select all and only the correct choices in multiple-answer questions; short answers should stay within 3 sentences or 60 words.\n\nThe PS1 handout says late submissions are not accepted and solutions will be posted on Blackboard at the deadline. This Q&A explains methods; use the official handout and any subsequent course announcement for submission instructions."
+            },
+            {
+                "id": "ps1_ai_rounding",
+                "category": "Problem Set 1: Submission & Working",
+                "subject": "PS1: AI Use, Rounding, and Showing Your Work",
+                "question": "Can I use AI, and how much arithmetic should I show?",
+                "instructor_answer": "The Week 1 slides permit AI on problem sets, require you to state which tools you used and how, and make you responsible for the submitted work. PS1 strongly encourages a first attempt without AI and warns against outsourcing the entire solution without effort. AI, notes, and electronic devices are not permitted in exams.\n\nShow the conversion direction, executable bid/ask, interest factors, quantity constraints, and final profit calculation. You need not show every arithmetic operation. For a book walk, a tranche table with spot quantity, forward delivery quantity, and profit makes the method clear.\n\nKeep full precision in intermediate quantities. Round the final HKD profits to the nearest tenth where requested, and label currency units and borrowing spreads. Use the problem set's data: the worked Week 2 slide example has different prices and depths."
+            },
+            {
                 "id": "concept_parity_quotes",
                 "category": "Week 1: FX Markets & Quotations",
                 "subject": "Exchange Rate Quotation Conventions: Base vs. Quote Currency and Bid-Ask Rules",
                 "question": "How do market quote conventions (Base/Quote) work, and how do you calculate inverse rates, bid-ask spreads, and cross rates?",
-                "instructor_answer": "In international financial markets, quotes follow strict standard conventions:\n\n1. <strong>Market Notation (BASE/QUOTE)</strong>: In a pair written as $BASE/QUOTE$ (e.g., $EUR/USD = 1.0800$ or $HKD/USD = 7.8000$):\n   • <strong>Base Currency</strong>: The first currency (fixed at 1 unit).\n   • <strong>Quote / Terms Currency</strong>: The second currency (the price in units of quote currency needed to buy 1 unit of base currency).\n\n2. <strong>Bid-Ask Market Rule (Dealer Perspective)</strong>:\n   • <strong>Bid Price</strong>: The price at which the dealer <em>buys</em> the base currency (client sells base at Bid).\n   • <strong>Ask Price</strong>: The price at which the dealer <em>sells</em> the base currency (client buys base at Ask).\n   • <strong>Spread</strong>: $\\text{Ask} - \\text{Bid} > 0$, representing liquidity provider compensation.\n\n3. <strong>Inverse / Reciprocal Quotes</strong>:\n   • $S_{QUOTE/BASE}^{Bid} = \\frac{1}{S_{BASE/QUOTE}^{Ask}}$\n   • $S_{QUOTE/BASE}^{Ask} = \\frac{1}{S_{BASE/QUOTE}^{Bid}}$"
+                "instructor_answer": "<strong>Market pair names and units run in opposite orders.</strong> USD/HKD = 7.8000 means 1 USD costs 7.8000 HKD. USD is the base; HKD is the quote. The units are HKD per USD. EUR/USD = 1.0800 means USD per EUR.\n\nTo convert base to quote, multiply; to convert quote to base, divide. The dealer buys base at the <strong>bid</strong> and sells base at the <strong>ask</strong>, so a customer sells base at bid and buys base at ask.\n\n<strong>Invert and swap sides:</strong>\n$$S_{B/A}^{bid}=1/S_{A/B}^{ask}$$\n$$S_{B/A}^{ask}=1/S_{A/B}^{bid}$$\nFor a single mid-rate, simply take the reciprocal. With a spread, taking the reciprocal without switching bid and ask gives the wrong executable quote."
             },
             {
                 "id": "concept_microstructure_order_book",
                 "category": "Week 1: FX Markets & Quotations",
                 "subject": "Order Book Mechanics: Bid, Ask, Market Depth, and Price Slippage",
                 "question": "How do market orders execute against the limit order book, and what causes price slippage when order size exceeds top-of-book depth?",
-                "instructor_answer": "In continuous double auction markets:\n\n1. <strong>Execution Mechanism</strong>:\n   • A <strong>market buy order</strong> matches immediately against limit sell orders at the best available <strong>Ask</strong> price.\n   • A <strong>market sell order</strong> matches immediately against limit buy orders at the best available <strong>Bid</strong> price.\n\n2. <strong>Depth & Slippage</strong>:\n   • Top-of-book quotes only guarantee price for quantities up to the posted volume depth.\n   • When a large market order exceeds the depth available at the best Bid or Ask, it 'walks the book', executing the remaining volume against progressively worse price tiers. The effective average execution price slips away from the initial quote."
+                "instructor_answer": "A market buy order takes the lowest available ask; a market sell takes the highest available bid. Once that level is exhausted, the remaining order executes at worse prices. This is <strong>walking the book</strong>, and the change in the average execution price is slippage.\n\nCompute the volume-weighted price as total quote-currency paid or received divided by total base-currency traded. Do not take a simple average of prices unless the quantities are equal.\n\nA buy limit order above the best bid but below the best ask rests as the new best bid. A buy limit at or above the best ask can execute immediately, up to its limit and available depth. Classroom calculations assume fixed books and simultaneous fills; real quotes may change before execution."
+            },
+            {
+                "id": "notation_home_foreign",
+                "category": "Week 1: FX Markets & Quotations",
+                "subject": "Home / Foreign vs. Base / Quote: Reading S and F",
+                "question": "Does S(F/H) mean foreign per home, and does home always mean Hong Kong?",
+                "instructor_answer": "In this course, $S_{F/H}$ labels the <strong>market pair F/H</strong>, so it means <strong>home per foreign</strong>. For HKD home and USD foreign, $S_{USD/HKD}=7.80$ HKD per USD. The dimensional fraction HKD divided by USD describes the units; it is not the market pair name.\n\nHome is the investor's perspective specified in the question. If the US is home and the UK foreign, use GBP/USD in USD per GBP. Home need not be HKD, and the base currency need not be home.\n\n$S_t$ is today's spot rate; $F_{t,T}$ is agreed today for settlement at $T$; $S_T$ is the uncertain spot rate at settlement. Some questions write the future date as $t+T$, using $T$ for the time remaining. Match the maturity, not just the letter."
+            },
+            {
+                "id": "quotes_appreciation",
+                "category": "Week 1: FX Markets & Quotations",
+                "subject": "Appreciation, Depreciation, and Reciprocal Percentages",
+                "question": "If a quote rises, which currency appreciates? Are the two percentage changes equal?",
+                "instructor_answer": "A rise in a BASE/QUOTE rate means 1 base buys more quote: <strong>base appreciates and quote depreciates</strong>. For the direct quote $S_{F/H}$, a rise means foreign appreciation and home depreciation.\n\nThe base's percentage appreciation is $S_1/S_0-1$. The quote currency's change in value is $S_0/S_1-1$. If the rate rises from 5 to 6, base appreciates 20%, while quote depreciates 16.67%, not 20%.\n\nAlways name both currencies. A currency can appreciate against one currency while depreciating against another. Use a cross rate to compare the relevant pair."
+            },
+            {
+                "id": "quotes_cross_arbitrage",
+                "category": "Week 1: FX Markets & Quotations",
+                "subject": "Cross Rates and Triangular Arbitrage: Which Way Around?",
+                "question": "When do I multiply or divide cross rates, and how do I find the profitable cycle?",
+                "instructor_answer": "Write the units and cancel the intermediate currency. With zero spreads, $S_{A/C}=S_{A/B}S_{B/C}$. If both quotes have the same base, divide: $S_{B/C}=S_{A/C}/S_{A/B}$.\n\nWith spreads, multiply the two bids to obtain the synthetic A/C bid and multiply the two asks for the synthetic ask. For a same-base cross, synthetic B/C bid is $S_{A/C}^{bid}/S_{A/B}^{ask}$ and ask is $S_{A/C}^{ask}/S_{A/B}^{bid}$.\n\nCompare a selling bid with a buying ask. If the direct bid exceeds the synthetic ask, buy base through the intermediary and sell it directly; reverse if the synthetic bid exceeds the direct ask. Trace every currency conversion and finish in the starting currency. A final amount above the initial amount indicates profit before any additional costs; a mid-rate discrepancy alone is insufficient."
+            },
+            {
+                "id": "microstructure_tick_liquidity",
+                "category": "Week 1: FX Markets & Quotations",
+                "subject": "Ticks, Pips, Spreads, and Depth",
+                "question": "Is a tick the same as a pip, and what makes one order book more liquid?",
+                "instructor_answer": "A <strong>tick</strong> is the venue's minimum permitted price increment. A <strong>pip</strong> is a conventional unit: 0.0001 for most pairs and 0.01 for many JPY pairs. They need not coincide. For example, a tick of 0.0020 equals 20 pips if one pip is 0.0001. Displayed gaps suggest an apparent tick but do not prove that intervening prices are prohibited.\n\nA narrower bid-ask spread and greater available depth support greater liquidity. State whether you compare top-of-book depth or total displayed depth; one market can be deeper overall without being deeper at every level. For a given order size, greater relevant depth generally means less slippage.\n\nSpreads compensate liquidity providers for inventory risk and adverse selection (trading with someone better informed), among other costs."
             },
             {
                 "id": "concept_parity_cip",
                 "category": "Week 2: Parity Conditions & Forward Markets",
                 "subject": "Covered Interest Parity (CIP) Equation & Cash Flow Arbitrage Mechanics",
                 "question": "What is Covered Interest Parity (CIP), and how is the exact no-arbitrage forward rate relation derived?",
-                "instructor_answer": "Covered Interest Parity states that domestic investment must yield the exact same return as a covered foreign money-market investment:\n\n1. <strong>Cash Flow Derivation</strong> (Let $S_{d/f}$ and $F_{d/f}$ be domestic currency per 1 foreign unit, e.g. HKD/USD):\n   • <em>Domestic leg</em>: Invest 1 unit domestic currency at $i_d$ $\\to (1 + i_d \\cdot \\frac{T}{360})$ at maturity $T$.\n   • <em>Foreign covered leg</em>: Convert 1 domestic unit to $\\frac{1}{S_{d/f}}$ foreign units at spot; invest at foreign rate $i_f \\to \\frac{1}{S_{d/f}}(1 + i_f \\cdot \\frac{T}{360})$; lock forward conversion at $F_{d/f} \\to \\frac{F_{d/f}}{S_{d/f}}(1 + i_f \\cdot \\frac{T}{360})$.\n\n2. <strong>No-Arbitrage Formula</strong>:\n   $$1 + i_d \\cdot \\frac{T}{360} = \\frac{F_{d/f}}{S_{d/f}} \\cdot \\left(1 + i_f \\cdot \\frac{T}{360}\\right) \\iff F_{d/f}^* = S_{d/f} \\cdot \\frac{1 + i_d \\cdot \\frac{T}{360}}{1 + i_f \\cdot \\frac{T}{360}}$$\n\n3. <strong>Arbitrage Rule</strong>:\n   • If market $F > F^*$: Synthetic foreign lending is overvalued $\\implies$ Borrow domestic, convert spot to foreign, invest foreign, sell forward.\n   • If market $F < F^*$: Synthetic domestic lending is overvalued $\\implies$ Borrow foreign, convert spot to domestic, invest domestic, buy forward."
+                "instructor_answer": "Use the slides' notation: $S_t=S_{F/H,t}$ is <strong>home currency per foreign unit</strong>, $F_{t,T}$ is the matching forward rate, and $i_H,i_F$ are returns over the same horizon.\n\nStarting with 1 home unit, the home deposit pays $1+i_H$. The covered foreign route converts to $1/S_t$ foreign, grows to $(1+i_F)/S_t$, then converts at the forward rate:\n$$1+i_H=\\frac{F_{t,T}}{S_t}(1+i_F)$$\n$$F_{t,T}=S_t\\frac{1+i_H}{1+i_F}$$\nThis equality assumes matched maturities, equal borrowing/lending rates, and no transaction, credit, capital-control, or balance-sheet costs.\n\nIf market $F$ exceeds this benchmark, the candidate trade is borrow home, buy foreign spot, deposit foreign, and sell the maturity proceeds forward. If $F$ is below it, reverse the trade. With spreads or funding costs, use the executable-price tests below before claiming arbitrage."
             },
             {
                 "id": "concept_parity_forward_premium",
                 "category": "Week 2: Parity Conditions & Forward Markets",
                 "subject": "Forward Premium / Discount & Interest Rate Differentials",
                 "question": "What does a positive annualized forward premium imply about relative interest rates between two currencies?",
-                "instructor_answer": "The annualized forward premium for foreign currency ($f$ quoted as domestic per foreign $S_{d/f}$) is defined as:\n\n$$\\text{Forward Premium} = \\frac{F_{d/f} - S_{d/f}}{S_{d/f}} \\times \\frac{360}{T}$$\n\nUnder Covered Interest Parity:\n\n$$\\frac{F_{d/f} - S_{d/f}}{S_{d/f}} = \\frac{1 + i_d \\cdot \\frac{T}{360}}{1 + i_f \\cdot \\frac{T}{360}} - 1 = \\frac{(i_d - i_f)\\frac{T}{360}}{1 + i_f \\cdot \\frac{T}{360}} \\approx (i_d - i_f) \\cdot \\frac{T}{360}$$\n\n• <strong>Core Rule</strong>: A positive forward premium ($F > S$) means foreign currency trades at a premium forward, implying that <strong>foreign interest rates are lower than domestic interest rates</strong> ($i_f < i_d$). The currency with the higher interest rate always trades at a forward discount."
+                "instructor_answer": "With $S$ and $F$ in home currency per foreign unit, $(F-S)/S$ is the foreign currency's forward premium over the contract horizon. Positive means foreign trades at a premium; negative means a discount.\n\nUnder frictionless CIP:\n$$\\frac{F-S}{S}=\\frac{i_H-i_F}{1+i_F}\\approx i_H-i_F$$\nThus the higher-interest currency trades at a forward discount. Buying a currency spot and selling it at a higher forward price does not by itself yield a profit: account for funding cost and interest earned.\n\nFor a contract of $d$ days on an ACT/360 convention, the simple annualized premium is $((F-S)/S)(360/d)$. Use the specified day-count convention. After inverting the pair, the other currency's horizon premium is $(S-F)/F$, so opposite percentage premiums are only approximately equal in magnitude."
+            },
+            {
+                "id": "forward_points_contract",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Forward Points, Outright Rates, and Payment Timing",
+                "question": "Are forward points the exchange rate? Do I pay the principal today?",
+                "instructor_answer": "An outright forward rate is spot plus signed forward points divided by the pip multiplier. Apply bid points to spot bid and ask points to spot ask. For non-JPY quotes, a multiplier of 10,000 corresponds to a pip of 0.0001.\n\nWeek 2 example: spot bid/ask 7.8000/7.8002 and points -30/-28 give outright forward bid/ask 7.7970/7.7974. Use the signed points; voice shorthand may omit the minus signs.\n\nA market-rate forward usually has zero initial value and no principal exchange at inception. The rate and delivery amount are agreed today; currencies change hands at settlement. Collateral or credit support may still be required. Zero initial value does not mean zero exposure or zero delivery obligation."
+            },
+            {
+                "id": "parity_horizon_rates",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Annual Rates vs. Holding-Period Returns",
+                "question": "When do I multiply interest rates by days/360?",
+                "instructor_answer": "In $F=S(1+i_H)/(1+i_F)$, $i_H$ and $i_F$ are <strong>returns for the investment horizon</strong>. If given simple annual rates $r_H,r_F$, first compute $i_H=r_Hd_H/B_H$ and $i_F=r_Fd_F/B_F$, using each currency's stated day-count basis $B$ and the matched value dates.\n\nWeek 2's 90-day ACT/360 example turns annual USD 4% and EUR 2% into holding-period returns 1% and 0.5%. Do not compare an annual rate directly with a 90-day forward premium, or prorate a rate twice.\n\nPS1 uses one-year rates throughout, so the stated rates already match the forward horizon. Keep full precision during calculations and round only the final requested answers."
+            },
+            {
+                "id": "parity_executable_tests",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Midpoint Diagnosis vs. Executable Arbitrage",
+                "question": "Which bid/ask and borrowing/lending rates belong in each arbitrage direction?",
+                "instructor_answer": "Use midpoints to identify a candidate mispricing. Then test prices you can actually trade. Let $S,F$ be home per foreign, with rates over the contract horizon.\n\n<strong>Borrow home, lend foreign:</strong> buy foreign at the spot ask and sell its maturity proceeds at the forward bid. Profit per foreign unit bought spot is\n$$(1+i_F^{lend})F_{bid}-(1+i_H^{borrow})S_{ask}$$\n<strong>Borrow foreign, lend home:</strong> sell foreign at the spot bid and buy enough forward at the ask to repay the foreign loan. Home-currency surplus per foreign unit borrowed is\n$$(1+i_H^{lend})S_{bid}-(1+i_F^{borrow})F_{ask}$$\nAn executable arbitrage requires a positive margin, available quantities, and matched cash flows under the question's assumptions. If neither direction has a positive margin, the quotes lie within a no-arbitrage band even if midpoint CIP does not hold exactly."
+            },
+            {
+                "id": "parity_delivery_size",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Why Spot and Forward AUD Quantities Differ",
+                "question": "Do I use the same number of AUD on the spot and forward legs?",
+                "instructor_answer": "No. Buying $q$ AUD today and depositing it at $i_{AUD}$ produces $q(1+i_{AUD})$ AUD at maturity. To hedge all proceeds, sell that entire maturity amount forward.\n\nIf the spot ask offers $A$ AUD and the forward bid accepts $D$ AUD of delivery, the maximum spot purchase is the smaller of $A$ and $D/(1+i_{AUD})$.\n\nIn the Week 2 lecture example, $A=800$, $D=606$, and the AUD return is 1%. Buy 600 AUD spot and sell 606 AUD forward: the forward leg binds. The problem set uses different books, so apply the method to its stated quantities. Matching both legs at the same amount leaves the deposit interest unhedged."
+            },
+            {
+                "id": "parity_walk_books",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Walking Two Order Books: Tranches and the Stopping Rule",
+                "question": "How do I track remaining depth and maximize total arbitrage profit?",
+                "instructor_answer": "For spot ask $a$ and forward bid $f$, compute the marginal profit $m=(1+i_F^{lend})f-(1+i_H^{borrow})a$ per foreign unit bought spot.\n\n1. If $m$ is positive, take the smaller of the remaining spot quantity and the remaining forward delivery quantity divided by $(1+i_F^{lend})$.\n2. Reduce spot depth by the spot quantity traded and forward depth by the corresponding maturity quantity. Move to the next level only on the book that runs out.\n3. Add tranche profit = spot quantity times $m$, then repeat at the new prices.\n4. Stop before the next tranche has non-positive marginal profit. A zero-margin tranche adds no profit; worse later prices cannot restore profitability in these fixed books.\n\nDo not exhaust the entire displayed book simply because total profit remains positive. Maximize total profit by adding only profitable increments, and keep unrounded quantities until the end."
+            },
+            {
+                "id": "parity_funding_spread",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Funding Spreads: Percent, Percentage Points, and Basis Points",
+                "question": "How do I find the borrowing spread that eliminates covered interest arbitrage?",
+                "instructor_answer": "For the borrow-home / lend-foreign direction, let $x$ be the extra home borrowing rate as a decimal return, with deposit rates fixed. Set marginal profit to zero:\n$$x^*=\\frac{(1+i_F^{lend})F_{bid}}{S_{ask}}-(1+i_H^{lend})$$\nProfit is positive below $x^*$ and zero at the threshold. If $x^*$ is negative, there is no positive-margin trade even at zero borrowing spread. Check the reverse direction separately before concluding that neither trade works.\n\nA spread of 1 percentage point means $x=0.01$: a 4% rate becomes 5%. A decimal spread of 0.003 corresponds to 0.3 percentage points or 30 basis points. State the units explicitly; an interest-rate spread is not a percentage change in the interest rate."
+            },
+            {
+                "id": "parity_uip_fama",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "CIP vs. UIP, Expectations, and the Fama Regression",
+                "question": "Is the forward rate a forecast, and does one unexpected spot outcome reject UIP?",
+                "instructor_answer": "CIP uses a contractible forward rate to remove exchange-rate uncertainty. UIP uses an expectation of the future spot rate and leaves the payoff risky:\n$$1+i_H=\\frac{E_t[S_T]}{S_t}(1+i_F)$$\nOnly combining CIP with UIP gives $F_{t,T}=E_t[S_T]$. CIP alone does not make a forward an unbiased forecast. A risk premium can separate forward and expected spot rates even with rational expectations.\n\nThe Week 2 regression is\n$$\\frac{S_T-S_t}{S_t}=\\alpha+\\beta\\frac{F_{t,T}-S_t}{S_t}+\\varepsilon_T$$\nUnder the combined benchmark and rational expectations, $\\alpha=0$ and $\\beta=1$. Many historical short-horizon samples find slopes below zero, but estimates depend on the currencies, dates, and horizons. A single realized forecast error is compatible with rational expectations; the empirical puzzle concerns systematic patterns across observations."
+            },
+            {
+                "id": "parity_ppp_real_rate",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "PPP and Q: Which Basket Is Expensive?",
+                "question": "What does Q below 1 mean, and is it a forecast of future exchange rates?",
+                "instructor_answer": "For $S_{F/H}$ in home currency per foreign unit,\n$$Q_{F/H}=\\frac{S_{F/H}P_F}{P_H}$$\n$Q$ is the price of the foreign basket relative to the home basket. $Q<1$ means the foreign basket is cheaper, so home currency is overvalued <em>relative to absolute PPP</em>. Absolute PPP implies $S^{PPP}=P_H/P_F$ and $Q=1$. A rise in $Q$ means home real depreciation; a fall means home real appreciation.\n\nThis level comparison requires comparable prices for the same basket. Independently rebased CPI indexes or a real exchange-rate index set to 100 do not alone reveal absolute overvaluation.\n\nA PPP gap does not specify when, or even whether, the nominal exchange rate will close it. Nontradable services, trade costs, and basket differences can sustain gaps. Higher tradable productivity can raise wages and nontradable prices (Balassa-Samuelson), producing home real appreciation."
+            },
+            {
+                "id": "parity_relative_ppp",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Relative PPP: Constant Q Does Not Require Q = 1",
+                "question": "How do I combine inflation and exchange-rate changes without getting the sign wrong?",
+                "instructor_answer": "The exact relationship is\n$$\\frac{Q_1}{Q_0}=\\frac{S_1}{S_0}\\frac{1+\\pi_F}{1+\\pi_H}$$\nRelative PPP keeps $Q$ constant, which need not mean $Q=1$. It therefore requires $S_1/S_0=(1+\\pi_H)/(1+\\pi_F)$. For small rates, home depreciation is approximately home inflation minus foreign inflation.\n\nIf $S$ is fixed by a nominal peg while home prices rise faster, $Q$ falls: home appreciates in real terms despite an unchanged nominal quote. Always distinguish the direction of the quoted rate from the currency's value, and distinguish exact ratios from percentage-point approximations."
+            },
+            {
+                "id": "parity_hkd_peg",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Hong Kong Peg: Must HKD and USD Interest Rates Match?",
+                "question": "Why can HKD rates differ from USD rates under a peg and free capital mobility?",
+                "instructor_answer": "As explained in Week 2, the peg and open capital mobility constrain independent monetary policy, and HKD rates track USD rates over time. They do not have to be identical at every date or maturity.\n\nLocal liquidity and forward points permit short-term differentials. Under frictionless CIP, exact equality of matched-horizon returns follows if $F=S$, not merely from describing the exchange-rate regime as a peg. A small short-horizon forward discount can offset a substantial annualized interest gap.\n\nThe lecture mechanism: at the weak-HKD side, the HKMA buys HKD and sells USD, contracting banks' Aggregate Balance and putting upward pressure on HKD rates. At the strong-HKD side, the reverse transaction expands the Aggregate Balance and puts downward pressure on rates. The peg is not a guarantee of a particular forward rate."
+            },
+            {
+                "id": "parity_cip_costs",
+                "category": "Week 2: Parity Conditions & Forward Markets",
+                "subject": "Why a Measured CIP Deviation Can Persist",
+                "question": "Why do banks leave apparent arbitrage profits on the table?",
+                "instructor_answer": "A midpoint gap is a gross pricing comparison. A bank must pay executable spreads and its actual funding costs, and use collateral, credit limits, and balance-sheet capacity to trade it.\n\nPersistent hedging demand can push forward prices away from a simple frictionless benchmark. Banks expand offsetting positions only when the return covers their marginal costs. Regulation is one channel; internal risk limits and funding conditions also matter.\n\nThis distinguishes a measured CIP deviation from an available positive profit after all relevant costs. Week 8 develops cross-currency basis conventions and the institutions behind these costs."
             },
             {
                 "id": "concept_parity_uip_carry",
                 "category": "Week 3: Carry Trades & FX Regimes",
                 "subject": "Uncovered Interest Parity (UIP), Forward Rate Bias, and Carry Trade Crash Risk",
                 "question": "Why does the carry trade generate persistent excess returns if Uncovered Interest Parity (UIP) holds in theory, and what explains the 'carry trade puzzle'?",
-                "instructor_answer": "Uncovered Interest Parity (UIP) states that the expected rate of currency depreciation should offset the interest rate differential:\n\n$$E_t[S_{t+1}] - S_t \\approx (i_d - i_f)S_t$$\n\n1. <strong>The Carry Trade Puzzle</strong>: Empirically, high-interest currencies often do not depreciate in the short to medium term (Fama beta regression $\\beta < 1$ or even negative), yielding persistent positive excess returns for carry traders who borrow low-yielding currencies (funding) to invest in high-yielding currencies (target).\n\n2. <strong>Economic Risk Explanation</strong>: Carry trade profits are not riskless arbitrage. They represent compensation for severe <strong>crash risk / negative skewness</strong> (peso problem). During global liquidity freezes or volatility spikes (VIX surge), synchronized unwinds trigger sharp, discontinuous collapses in the high-yielding target currencies."
+                "instructor_answer": "UIP is an expected-return benchmark, not a riskless arbitrage condition. If $S_t$ is home currency per foreign unit, it gives $E_t[S_T]/S_t=(1+i_H)/(1+i_F)$ for comparable assets under the risk-neutral benchmark.\n\nHistorically, high-interest currencies have often depreciated by less than UIP predicts, or appreciated, giving positive average carry returns. This does not guarantee a profit in any individual period.\n\nCurrency risk premia, exposure to sharp carry unwinds, rare disasters, and expectation errors are possible explanations. These are competing or complementary explanations, not proof that every carry profit is compensation for a single kind of crash risk. See Week 2 for the Fama regression and Week 3 for carry-trade scenarios."
             },
             {
                 "id": "concept_hedging_interest",
@@ -542,35 +663,35 @@
                 "category": "Week 5: MNCs & Capital Budgeting",
                 "subject": "International Capital Budgeting: Home-Currency vs. Foreign-Currency Project Valuation",
                 "question": "How should cross-border cash flows be discounted when evaluating a foreign capital investment project?",
-                "instructor_answer": "Under perfect capital markets, two valuation approaches yield identical net present values (NPV):\n\n1. <strong>Home Currency Method</strong>: Convert projected foreign cash flows into home currency using expected future spot rates $E[S_t]$ (or forward rates), then discount at the home-currency required rate of return / WACC ($r_{home}$).\n2. <strong>Foreign Currency Method</strong>: Discount foreign cash flows in local currency using the foreign-currency required rate of return ($r_{foreign}$), then convert the resulting foreign NPV to home currency at the spot rate $S_0$.\n\nIn practice, analysts must explicitly incorporate institutional frictions: foreign withholding taxes on repatriated dividends, blocked fund rules, and applicable bilateral tax credits."
+                "instructor_answer": "State whether you are valuing project cash flows or cash that can actually be remitted to the parent, and match each cash flow's currency and risk with its discount rate.\n\nThe home-currency method values expected home-currency cash flows. If foreign cash flows and exchange rates are both uncertain, $E[CF_F S]$ need not equal $E[CF_F]E[S]$. The foreign-currency method values cash flows using an appropriate foreign-currency discount rate, then converts that value at today's spot rate.\n\nThe approaches agree only with consistent cash flows, exchange-rate assumptions, and discount rates. An expected future spot rate and a forward rate are not interchangeable without additional assumptions; a contracted forward can fix conversion for a hedged amount. Include taxes, blocked funds, and remittance restrictions where specified."
             },
             {
                 "id": "concept_bop_double_entry",
                 "category": "Week 6: Balance of Payments",
                 "subject": "Double-Entry Bookkeeping Principles for Cross-Border Financial & Asset Transactions",
                 "question": "Why does every international transaction generate two entries in the Balance of Payments? How do credits and debits balance across accounts?",
-                "instructor_answer": "Every international transaction is an exchange of value and is recorded twice in the Balance of Payments:\n\n• <strong>Credit (+)</strong>: Any transaction giving rise to a receipt of funds from abroad (exports of goods/services, factor income earned, foreign purchases of domestic assets / liability issuance).\n• <strong>Debit (-)</strong>: Any transaction giving rise to a payment obligation to abroad (imports of goods/services, factor income paid, domestic acquisitions of foreign assets).\n\nFor example, when a domestic resident buys foreign shares:\n1. <em>Debit (-) Financial Account</em>: Acquisition of foreign equity asset (increases Net Foreign Assets).\n2. <em>Credit (+) Financial Account / Reserves</em>: Settlement transfer of bank deposit or reserve outflow."
+                "instructor_answer": "Every international transaction has two equal entries, including transactions settled by exchanging assets rather than cash. First specify whose accounts you are recording.\n\nTraditional credits include exports, income receipts, and increases in external liabilities; debits include imports, income payments, and acquisitions of external assets. The 2026 slides use BPM6 for the <em>FA balance</em>: asset acquisition minus liability incurrence, so an asset-acquisition debit contributes positively to FA.\n\nExample: a resident buys foreign shares using an existing foreign bank deposit. Acquisition of portfolio assets raises FA; the equal reduction of deposit assets lowers FA. The two net to zero. Do not assume a private purchase necessarily changes central-bank reserves; specify the settlement asset."
             },
             {
                 "id": "concept_bop_ip",
                 "category": "Week 6: Balance of Payments",
                 "subject": "Capital Account vs. Current Account: Intellectual Property Transfers vs. Licensing Royalties",
                 "question": "How are intellectual property (IP) transactions recorded in the Balance of Payments? What is the distinction between selling IP outright versus licensing IP for royalties?",
-                "instructor_answer": "In standard IMF Balance of Payments (BPM6) accounting:\n\n1. <strong>Outright IP Sale / Transfer</strong>: Counted in the <strong>Capital Account</strong> under 'Gross acquisitions / disposals of non-produced non-financial assets' (e.g., permanent sale of patents, trademarks, franchises).\n2. <strong>IP Licensing & Royalties</strong>: Counted in the <strong>Current Account</strong> under <em>Services (Charges for the use of intellectual property)</em>. Licensing grants temporary authorization to use proprietary technology/brands in exchange for recurring fees without transferring underlying ownership."
+                "instructor_answer": "Classify the <strong>type of asset or service</strong>, not just whether ownership is transferred. The 2026 Week 6 slides define the capital account narrowly: capital transfers and transactions in non-produced nonfinancial assets, including transferable contracts, leases, licenses, and marketing assets. Transactions in produced intellectual-property products can instead be services.\n\nRoyalties and license fees for the use of intellectual property generally enter current-account services. An outright sale is not automatically a capital-account transaction. Read the transaction description before assigning the category."
             },
             {
                 "id": "concept_bop_repatriation",
                 "category": "Week 6: Balance of Payments",
                 "subject": "FDI Accounting: Profit Reinvestment vs. Profit Repatriation",
                 "question": "What are the exact Balance of Payments credit and debit entries for a foreign affiliate earning profits, comparing reinvested profits against repatriated profits?",
-                "instructor_answer": "When a foreign subsidiary of a domestic parent earns operating profit:\n\n1. <strong>Earnings Accrual Stage</strong>:\n   • <em>Home Country</em>: Credit (+) Current Account as Primary Factor Income.\n   • <em>Host Country</em>: Debit (-) Current Account as Factor Income paid to foreign owners.\n\n2. <strong>Settlement / Disposition</strong>:\n   • <em>If Profits are Reinvested</em>: Home country Debits (-) Financial Account (increase in outbound Direct Investment assets). Host country Credits (+) Financial Account (increase in inbound FDI liabilities).\n   • <em>If Profits are Repatriated</em>: Home country Debits (-) Financial Account via increase in foreign bank deposits/claims. Host country Credits (+) Financial Account via settlement."
+                "instructor_answer": "For the parent's home economy, its share of a foreign subsidiary's earnings is a current-account primary-income receipt. For the host economy, it is primary income payable to foreign owners.\n\nIf earnings are reinvested, the home economy records an increase in direct-investment assets (positive contribution to BPM6 FA), and the host records an increase in direct-investment liabilities (negative FA contribution).\n\nIf distributed, record the dividend and identify the actual settlement entry. For example, receipt into the parent's foreign deposit raises its external deposit assets. Do not automatically record a new FDI investment or assume that settlement changes official reserves. Keep traditional credit/debit labels separate from the BPM6 FA sign."
             },
             {
                 "id": "concept_bop_reserves_sign",
                 "category": "Week 6: Balance of Payments",
                 "subject": "Financial Account Sign Convention & Central Bank Foreign Reserves",
-                "question": "Why is an accumulation of official central bank foreign reserves recorded as a negative entry (debit) in the Financial Account?",
-                "instructor_answer": "The Financial Account (FA) records net capital inflows: $\\text{FA Balance} = \\Delta\\text{Liabilities} - \\Delta\\text{Assets} = -\\Delta(\\text{Net Foreign Asset Position})$.\n\nWhen a central bank accumulates foreign currency reserves (e.g. purchasing US Treasuries), its foreign asset position increases ($+\\Delta\\text{NFA}$). Because acquiring foreign claims represents a capital <em>outflow</em>, it enters the Financial Account with a <strong>negative sign (debit)</strong>.\n\n$$\\text{Current Account} + \\text{Capital Account} + \\text{Financial Account} = 0$$"
+                "question": "How is reserve accumulation signed in the course's BPM6 Financial Account, and why do traditional tables call it a debit?",
+                "instructor_answer": "Use the <strong>IMF BPM6 convention in the 2026 slides</strong>: FA is net acquisition of external financial assets minus net incurrence of external liabilities.\n$$CA+KA-FA+NEO=0$$\nReserve accumulation is acquisition of an external asset, so its contribution to FA is <strong>positive</strong>; issuing a liability to a nonresident contributes negatively. NEO denotes net errors and omissions.\n\nTraditional credit/debit tables call asset acquisition a debit. Do not carry that minus sign into the BPM6 FA balance. Some textbooks define FA as net inflows and write a different identity; do not mix conventions. Changes in net foreign asset wealth also include valuation changes, which are not BoP transactions."
             },
             {
                 "id": "concept_bop_real_estate_vs_equity",
@@ -591,7 +712,7 @@
                 "category": "Week 8: Basis & Balance Sheets",
                 "subject": "Cross-Currency Swap Basis: Why Post-2008 CIP Deviations Persist",
                 "question": "Why does the cross-currency basis (CIP deviation) persist without being eliminated by riskless arbitrage?",
-                "instructor_answer": "Prior to 2008, CIP held tightly because dealers freely arbitraged price discrepancies. Since the 2008 Global Financial Crisis, the cross-currency swap basis has persisted due to <strong>intermediary balance-sheet constraints</strong>:\n\n1. <strong>Post-Crisis Regulations</strong> (Basel III Leverage Ratio, SLR, LCR) require banks to hold costly regulatory equity against gross balance sheet assets, regardless of risk.\n2. Exploiting a CIP deviation requires expanding both assets and liabilities simultaneously (funded arbitrage).\n3. When balance-sheet capacity is scarce, arbitrageurs demand a positive basis premium to compensate for the marginal regulatory shadow cost of balance-sheet space."
+                "instructor_answer": "As in Week 2, hedging demand can push forward prices away from frictionless CIP, while executable spreads, funding costs, collateral, credit limits, and balance-sheet constraints limit banks' offsetting trades.\n\nLeverage requirements and internal limits can make balance-sheet capacity costly even for a currency-hedged position. Liquidity requirements are a distinct constraint; they should not all be described as equity requirements against gross assets.\n\nA measured deviation can persist when the gross return does not cover marginal costs. State which currency leg and spread define the quoted basis: its sign depends on the convention, so a funding premium does not imply that every reported basis is positive."
             },
             {
                 "id": "concept_capm_international",
@@ -605,7 +726,7 @@
                 "category": "Week 10: Payment Rails & Dollar Dominance",
                 "subject": "The Triffin Dilemma and Global Reserve Currency Mechanics",
                 "question": "What is the Triffin Dilemma, and how does providing a global reserve currency create a conflict between short-term domestic liquidity and long-term solvency?",
-                "instructor_answer": "The Triffin Dilemma arises when a single sovereign currency (e.g. USD) serves as the primary global reserve asset and international trade invoicing vehicle:\n\n1. <strong>Global Liquidity Demand</strong>: To satisfy growing world trade and reserve demand, the issuer must run persistent Current Account deficits or expand external gross liabilities.\n2. <strong>Long-Term Solvency Conflict</strong>: As cumulative foreign claims on the reserve issuer grow far larger than its underlying fiscal capacity or gold backing, international confidence in the issuer's long-term convertibility and fiscal stability is inevitably undermined."
+                "instructor_answer": "Under Bretton Woods, the original Triffin dilemma concerned supplying dollar reserves while maintaining confidence in dollar convertibility into a limited stock of gold.\n\nThe modern version concerns global demand for safe, liquid reserve assets growing relative to the issuer's fiscal and economic capacity. Confidence may weaken if supply expands without credible backing or policy institutions; collapse is not inevitable.\n\nDistinguish gross from net claims. Supplying more gross dollar assets does not require a US current-account deficit: external assets and liabilities can both expand. A current-account deficit raises net foreign claims on the US, while a fiscal deficit is a separate concept."
             },
             {
                 "id": "concept_sudden_stops_trilemma",
@@ -720,52 +841,65 @@
         }
 
         function renderTeX(tex) {
-            let out = tex;
-
-            // Handle \frac{num}{den}
-            out = out.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '<span class="math-frac"><span class="math-num">$1</span><span class="math-den">$2</span></span>');
-            // Handle double-nested fractions if any
-            out = out.replace(/\\frac\{([^{}]+)\}\{([^{}]+)\}/g, '<span class="math-frac"><span class="math-num">$1</span><span class="math-den">$2</span></span>');
-
-            // Handle \text{...}
-            out = out.replace(/\\text\{([^{}]+)\}/g, '<span style="font-family:inherit; font-style:normal;">$1</span>');
-
-            // Handle Greek letters & math symbols
+            // Parse balanced groups so fractions containing subscripts/superscripts render correctly.
+            let position = 0;
             const symbols = {
-                '\\Delta': '&Delta;',
-                '\\beta': '&beta;',
-                '\\gamma': '&gamma;',
-                '\\sum': '&sum;',
-                '\\approx': '&asymp;',
-                '\\times': '&times;',
-                '\\cdot': '&middot;',
-                '\\ge': '&ge;',
-                '\\le': '&le;',
-                '\\ne': '&ne;',
-                '\\neq': '&ne;',
-                '\\to': '&rarr;',
-                '\\implies': '&rArr;',
-                '\\iff': '&hArr;',
-                '\\left(': '(',
-                '\\right)': ')'
+                Delta: 'Δ', alpha: 'α', beta: 'β', gamma: 'γ', pi: 'π',
+                varepsilon: 'ε', sum: '∑', approx: '≈', times: '×', cdot: '·',
+                ge: '≥', le: '≤', ne: '≠', neq: '≠', to: '→', implies: '⇒', iff: '⇔'
             };
+            const escapeHTML = value => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-            for (const [key, sym] of Object.entries(symbols)) {
-                out = out.split(key).join(sym);
+            function argument() {
+                while (tex[position] === ' ') position++;
+                if (tex[position] === '{') {
+                    position++;
+                    return expression(true);
+                }
+                return atom();
             }
 
-            // Handle subscripts and superscripts: x_{abc} or x_d
-            out = out.replace(/_\{([^{}]+)\}/g, '<sub>$1</sub>');
-            out = out.replace(/_([a-zA-Z0-9*+-]+)/g, '<sub>$1</sub>');
-            out = out.replace(/\^\{([^{}]+)\}/g, '<sup>$1</sup>');
-            out = out.replace(/\^([a-zA-Z0-9*+-]+)/g, '<sup>$1</sup>');
+            function atom() {
+                const char = tex[position++];
+                if (char === undefined) return '';
+                if (char === '{') return expression(true);
+                if (char === '_' || char === '^') {
+                    const tag = char === '_' ? 'sub' : 'sup';
+                    return `<${tag}>${argument()}</${tag}>`;
+                }
+                if (char !== '\\') return escapeHTML(char);
+                const match = /^[a-zA-Z]+/.exec(tex.slice(position));
+                if (!match) return escapeHTML(tex[position++] || '');
+                const command = match[0];
+                position += command.length;
+                if (command === 'frac') {
+                    const numerator = argument();
+                    const denominator = argument();
+                    return `<span class="math-frac"><span class="math-num">${numerator}</span><span class="math-den">${denominator}</span></span>`;
+                }
+                if (command === 'text') return `<span style="font-style:normal">${argument()}</span>`;
+                if (command === 'left' || command === 'right') return '';
+                return symbols[command] || escapeHTML('\\' + command);
+            }
 
-            return out;
+            function expression(group = false) {
+                let result = '';
+                while (position < tex.length) {
+                    if (group && tex[position] === '}') {
+                        position++;
+                        break;
+                    }
+                    result += atom();
+                }
+                return result;
+            }
+            return expression();
         }
 
         function updateCategoryCounts() {
             document.getElementById('count-all').textContent = QA_DATA.length;
             const weekKeys = {
+                'count-ps1': 'Problem Set 1: Submission & Working',
                 'count-w1': 'Week 1: FX Markets & Quotations',
                 'count-w2': 'Week 2: Parity Conditions & Forward Markets',
                 'count-w3': 'Week 3: Carry Trades & FX Regimes',
@@ -832,7 +966,7 @@
                     <div class="qa-card-body">
                         <div class="section-heading">
                             <span>Conceptual Question</span>
-                            <button class="copy-btn" onclick="event.stopPropagation(); copyText('${item.id}')">Copy Q&amp;A</button>
+                            <button class="copy-btn" onclick="event.stopPropagation(); copyText('${item.id}', this)">Copy Q&amp;A</button>
                         </div>
                         <div class="question-box" id="q-${item.id}">${formattedQuestion}</div>
 
@@ -850,12 +984,11 @@
             });
         }
 
-        function copyText(id) {
+        function copyText(id, btn) {
             const item = QA_DATA.find(q => q.id === id);
             if (!item) return;
             const plainText = `[${item.category}] ${item.subject}\n\nQuestion:\n${item.question}\n\nCourse Principle:\n${item.instructor_answer}`;
             navigator.clipboard.writeText(plainText).then(() => {
-                const btn = event.target;
                 const orig = btn.textContent;
                 btn.textContent = 'Copied!';
                 setTimeout(() => { btn.textContent = orig; }, 1500);
