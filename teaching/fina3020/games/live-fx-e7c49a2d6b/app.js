@@ -14,7 +14,7 @@ if (fragment.get('host')) storage.setItem('livefx_host', fragment.get('host'));
 if (location.hash) history.replaceState(null, '', location.pathname + location.search);
 let hostToken = (projector || studentView) ? '' : storage.getItem('livefx_host') || '';
 let token = hostToken || (room && !projector ? storage.getItem('livefx_student_' + room) || '' : '');
-let draftEdited = false;
+let draftEdited = false, lawEditorRoom = null;
 let state = null, busy = false, online = false, charts = {}, renderedRound = null, chartKey = '', latestReflection = null, qrLink = '';
 const money = n => new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
 const percent = n => Number((n * 100).toFixed(2)) + '%';
@@ -63,10 +63,10 @@ function showLaw(container, distribution, prefix='') {
 }
 function editor(id, distribution) {
     const table=node('table');const head=node('tr');head.append(node('th','FX change (%)'),node('th','Probability (%)'));table.append(head);
-    distribution.forEach((x,i)=>{const row=node('tr');['change','probability'].forEach(k=>{const td=node('td'),input=node('input');input.type='number';input.step='any';input.value=String(x[k]*100);input.required=true;input.setAttribute('aria-label',`${id} outcome ${i+1} ${k}`);input.dataset.field=k;td.append(input);row.append(td);});table.append(row);});
+    distribution.forEach((x,i)=>{const row=node('tr');['change','probability'].forEach(k=>{const td=node('td'),input=node('input');input.type='number';input.step='any';input.value=String(Number((x[k]*100).toFixed(8)));input.required=true;input.setAttribute('aria-label',`${id} outcome ${i+1} ${k}`);input.dataset.field=k;td.append(input);row.append(td);});table.append(row);});
     $(id).replaceChildren(table);
 }
-function editorValue(id) { const values=[...$(id).querySelectorAll('input')].map(n=>Number(n.value)/100);return [0,2,4].map(i=>({change:values[i],probability:values[i+1]})); }
+function editorValue(id) { const values=[...$(id).querySelectorAll('input')].map(n=>Number(n.value)/100);return Array.from({length:values.length/2},(_,i)=>({change:values[2*i],probability:values[2*i+1]})); }
 async function setup() {
     $('welcome').hidden=true;$('game').hidden=true;$('setup').hidden=false;hostLinks();$('connection').textContent='Connecting instructor…';$('create-form').querySelector('button').disabled=true;
     const config=await api('/api/config',null,hostToken);
@@ -163,6 +163,10 @@ function render() {
     $('economics').hidden=false;
     if(state.instructor){
         hostLinks();
+        const canEditLaw=state.status==='lobby'&&state.round===0;
+        $('room-law-settings').hidden=!canEditLaw;
+        if(canEditLaw&&lawEditorRoom!==room){editor('room-known-editor',state.known);editor('room-shifted-editor',state.shifted);lawEditorRoom=room;}
+        $('save-room-laws').disabled=busy||!online||!canEditLaw;
         const allowed={open:['lobby','results'].includes(state.status),lock:state.status==='open',draw:state.status==='locked'&&state.submitted>0,reopen:state.status==='locked',shift:state.status==='results'&&!uncertain,finish:state.status==='results',reveal:state.status==='finished'&&uncertain&&!state.revealed};
         document.querySelectorAll('[data-action]').forEach(b=>b.disabled=busy||!online||!allowed[b.dataset.action]);
         $('projector-link').href=link('projector');$('join-link').value=link();showLaw($('private-law'),state.shifted);
@@ -247,6 +251,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     $('recover-form').onsubmit=async e=>{e.preventDefault();const code=$('recover-room').value.trim().toUpperCase(),key=$('recover-key').value.trim();try{const s=await api('/api/state?room='+code,null,key);if(!s.me)throw Error('Recovery key does not match this room.');storage.setItem('livefx_student_'+code,key);await enter(code,key);}catch(err){message(err.message);}};
     $('create-form').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;const b=$('create-form').querySelector('button');b.disabled=true;b.textContent='Creating room…';message('');try{const r=await api('/api/create',{title:$('title-input').value,known:editorValue('known-editor'),shifted:editorValue('shifted-editor'),seed:$('seed-input').value},hostToken);busy=false;await enter(r.code,hostToken);}catch(err){message(err.message);}finally{busy=false;b.disabled=false;b.textContent='Create room';if(state)render();}};
     document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action).catch(()=>{}));
+    $('room-law-form').onsubmit=async e=>{e.preventDefault();try{const result=await action('configure',{known:editorValue('room-known-editor'),shifted:editorValue('room-shifted-editor')});if(result){$('room-law-settings').open=false;message('Distributions saved. Students will see the corrected Part 1 law on their next update.');}}catch{}};
     $('submit-allocation').onclick=()=>{if(!allocationValidity()||state.status!=='open')return;action('allocate',{round:state.round,hedge:allocationValue('hedge')/100,carry:allocationValue('carry')/100}).catch(()=>{});};
     ['hedge','carry'].forEach(id=>{$(id).oninput=()=>editAllocation(id,true);$(id+'-number').oninput=()=>editAllocation(id,false);});
     ['chart-view','result-round'].forEach(id=>$(id).onchange=renderCharts);
