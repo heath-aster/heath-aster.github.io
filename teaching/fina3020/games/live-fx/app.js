@@ -2,7 +2,9 @@
 const $ = id => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const projector = params.get('view') === 'projector';
+const studentView = params.get('view') === 'student';
 const apiBase = (window.LIVE_FX_API_BASE || '').replace(/\/$/, '');
+const scriptApi = /script\.google\.com\/macros\//.test(apiBase);
 const localHost = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
 const backendReady = Boolean(apiBase) || localHost || location.protocol === 'http:';
 const storage = FINA3020Storage;
@@ -10,7 +12,7 @@ let room = (params.get('room') || '').toUpperCase();
 const fragment = new URLSearchParams(location.hash.slice(1));
 if (fragment.get('host')) storage.setItem('livefx_host', fragment.get('host'));
 if (location.hash) history.replaceState(null, '', location.pathname + location.search);
-const hostToken = projector ? '' : storage.getItem('livefx_host') || '';
+const hostToken = (projector || studentView) ? '' : storage.getItem('livefx_host') || '';
 let token = hostToken || (room && !projector ? storage.getItem('livefx_student_' + room) || '' : '');
 let state = null, busy = false, online = false, charts = {}, renderedRound = null, chartKey = '', latestReflection = null, qrLink = '';
 const money = n => new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
@@ -23,15 +25,17 @@ function message(text) { $('message').textContent = text; }
 function save(key, value) { storage.setItem('livefx_' + key, JSON.stringify(value)); }
 function read(key) { try { return JSON.parse(storage.getItem('livefx_' + key) || 'null'); } catch { return null; } }
 async function api(path, body, auth = token) {
-    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 10000);
+    const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), scriptApi ? 30000 : 10000);
     try {
-        const response = await fetch(apiBase + path, {method:body ? 'POST':'GET', headers:{'Content-Type':'application/json', ...(auth ? {'Authorization':'Bearer '+auth}:{})}, body:body ? JSON.stringify(body):undefined, signal:controller.signal});
+        const route = new URL(path, location.origin);
+        const scriptBody = {...(body || {}), liveFx:true, path:route.pathname, room:body?.room || route.searchParams.get('room') || '', token:auth};
+        const response = await fetch(scriptApi ? apiBase : apiBase + path, scriptApi ? {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(scriptBody), signal:controller.signal, credentials:'omit', redirect:'follow'} : {method:body ? 'POST':'GET', headers:{'Content-Type':'application/json', ...(auth ? {'Authorization':'Bearer '+auth}:{})}, body:body ? JSON.stringify(body):undefined, signal:controller.signal});
         const value = await response.json();
         if (!response.ok || value.error) { const error = new Error(value.error || 'Request failed'); error.definitive = true; throw error; }
         return value;
     } finally { clearTimeout(timeout); }
 }
-function link(view = '') { return location.origin + location.pathname + '?room=' + room + (view ? '&view=' + view : ''); }
+function link(view = 'student') { return location.origin + location.pathname + '?room=' + room + (view ? '&view=' + view : ''); }
 function renderQR() {
     if(qrLink===link())return;qrLink=link();
     const qr=qrcode(0,'M');qr.addData(qrLink);qr.make();
@@ -42,7 +46,7 @@ function renderQR() {
 }
 function enter(code, auth) {
     room = code; token = auth;
-    history.replaceState(null, '', location.pathname + '?room=' + room + (projector ? '&view=projector' : ''));
+    history.replaceState(null, '', location.pathname + '?room=' + room + (projector ? '&view=projector' : studentView ? '&view=student' : ''));
     $('welcome').hidden = true; $('setup').hidden = true;
     return refresh();
 }
@@ -160,7 +164,7 @@ function render() {
 }
 async function refresh() {
     if(!room)return;
-    try{state=await api('/api/state?room='+encodeURIComponent(room));online=true;$('connection').textContent='Connected · updates every 2s';render();}
+    try{state=await api('/api/state?room='+encodeURIComponent(room));online=true;$('connection').textContent=(scriptApi ? 'Connected · updates every 6–8s' : 'Connected · updates every 2s');render();}
     catch(e){online=false;$('connection').textContent='Disconnected · retrying';if(state)render();else message(e.message);}
 }
 async function action(name, extra={}) {
@@ -207,9 +211,9 @@ document.addEventListener('DOMContentLoaded',async()=>{
     $('save-reflection').onclick=()=>submitReflection().catch(()=>{});
     $('sync-reflection').onclick=()=>syncReflection().catch(e=>message(e.message));
     $('export-own').onclick=()=>download(JSON.stringify({room,student:state.me,pendingSheet:FINA3020Utils._readPending()},null,2),'live-fx-'+room+'-my-record.json','application/json');
-    $('export-class').onclick=async()=>{try{const response=await fetch(apiBase+'/api/export?room='+room,{headers:{Authorization:'Bearer '+hostToken}});if(!response.ok)throw Error('Export failed');download(await response.text(),'live-fx-'+room+'.csv','text/csv');}catch(e){message(e.message);}};
+    $('export-class').onclick=async()=>{try{const csv=scriptApi?(await api('/api/export?room='+room,null,hostToken)).csv:await (async()=>{const response=await fetch(apiBase+'/api/export?room='+room,{headers:{Authorization:'Bearer '+hostToken}});if(!response.ok)throw Error('Export failed');return response.text();})();download(csv,'live-fx-'+room+'.csv','text/csv');}catch(e){message(e.message);}};
     $('new-room').onclick=()=>{room='';state=null;history.replaceState(null,'',location.pathname);setup().catch(e=>message(e.message));};
     try{if(hostToken&&!room)await setup();else if(room&&(token||projector))await refresh();else $('connection').textContent='Ready to join';}catch(e){message(e.message);}
     // No overlapping polling requests; preserve student edits while updating server state.
-    async function poll(){if(room&&(token||projector))await refresh();setTimeout(poll,2000);}setTimeout(poll,2000);
+    async function poll(){if(room&&(token||projector))await refresh();setTimeout(poll,scriptApi ? 6000+Math.random()*1500 : 2000);}setTimeout(poll,scriptApi ? 6000+Math.random()*1500 : 2000);
 });
