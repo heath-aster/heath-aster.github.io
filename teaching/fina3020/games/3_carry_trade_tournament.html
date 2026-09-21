@@ -259,6 +259,194 @@
             font-weight: 700;
         }
 
+        /* --- Payoff formula display (Week 3 lecture formula) --- */
+        .formula-display {
+            background: linear-gradient(135deg, rgba(218,165,32,0.10), rgba(19,24,34,0.95));
+            border: 1px solid var(--cuhk-gold-glow);
+            border-radius: 12px;
+            padding: 1.1rem 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .formula-display-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--cuhk-gold-light);
+            margin-bottom: 0.75rem;
+        }
+
+        .formula-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 0.3rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.05rem;
+            color: var(--text-primary);
+            padding: 0.6rem 0.3rem;
+            line-height: 1.9;
+        }
+
+        .formula-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            color: var(--text-secondary);
+            text-align: center;
+            padding: 0.4rem 0.3rem;
+            overflow-wrap: anywhere;
+            white-space: pre-line;
+        }
+
+        .frac {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            vertical-align: middle;
+            margin: 0 0.2rem;
+            line-height: 1.25;
+        }
+
+        .frac .num { border-bottom: 1.5px solid currentColor; padding: 0 0.3rem; }
+        .frac .den { padding: 0 0.3rem; }
+
+        .formula-note {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.55;
+            margin-top: 0.6rem;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 0.6rem;
+        }
+
+        .formula-note strong { color: var(--text-secondary); }
+
+        /* --- Risk assessment panel --- */
+        .risk-panel {
+            background: rgba(19, 24, 34, 0.95);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .risk-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+            gap: 0.85rem;
+            margin: 0.9rem 0;
+        }
+
+        .risk-metric {
+            background: rgba(0, 0, 0, 0.32);
+            border: 1px solid var(--border-color);
+            border-radius: 9px;
+            padding: 0.85rem;
+        }
+
+        .risk-metric-label {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            line-height: 1.35;
+        }
+
+        .risk-metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 0.3rem 0 0.15rem;
+        }
+
+        .risk-metric-hint {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.45;
+        }
+
+        .risk-verdict {
+            border-radius: 9px;
+            padding: 0.85rem 1rem;
+            font-size: 0.9rem;
+            line-height: 1.55;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .risk-identity {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: rgba(0, 0, 0, 0.35);
+            border-left: 3px solid var(--cuhk-gold);
+            border-radius: 0 8px 8px 0;
+            white-space: pre-line;
+            padding: 0.7rem 0.9rem;
+            margin: 0.35rem 0 0.9rem;
+            overflow-wrap: anywhere;
+        }
+
+        .lever-list {
+            margin: 0.4rem 0 0;
+            padding-left: 1.1rem;
+            font-size: 0.86rem;
+            color: var(--text-secondary);
+            line-height: 1.65;
+        }
+
+        .lever-list li { margin-bottom: 0.3rem; }
+
+        /* --- Response comparison table --- */
+        .compare-table, .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 0.75rem;
+        }
+
+        .compare-table th, .history-table th {
+            text-align: left;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            padding: 0.5rem 0.6rem;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .compare-table td, .history-table td {
+            padding: 0.55rem 0.6rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+        }
+
+        .compare-table tr.chosen td {
+            background: rgba(218, 165, 32, 0.14);
+            color: var(--text-primary);
+        }
+
+        .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        /* --- Navigation --- */
+        .stepper-step.clickable { cursor: pointer; }
+        .stepper-step.clickable:hover { color: var(--cuhk-gold-light); }
+
+        .stage-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stage-nav .btn { flex: 1 1 200px; }
+
         @media (max-width: 768px) {
             .stage-stepper { flex-direction: column; gap: 0.5rem; }
             .decision-cards { grid-template-columns: 1fr; }
@@ -319,23 +507,33 @@
 
         <!-- 5-STAGE STEPPER -->
         <div class="stage-stepper">
-            <div class="stepper-step active" id="step1-indicator">
+            <div class="stepper-step active" id="step1-indicator" role="button" tabindex="0"
+                 onclick="jumpToStage(1)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToStage(1);}"
+                 title="Go back to stage 1 (available once you have reached it)">
                 <div class="step-num">1</div>
                 <span>1. Identification</span>
             </div>
-            <div class="stepper-step" id="step2-indicator">
+            <div class="stepper-step" id="step2-indicator" role="button" tabindex="0"
+                 onclick="jumpToStage(2)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToStage(2);}"
+                 title="Go back to stage 2 (available once you have reached it)">
                 <div class="step-num">2</div>
                 <span>2. Allocation</span>
             </div>
-            <div class="stepper-step" id="step3-indicator">
+            <div class="stepper-step" id="step3-indicator" role="button" tabindex="0"
+                 onclick="jumpToStage(3)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToStage(3);}"
+                 title="Go back to stage 3 (available once you have reached it)">
                 <div class="step-num">3</div>
                 <span>3. Shock Event</span>
             </div>
-            <div class="stepper-step" id="step4-indicator">
+            <div class="stepper-step" id="step4-indicator" role="button" tabindex="0"
+                 onclick="jumpToStage(4)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToStage(4);}"
+                 title="Go back to stage 4 (available once you have reached it)">
                 <div class="step-num">4</div>
                 <span>4. Payoff Debrief</span>
             </div>
-            <div class="stepper-step" id="step5-indicator">
+            <div class="stepper-step" id="step5-indicator" role="button" tabindex="0"
+                 onclick="jumpToStage(5)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();jumpToStage(5);}"
+                 title="Go back to stage 5 (available once you have reached it)">
                 <div class="step-num">5</div>
                 <span>5. Exit Reflection</span>
             </div>
@@ -489,6 +687,113 @@
                 </div>
             </div>
 
+            <!-- PAYOFF FORMULA (Week 3 lecture: Carry Trade Mechanics and Payoff Formula) -->
+            <div class="formula-display">
+                <div class="formula-display-title">The payoff formula from lecture</div>
+                <div class="formula-main">
+                    <span class="frac"><span class="num">E<sub>1</sub></span><span class="den">E<sub>0</sub></span></span>
+                    <span class="formula-op">=</span>
+                    <span class="formula-var">L</span>
+                    <span>&#91;&#8201;(1 + i<sub>H</sub>)</span>
+                    <span class="frac"><span class="num">S<sub>1</sub></span><span class="den">S<sub>0</sub></span></span>
+                    <span>&minus; (1 + i<sub>F</sub>)&#8201;&#93;</span>
+                    <span class="formula-op">+</span>
+                    <span>(1 + i<sub>F</sub>)</span>
+                    <span style="margin:0 0.5rem; color:var(--text-muted);">|</span>
+                    <span>ROI <span class="formula-op">=</span>
+                        <span class="frac"><span class="num">E<sub>1</sub></span><span class="den">E<sub>0</sub></span></span>
+                        <span>&minus; 1</span>
+                    </span>
+                </div>
+                <div class="formula-note">
+                    <strong>E<sub>0</sub>, E<sub>1</sub></strong> = equity at the start and end of the year &middot;
+                    <strong>L</strong> = assets &divide; E<sub>0</sub>, gross leverage, so debt = (L &minus; 1)E<sub>0</sub> &middot;
+                    <strong>i<sub>H</sub></strong> = rate on the high-yield currency you invest in &middot;
+                    <strong>i<sub>F</sub></strong> = rate on the low-yield currency you borrow &middot;
+                    <strong>S</strong> = units of the funding currency per unit of the invested currency (JPY per USD here).
+                    S<sub>1</sub>/S<sub>0</sub> below 1 means the funding currency has appreciated, which is the loss case.
+                </div>
+                <div class="formula-note">
+                    <strong>In this game.</strong> The lecture formula measures the return in the funding currency. This desk reports
+                    everything in USD, so the same accounting reads:
+                    <div class="formula-sub" style="margin-top:0.5rem;">
+                        E<sub>1</sub> &divide; E<sub>0</sub> = L &times; &#91;&#8201;sum over USD, BRL, MXN and cash of w<sub>k</sub>(1 + i<sub>k</sub>)(X<sub>1</sub>/X<sub>0</sub>)<sub>k</sub>&#8201;&#93; &minus; (L &minus; 1)(1 + i<sub>JPY</sub>)(S<sub>0</sub>/S<sub>1</sub>)
+                    </div>
+                    where w<sub>k</sub> is the weight of currency k, X is the USD value of one unit of that currency
+                    (X<sub>1</sub>/X<sub>0</sub> = 1 for the USD and cash legs), and S<sub>0</sub>/S<sub>1</sub> is how much more USD it takes
+                    to repay one JPY of debt. Cash is a leg with i<sub>k</sub> = 0.
+                </div>
+                <div style="margin-top:0.75rem; padding-top:0.7rem; border-top:1px dashed var(--border-color);">
+                    <div style="font-size:0.8rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.3rem;">Your portfolio, with FX unchanged</div>
+                    <div class="formula-sub" id="formulaLiveSub" style="color:var(--text-primary);"></div>
+                </div>
+            </div>
+
+            <!-- RISK ASSESSMENT PANEL -->
+            <div class="risk-panel">
+                <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:0.5rem;">
+                    <h4 style="color:var(--cuhk-gold-light); font-family:'Outfit'; margin:0;">How risky is this portfolio?</h4>
+                    <span style="font-size:0.78rem; color:var(--text-muted);">Updates as you move the sliders</span>
+                </div>
+                <p style="font-size:0.86rem; color:var(--text-secondary); margin:0.5rem 0 0.2rem;">
+                    The ROI above is what you earn if nothing moves. These four numbers are what you stand to lose if it does.
+                    They assume you hold this portfolio for the full year, and that BRL and MXN move together while JPY moves against you at the same time.
+                </p>
+
+                <div class="risk-grid">
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">Equity lost per 1 point of adverse move</div>
+                        <div class="risk-metric-value" id="riskPerPointText" style="color:var(--danger);">&minus;4.00%</div>
+                        <div class="risk-metric-hint" id="riskPerPointHint">EM currencies &minus;1%, JPY +1% at the same time.</div>
+                    </div>
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">Move that wipes out your equity</div>
+                        <div class="risk-metric-value" id="riskWipeoutText" style="color:var(--cuhk-gold-light);">30.2 pts</div>
+                        <div class="risk-metric-hint" id="riskWipeoutHint">Both channels moving against you together.</div>
+                    </div>
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">EM crash alone that wipes you out</div>
+                        <div class="risk-metric-value" id="riskEmText" style="color:var(--info);">&minus;60.9%</div>
+                        <div class="risk-metric-hint" id="riskEmHint">BRL and MXN against USD, with JPY unchanged.</div>
+                    </div>
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">JPY rally alone that wipes you out</div>
+                        <div class="risk-metric-value" id="riskJpyText" style="color:var(--info);">+59.9%</div>
+                        <div class="risk-metric-hint" id="riskJpyHint">USD/JPY at the wipeout point, with EM unchanged.</div>
+                    </div>
+                </div>
+
+                <p style="font-size:0.82rem; color:var(--text-muted); margin:0 0 0.9rem; line-height:1.55;">
+                    For scale: in the yen carry unwind of August 2024, USD/JPY fell roughly 12% in about a month. Over the second half of
+                    2008 it fell roughly 20%. Those are moves in the funding currency alone, before anything happens to emerging market
+                    assets.
+                </p>
+
+                <div style="font-size:0.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:0.15rem;">How the wipeout distance is worked out</div>
+                <div class="risk-identity" id="riskIdentityText"></div>
+
+                <div class="risk-verdict" id="riskVerdict" style="margin-bottom:0.9rem;"></div>
+
+                <div style="background:rgba(0,0,0,0.3); border:1px solid var(--border-color); border-radius:9px; padding:0.85rem 1rem; margin-bottom:0.9rem;">
+                    <div style="font-size:0.86rem; color:var(--text-primary); font-weight:600;">Routine desk stress test: EM currencies &minus;8%, JPY +6%</div>
+                    <div style="font-size:0.86rem; color:var(--text-secondary); margin-top:0.3rem;">
+                        Your ROI in that case: <span id="riskStressRoiText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--danger);">&minus;7.05%</span>.
+                        This is the sort of move a desk checks every morning. It is not a forecast, and it is not the event in Stage 3.
+                    </div>
+                </div>
+
+                <div style="font-size:0.86rem; color:var(--text-primary); font-weight:600;">If those numbers are larger than you want to live with, you have three levers:</div>
+                <ul class="lever-list">
+                    <li><strong>Leverage.</strong> Cutting L shrinks both the debt you owe in JPY and the assets exposed to FX, so the loss per point falls roughly in proportion. It also cuts the quiet-market ROI in the same proportion.</li>
+                    <li><strong>Mix of targets.</strong> Moving weight from BRL and MXN to USD removes asset-side FX risk, because USD assets have no currency mismatch with your USD reporting. You give up most of the spread: BRL pays 14.00%, USD pays 3.75%.</li>
+                    <li><strong>Cash.</strong> Leaving assets in USD cash at 0% removes asset-side FX risk without any credit or rate exposure, but does nothing about the JPY debt, which is the other half of your risk.</li>
+                </ul>
+                <p style="font-size:0.82rem; color:var(--text-muted); margin:0.7rem 0 0; line-height:1.55;">
+                    No margin rule is modelled here, so a portfolio with a thin wipeout distance may in practice be closed out by a
+                    margin call well before equity reaches zero.
+                </p>
+            </div>
+
             <!-- COLLAPSIBLE FORMULA & CALCULATION GUIDE -->
             <div id="calc-guide-panel" style="display:none; background:rgba(19,24,34,0.95); border:1px solid var(--cuhk-gold-glow); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
                 <h4 style="color:var(--cuhk-gold-light); margin-bottom:0.75rem; font-family:'Outfit';">Step-by-Step Carry Trade Math Guide</h4>
@@ -526,6 +831,11 @@
             </div>
 
             <button class="btn btn-primary" id="lockPortfolioButton" onclick="goToStage(3)" style="width:100%;">Lock Portfolio & Trigger Market Event &rarr;</button>
+
+            <div class="stage-nav">
+                <button class="btn btn-secondary" onclick="goToStage(1)">&larr; Back to Stage 1: Your Forecast</button>
+                <button class="btn btn-secondary" onclick="resetPortfolio()">Reset sliders to the starting portfolio</button>
+            </div>
         </div>
 
         <!-- STAGE 3: EXOGENOUS VOLATILITY SHOCK -->
@@ -559,24 +869,85 @@
                 </div>
             </div>
 
-            <h3 style="font-family:'Outfit'; color:var(--text-primary); margin-bottom:1rem;">Choose a response</h3>
+            <!-- WHERE THE STUDENT STANDS GOING INTO THE DECISION -->
+            <div class="risk-panel" style="margin-bottom:1.5rem;">
+                <h4 style="color:var(--cuhk-gold-light); font-family:'Outfit'; margin:0 0 0.5rem;">Where your desk stands before you decide</h4>
+                <p style="font-size:0.86rem; color:var(--text-secondary); margin:0 0 0.4rem;">
+                    These are the same risk numbers you saw in Stage 2, for the portfolio you locked in. Compare them with the size of the
+                    scenario above before you choose.
+                </p>
+                <div class="risk-grid" style="margin-top:0.6rem;">
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">Your leverage</div>
+                        <div class="risk-metric-value" id="shockLeverageText" style="color:var(--text-primary);">3.0x</div>
+                        <div class="risk-metric-hint">Assets divided by equity.</div>
+                    </div>
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">Equity lost per 1 point of adverse move</div>
+                        <div class="risk-metric-value" id="shockPerPointText" style="color:var(--danger);">&minus;4.00%</div>
+                        <div class="risk-metric-hint">From your locked portfolio.</div>
+                    </div>
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">Move that wipes out your equity</div>
+                        <div class="risk-metric-value" id="shockWipeoutText" style="color:var(--cuhk-gold-light);">30.2 pts</div>
+                        <div class="risk-metric-hint">Both channels together.</div>
+                    </div>
+                    <div class="risk-metric">
+                        <div class="risk-metric-label">Size of the scenario above</div>
+                        <div class="risk-metric-value" style="color:var(--warning);">~12&ndash;14 pts</div>
+                        <div class="risk-metric-hint">BRL &minus;14%, MXN &minus;11%, JPY +12.5%.</div>
+                    </div>
+                </div>
+                <div class="risk-verdict" id="shockVerdict"></div>
+            </div>
+
+            <h3 style="font-family:'Outfit'; color:var(--text-primary); margin-bottom:0.4rem;">Choose a response</h3>
+            <p style="font-size:0.88rem; color:var(--text-secondary); margin-bottom:1rem;">
+                Each option changes your exposure in a different direction. You are not told the payoffs in advance; that is the point of
+                the exercise. You will see all three side by side in the debrief.
+            </p>
 
             <div class="decision-cards">
                 <button type="button" class="decision-card selected" aria-pressed="true" id="card-deleverage" onclick="selectCrisisAction('deleverage')">
                     <h4 style="color:var(--info); margin-bottom:0.5rem;">Option A: De-Leverage</h4>
                     <p style="font-size:0.85rem; color:var(--text-secondary);">Sell up to half of the BRL and MXN positions, including accrued interest, and use the proceeds to repay JPY principal and accrued interest. Sales stop once debt is repaid.</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem; border-top:1px dashed var(--border-color); padding-top:0.5rem; text-align:left;">
+                        <strong style="color:var(--text-secondary);">Why a desk does this:</strong> it cuts both channels at once, because
+                        selling EM assets removes asset-side FX risk and repaying JPY principal removes debt-side risk. Lowering L is the
+                        one lever that shrinks the loss per point directly.
+                        <br><strong style="color:var(--text-secondary);">What it costs:</strong> you realise the loss on what you sell at
+                        today's depressed prices, and you give up the remaining carry on those assets.
+                    </p>
                 </button>
                 <button type="button" class="decision-card" aria-pressed="false" id="card-hold" onclick="selectCrisisAction('hold')">
                     <h4 style="color:var(--warning); margin-bottom:0.5rem;">Option B: Hold Position</h4>
                     <p style="font-size:0.85rem; color:var(--text-secondary);">Maintain full portfolio. Absorb full FX depreciation and JPY debt run-up, relying on accumulated interest yield to cushion losses.</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem; border-top:1px dashed var(--border-color); padding-top:0.5rem; text-align:left;">
+                        <strong style="color:var(--text-secondary);">Why a desk does this:</strong> the scenario is a stress case, not a
+                        fact. If the move is smaller than feared or reverses, you keep the whole interest spread, and you pay no costs for
+                        trading into a panic.
+                        <br><strong style="color:var(--text-secondary);">What it costs:</strong> your loss per point stays exactly where it
+                        is for the rest of the year. If your wipeout distance is thin, this is the option that can end the round.
+                    </p>
                 </button>
                 <button type="button" class="decision-card" aria-pressed="false" id="card-double" onclick="selectCrisisAction('double')">
                     <h4 style="color:var(--danger); margin-bottom:0.5rem;">Option C: Increase Borrowing</h4>
                     <p style="font-size:0.85rem; color:var(--text-secondary);">Borrow 50% more JPY principal (or USD50,000 equivalent if initially debt-free). Invest half in BRL and half in MXN for the remaining six months, at the current spot rates.</p>
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-top:0.6rem; border-top:1px dashed var(--border-color); padding-top:0.5rem; text-align:left;">
+                        <strong style="color:var(--text-secondary);">Why a desk does this:</strong> nothing about the interest spread has
+                        broken, and if you believe the sell-off is an overreaction, the same USD now buys more of that spread. This is
+                        averaging down.
+                        <br><strong style="color:var(--text-secondary);">What it costs:</strong> it raises L, so every further point of
+                        adverse movement hurts more, and the new JPY borrowing costs 1.50% rather than 1.00%.
+                    </p>
                 </button>
             </div>
 
             <button class="btn btn-primary" onclick="executeShockAndGoToStage4()" style="width:100%; margin-top:1.5rem;">Execute Crisis Response & Calculate Net Payoffs &rarr;</button>
+
+            <div class="stage-nav">
+                <button class="btn btn-secondary" onclick="goToStage(2)">&larr; Back to Stage 2: rebuild the portfolio</button>
+            </div>
         </div>
 
         <!-- STAGE 4: PAYOFF DEBRIEF & RISK ANALYTICS -->
@@ -604,6 +975,57 @@
             <!-- CHART COMPARISON -->
             <div style="height: 300px; margin-bottom: 1.5rem;">
                 <canvas id="payoffChart"></canvas>
+            </div>
+
+            <!-- ALL THREE RESPONSES SIDE BY SIDE -->
+            <div style="background:rgba(19,24,34,0.95); border:1px solid var(--border-color); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+                <h4 style="color:var(--cuhk-gold-light); font-family:'Outfit'; margin:0 0 0.35rem;">What the other responses would have done</h4>
+                <p style="font-size:0.86rem; color:var(--text-secondary); margin:0 0 0.5rem;">
+                    Same portfolio, same shock, three different responses. Your choice is highlighted.
+                </p>
+                <div class="table-scroll">
+                    <table class="compare-table">
+                        <thead>
+                            <tr><th>Response</th><th>Final equity</th><th>ROI</th><th>Year-end JPY debt (USD)</th></tr>
+                        </thead>
+                        <tbody id="responseCompareBody"></tbody>
+                    </table>
+                </div>
+                <p style="font-size:0.82rem; color:var(--text-muted); margin:0.75rem 0 0; line-height:1.55;">
+                    Which response wins depends entirely on the scenario. De-leveraging is the best of the three in this stress case and the
+                    worst of the three if the sell-off reverses, because it is the response that gives up the most carry. There is no
+                    response that is right before you know the state of the world, which is the reason a desk sizes its risk in advance
+                    rather than reacting to it.
+                </p>
+            </div>
+
+            <!-- DID THE STAGE 2 RISK PANEL WARN YOU? -->
+            <div class="risk-panel" style="margin-bottom:1.5rem;">
+                <h4 style="color:var(--cuhk-gold-light); font-family:'Outfit'; margin:0 0 0.5rem;">Did the risk panel warn you?</h4>
+                <div class="risk-identity" id="hindsightText"></div>
+                <p style="font-size:0.86rem; color:var(--text-secondary); margin:0; line-height:1.6;">
+                    The routine stress test in Stage 2 used a smaller move than the one that actually arrived. That gap is the
+                    <strong>peso problem</strong> from lecture: the scenario that does the damage is usually larger than the one in your
+                    historical sample, so a stress test calibrated to a quiet period understates the tail. Note also that the loss is not
+                    symmetric. Carry returns are negatively skewed, with many small gains interrupted by a few large losses.
+                </p>
+            </div>
+
+            <!-- THE LECTURE FORMULA, WITH THIS ROUND'S NUMBERS -->
+            <div class="formula-display">
+                <div class="formula-display-title">The lecture formula, with this round's numbers</div>
+                <div class="formula-main">
+                    <span class="frac"><span class="num">E<sub>1</sub></span><span class="den">E<sub>0</sub></span></span>
+                    <span class="formula-op">=</span>
+                    <span class="formula-var">L</span>
+                    <span>&#91;&#8201;(1 + i<sub>H</sub>)</span>
+                    <span class="frac"><span class="num">S<sub>1</sub></span><span class="den">S<sub>0</sub></span></span>
+                    <span>&minus; (1 + i<sub>F</sub>)&#8201;&#93;</span>
+                    <span class="formula-op">+</span>
+                    <span>(1 + i<sub>F</sub>)</span>
+                </div>
+                <div class="formula-sub" id="formulaShockSub" style="color:var(--text-primary);"></div>
+                <div class="formula-note" id="formulaShockNote"></div>
             </div>
 
             <button class="btn btn-secondary" id="toggle-shock-guide" onclick="toggleShockGuide()" style="width:100%; font-size:0.85rem; margin-bottom:1.25rem;">
@@ -657,15 +1079,30 @@
                 </p>
             </div>
 
-            <button class="btn btn-secondary" onclick="goToStage(3)" style="margin-bottom:1rem;">Compare another response</button>
+            <!-- ROUND HISTORY -->
+            <div id="historyPanel4" style="display:none; background:rgba(19,24,34,0.95); border:1px solid var(--border-color); border-radius:12px; padding:1.25rem; margin-bottom:1.5rem;">
+                <h4 style="color:var(--cuhk-gold-light); font-family:'Outfit'; margin:0 0 0.35rem;">Your rounds so far</h4>
+                <p style="font-size:0.86rem; color:var(--text-secondary); margin:0 0 0.25rem;">Every round you run this session is recorded here and submitted with your reflection.</p>
+                <div class="table-scroll"><table class="history-table" id="historyTable4"><thead>
+                    <tr><th>Round</th><th>L</th><th>USD</th><th>BRL</th><th>MXN</th><th>Cash</th><th>Response</th><th>Quiet ROI</th><th>Stress ROI</th></tr>
+                </thead><tbody id="historyBody4"></tbody></table></div>
+            </div>
+
             <button class="btn btn-primary" onclick="goToStage(5)" style="width:100%;">Proceed to Final Stage 5: Exit Reflection &rarr;</button>
+
+            <div class="stage-nav">
+                <button class="btn btn-secondary" onclick="goToStage(3)">&larr; Try a different response to the same shock</button>
+                <button class="btn btn-secondary" onclick="startNewRound()">Start a new round with a new portfolio</button>
+                <button class="btn btn-secondary" onclick="returnToBeginning()">Return to the beginning</button>
+            </div>
         </div>
 
         <!-- STAGE 5: EXIT REFLECTION & EXPORT -->
         <div id="stage5" class="glass-panel" style="padding: 2rem; display:none;">
             <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light); margin-bottom: 0.5rem;">Stage 5: Individual Exit Reflection & Submission</h2>
             <p style="color:var(--text-secondary); margin-bottom: 1.5rem;">
-                Complete your 1-sentence reflection to log your participation score for Week 3.
+                Complete your 1-sentence reflection to log your participation score for Week 3. You may run as many rounds as you like
+                before submitting; every round you have run is recorded below and submitted with your answer. Submit once you are done.
             </p>
 
             <div style="margin-bottom:1.5rem;">
@@ -686,16 +1123,52 @@
             <div id="submissionAck" style="display:none; margin-top:1rem; padding:1rem; background:var(--success-bg); border:1px solid var(--success); border-radius:8px; color:var(--success); text-align:center;">
                 Submission status will appear here.
             </div>
+
+            <!-- ROUND HISTORY -->
+            <div id="historyPanel5" style="display:none; background:rgba(19,24,34,0.95); border:1px solid var(--border-color); border-radius:12px; padding:1.25rem; margin-top:1.5rem;">
+                <h4 style="color:var(--cuhk-gold-light); font-family:'Outfit'; margin:0 0 0.35rem;">Your rounds so far</h4>
+                <p style="font-size:0.86rem; color:var(--text-secondary); margin:0 0 0.25rem;">These are submitted along with your reflection, so you can refer to them in your answer.</p>
+                <div class="table-scroll"><table class="history-table" id="historyTable5"><thead>
+                    <tr><th>Round</th><th>L</th><th>USD</th><th>BRL</th><th>MXN</th><th>Cash</th><th>Response</th><th>Quiet ROI</th><th>Stress ROI</th></tr>
+                </thead><tbody id="historyBody5"></tbody></table></div>
+            </div>
+
+            <div class="stage-nav">
+                <button class="btn btn-secondary" onclick="goToStage(4)">&larr; Back to Stage 4: Results</button>
+                <button class="btn btn-secondary" onclick="startNewRound()">Start a new round with a new portfolio</button>
+                <button class="btn btn-secondary" onclick="returnToBeginning()">Return to the beginning</button>
+            </div>
         </div>
 
     </main>
 
     <script>
         let currentStage = 1;
+        let maxStageVisited = 1;
         let selectedCrisisAction = 'deleverage';
         let payoffChart = null;
         let lastResult = null;
         let baselineRoi = 0;
+        let roundHistory = [];
+        let roundCounter = 0;
+
+        // Annual nominal rates, the spot at which JPY debt is struck, and the
+        // year-end FX multipliers used by the Stage 3 event. Shared by the payoff
+        // engine and the risk panel so the two can never drift apart.
+        const RATES = {usd: .0375, brl: .14, mxn: .065, jpy: .01};
+        const NEW_JPY_RATE = .015;
+        const SPOT_JPY_0 = 150.00;
+        const SHOCK_FX = {usd: 1, brl: .86, mxn: .89, jpy: 1.125};
+        // A routine desk stress test, deliberately milder than the Stage 3 event.
+        const STRESS_TEST = {em: .08, jpy: .06};
+        const ACTION_LABELS = {
+            deleverage: 'A. De-leverage',
+            hold: 'B. Hold',
+            double: 'C. Increase borrowing'
+        };
+
+        const signedPct = (x, d) => (x >= 0 ? '+' : '\u2212') + Math.abs(x).toFixed(d === undefined ? 2 : d) + '%';
+        const money0 = n => FINA3020Utils.formatCurrency(n, '$', 0);
 
         // Portfolio State
         let portfolioState = {
@@ -753,7 +1226,48 @@
             if (targetStage) targetStage.style.display = 'block';
 
             currentStage = stageNum;
+            maxStageVisited = Math.max(maxStageVisited, stageNum);
+            for (let i = 1; i <= maxStageVisited; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                if (indicator) indicator.classList.add('clickable');
+            }
+            if (stageNum === 3) updateShockPanel();
+            if (stageNum === 4 || stageNum === 5) renderHistory();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // The stepper only moves backwards, and never into a results stage that
+        // has no result behind it yet.
+        function jumpToStage(stageNum) {
+            if (stageNum > maxStageVisited) return;
+            if (stageNum === 4 && !lastResult) return;
+            goToStage(stageNum);
+        }
+
+        function resetPortfolio() {
+            for (const c of ['usd', 'brl', 'mxn']) document.getElementById(c + 'Slider').max = 100;
+            document.getElementById('usdSlider').value = 40;
+            document.getElementById('brlSlider').value = 30;
+            document.getElementById('mxnSlider').value = 30;
+            document.getElementById('leverageSlider').value = 3;
+            updateLeverage();
+            updateAllocation();
+        }
+
+        function startNewRound() {
+            resetPortfolio();
+            selectCrisisAction('deleverage');
+            lastResult = null;
+            document.getElementById('crashProbSlider').value = 20;
+            goToStage(2);
+        }
+
+        function returnToBeginning() {
+            resetPortfolio();
+            selectCrisisAction('deleverage');
+            lastResult = null;
+            document.getElementById('crashProbSlider').value = 20;
+            goToStage(1);
         }
 
         function updateAllocation(changed) {
@@ -835,6 +1349,175 @@
 • Net Interest Carry Profit: $${netCarryProfitUSD.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} USD
 • One-year ROI if FX is unchanged: $${netCarryProfitUSD.toLocaleString('en-US',{minimumFractionDigits:2, maximumFractionDigits:2})} / $100,000 = +${baselineRoi.toFixed(2)}%`;
             }
+
+            updateFormulaLive(targetYield);
+            updateRiskPanel();
+        }
+
+        // Year-end equity if the portfolio is simply held for the full year and the
+        // three FX multipliers apply. With the Stage 3 multipliers this reproduces
+        // calculatePayoff(state, 'hold') exactly.
+        function terminalEquityHold(state, mult) {
+            const E = state.equity, V = E * state.leverage, D = V - E;
+            const cash = Math.max(0, state.cashPct || 0);
+            const assets = V * (state.usdPct * (1 + RATES.usd)
+                + state.brlPct * (1 + RATES.brl) * mult.brl
+                + state.mxnPct * (1 + RATES.mxn) * mult.mxn
+                + cash);
+            return assets - D * (1 + RATES.jpy) * mult.jpy;
+        }
+
+        // Everything the risk panel reports, on a hold-to-maturity basis. A "point"
+        // is one percentage point of simultaneous adverse movement: EM currencies
+        // down 1% against USD while JPY appreciates 1% against USD.
+        function riskProfile(state) {
+            const E = state.equity, V = E * state.leverage, D = V - E;
+            const cash = Math.max(0, state.cashPct || 0);
+            const safeAssets = V * (state.usdPct * (1 + RATES.usd) + cash);
+            const emAssets = V * (state.brlPct * (1 + RATES.brl) + state.mxnPct * (1 + RATES.mxn));
+            const debt = D * (1 + RATES.jpy);
+            const quietEquity = safeAssets + emAssets - debt;
+            const perPoint = .01 * (emAssets + debt);
+
+            // Equity hits zero when the EM multiplier reaches (debt - safe) / EM.
+            const emMultAtZero = emAssets > 1e-9 ? (debt - safeAssets) / emAssets : null;
+            // ... and when the JPY repayment multiplier reaches assets / debt.
+            const jpyMultAtZero = debt > 1e-9 ? (safeAssets + emAssets) / debt : null;
+
+            const stressEquity = terminalEquityHold(state,
+                {brl: 1 - STRESS_TEST.em, mxn: 1 - STRESS_TEST.em, jpy: 1 + STRESS_TEST.jpy});
+
+            return {
+                safeAssets, emAssets, debt, quietEquity, perPoint,
+                perPointPct: 100 * perPoint / E,
+                wipeoutPts: perPoint > 1e-9 ? quietEquity / perPoint : Infinity,
+                emWipeout: emMultAtZero === null ? null : (emMultAtZero < 0 ? Infinity : 1 - emMultAtZero),
+                jpyWipeout: jpyMultAtZero === null ? null : jpyMultAtZero - 1,
+                jpySpotAtZero: jpyMultAtZero === null ? null : SPOT_JPY_0 / jpyMultAtZero,
+                stressRoi: 100 * (stressEquity / E - 1)
+            };
+        }
+
+        function setText(id, value) {
+            const node = document.getElementById(id);
+            if (node) node.innerText = value;
+        }
+
+        function updateRiskPanel() {
+            const r = riskProfile(portfolioState);
+            const finiteWipeout = Number.isFinite(r.wipeoutPts) && r.wipeoutPts > 0;
+
+            setText('riskPerPointText', '\u2212' + r.perPointPct.toFixed(2) + '%');
+            setText('riskPerPointHint', money0(r.perPoint) + ' of your ' + money0(portfolioState.equity)
+                + ' equity, every time EM falls 1% and JPY gains 1%.');
+
+            const reachableWipeout = finiteWipeout && r.wipeoutPts <= 100;
+            setText('riskWipeoutText', !finiteWipeout ? 'No wipeout'
+                : (reachableWipeout ? r.wipeoutPts.toFixed(1) + ' pts' : 'Over 100 pts'));
+            setText('riskWipeoutHint', !finiteWipeout
+                ? 'You hold no EM assets and no JPY debt, so FX cannot move your equity.'
+                : (reachableWipeout
+                    ? 'BRL and MXN each down ' + r.wipeoutPts.toFixed(1) + '% while JPY gains ' + r.wipeoutPts.toFixed(1) + '%.'
+                    : 'No combination of these currency moves is large enough to take your equity to zero.'));
+
+            if (r.emWipeout === null) {
+                setText('riskEmText', 'None');
+                setText('riskEmHint', 'You hold no BRL or MXN, so there is no asset-side FX risk.');
+            } else if (!Number.isFinite(r.emWipeout)) {
+                setText('riskEmText', 'None');
+                setText('riskEmHint', 'Your USD and cash legs alone cover the JPY debt, so even a total EM loss leaves equity positive.');
+            } else {
+                setText('riskEmText', '\u2212' + (100 * r.emWipeout).toFixed(1) + '%');
+                setText('riskEmHint', 'BRL and MXN both falling that far against USD, with JPY unchanged.');
+            }
+
+            if (r.jpyWipeout === null) {
+                setText('riskJpyText', 'None');
+                setText('riskJpyHint', 'At 1.0x leverage you borrow nothing, so there is no debt-side FX risk.');
+            } else {
+                setText('riskJpyText', '+' + (100 * r.jpyWipeout).toFixed(1) + '%');
+                setText('riskJpyHint', 'USD/JPY at ' + r.jpySpotAtZero.toFixed(2) + ', down from '
+                    + SPOT_JPY_0.toFixed(2) + ', with EM unchanged.');
+            }
+
+            setText('riskIdentityText',
+                'Loss per point = 1% \u00d7 (EM assets at year-end ' + money0(r.emAssets)
+                + '  +  JPY debt at year-end ' + money0(r.debt) + ')  =  ' + money0(r.perPoint) + ' per point\n'
+                + 'Wipeout distance = quiet-market equity ' + money0(r.quietEquity) + '  \u00f7  ' + money0(r.perPoint)
+                + ' per point  =  ' + (finiteWipeout ? r.wipeoutPts.toFixed(1) + ' points' : 'no finite distance'));
+
+            setText('riskStressRoiText', signedPct(r.stressRoi));
+            const stressNode = document.getElementById('riskStressRoiText');
+            if (stressNode) stressNode.style.color = r.stressRoi < 0 ? 'var(--danger)' : 'var(--success)';
+
+            const bands = [
+                {min: 45, color: 'var(--success)', head: 'Wide cushion.',
+                 body: 'FX alone is very unlikely to take this equity to zero. The question is now the other one: check the quiet-market ROI above and ask whether you are being paid enough for the risk you are still carrying, or whether you have given up too much spread.'},
+                {min: 30, color: 'var(--cuhk-gold-light)', head: 'Comfortable cushion.',
+                 body: 'You can absorb a large move. A repeat of the August 2024 yen unwind, about 12 points, would hurt but would not end your round.'},
+                {min: 18, color: 'var(--warning)', head: 'Thin cushion.',
+                 body: 'A move on the scale of the second half of 2008, about 20 points, would take most of your equity. Cutting leverage, or shifting weight from BRL and MXN into USD or cash, is what a desk would do here.'},
+                {min: -Infinity, color: 'var(--danger)', head: 'Very thin cushion.',
+                 body: 'A move no larger than the August 2024 yen unwind would wipe you out, and in a real book a margin call would close the position well before that. Cut leverage or EM weight unless you are taking this bet deliberately.'}
+            ];
+            const band = finiteWipeout ? bands.find(b => r.wipeoutPts >= b.min)
+                : {color: 'var(--success)', head: 'No FX risk in this portfolio.',
+                   body: 'You are holding USD assets and cash with no JPY debt. There is nothing here for a currency move to damage, and nothing much to earn either.'};
+            const verdict = document.getElementById('riskVerdict');
+            if (verdict) {
+                verdict.innerText = band.head + ' ' + band.body;
+                verdict.style.color = 'var(--text-primary)';
+                verdict.style.borderColor = band.color;
+                verdict.style.borderLeft = '3px solid ' + band.color;
+            }
+        }
+
+        // The lecture formula with the student's own weights substituted in.
+        function updateFormulaLive(targetYield) {
+            const L = portfolioState.leverage;
+            const gross = 1 + targetYield;
+            const ratio = L * gross - (L - 1) * (1 + RATES.jpy);
+            setText('formulaLiveSub',
+                'E\u2081 \u00f7 E\u2080 = ' + L.toFixed(2) + ' \u00d7 [ '
+                + portfolioState.usdPct.toFixed(2) + '(1.0375) + '
+                + portfolioState.brlPct.toFixed(2) + '(1.1400) + '
+                + portfolioState.mxnPct.toFixed(2) + '(1.0650) + '
+                + Math.max(0, portfolioState.cashPct || 0).toFixed(2) + '(1.0000) ] \u2212 '
+                + (L - 1).toFixed(2) + ' \u00d7 (1.0100)\n'
+                + '= ' + L.toFixed(2) + ' \u00d7 ' + gross.toFixed(6) + ' \u2212 '
+                + ((L - 1) * (1 + RATES.jpy)).toFixed(6) + ' = ' + ratio.toFixed(6)
+                + ', so ROI = ' + signedPct(100 * (ratio - 1))
+                + '\nEvery FX ratio is 1 here, because nothing has moved yet. Stage 3 is where they stop being 1.');
+        }
+
+        // Stage 3 shows the same risk read for the portfolio the student locked in.
+        function updateShockPanel() {
+            const r = riskProfile(portfolioState);
+            const finiteWipeout = Number.isFinite(r.wipeoutPts) && r.wipeoutPts > 0;
+            setText('shockLeverageText', portfolioState.leverage.toFixed(1) + 'x');
+            setText('shockPerPointText', '\u2212' + r.perPointPct.toFixed(2) + '%');
+            setText('shockWipeoutText', !finiteWipeout ? 'No wipeout'
+                : (r.wipeoutPts <= 100 ? r.wipeoutPts.toFixed(1) + ' pts' : 'Over 100 pts'));
+
+            let head, color;
+            if (!finiteWipeout || r.wipeoutPts >= 30) {
+                head = 'The announced scenario is well inside your cushion.';
+                color = 'var(--success)';
+            } else if (r.wipeoutPts >= 18) {
+                head = 'The announced scenario uses up a serious share of your cushion.';
+                color = 'var(--warning)';
+            } else {
+                head = 'The announced scenario is close to the move that would wipe you out.';
+                color = 'var(--danger)';
+            }
+            const verdict = document.getElementById('shockVerdict');
+            if (verdict) {
+                verdict.innerText = head + ' Holding leaves that exposure in place for the remaining six months. '
+                    + 'De-leveraging cuts it but realises losses at today\u2019s prices. Borrowing more raises it, on the view that the '
+                    + 'sell-off is an overreaction. Nothing here tells you which view is right, which is the position a desk is actually in.';
+                verdict.style.color = 'var(--text-primary)';
+                verdict.style.borderLeft = '3px solid ' + color;
+            }
         }
 
         function selectCrisisAction(action) {
@@ -848,8 +1531,7 @@
         // contracts are fixed for one year and permit pro-rata early settlement.
         function calculatePayoff(state, action) {
             const E = state.equity, V = E * state.leverage, D = V - E;
-            const i = {usd: .0375, brl: .14, mxn: .065, jpy: .01};
-            const fx = {usd: 1, brl: .86, mxn: .89, jpy: 1.125};
+            const i = RATES, fx = SHOCK_FX;
             const em = V * (state.brlPct * (1 + i.brl * .5) + state.mxnPct * (1 + i.mxn * .5));
             let soldFraction = 0, earlyDebtPaid = 0, additionalDebt = 0;
             if (action === 'deleverage' && em > 0) {
@@ -862,15 +1544,37 @@
                 (1-soldFraction) * (state.brlPct * (1+i.brl)*fx.brl + state.mxnPct * (1+i.mxn)*fx.mxn) + (state.cashPct || 0));
             const newAssets = additionalDebt * .5 * ((1+i.brl*.5)*fx.brl + (1+i.mxn*.5)*fx.mxn);
             const assets = originalAssets + newAssets;
-            const debt = (remainingPrincipal * (1+i.jpy) + additionalDebt * (1+.015*.5)) * fx.jpy;
+            const debt = (remainingPrincipal * (1+i.jpy) + additionalDebt * (1+NEW_JPY_RATE*.5)) * fx.jpy;
             const finalEquity = assets - debt;
             return {assets, debt, finalEquity, roi: 100*(finalEquity/E-1), earlyDebtPaid,
                 soldFraction, remainingPrincipal, additionalDebt};
         }
 
         function executeShockAndGoToStage4() {
-            lastResult = calculatePayoff(portfolioState, selectedCrisisAction);
+            const results = {
+                deleverage: calculatePayoff(portfolioState, 'deleverage'),
+                hold: calculatePayoff(portfolioState, 'hold'),
+                double: calculatePayoff(portfolioState, 'double')
+            };
+            lastResult = results[selectedCrisisAction];
             const r = lastResult, money = n => FINA3020Utils.formatCurrency(n);
+            const risk = riskProfile(portfolioState);
+
+            roundCounter += 1;
+            roundHistory.push({
+                round: roundCounter,
+                leverage: portfolioState.leverage,
+                usdPct: portfolioState.usdPct,
+                brlPct: portfolioState.brlPct,
+                mxnPct: portfolioState.mxnPct,
+                cashPct: Math.max(0, portfolioState.cashPct || 0),
+                action: selectedCrisisAction,
+                quietRoi: Number(baselineRoi.toFixed(4)),
+                stressRoi: Number(r.roi.toFixed(4)),
+                lossPerPointPct: Number(risk.perPointPct.toFixed(4)),
+                wipeoutPoints: Number.isFinite(risk.wipeoutPts) ? Number(risk.wipeoutPts.toFixed(2)) : null
+            });
+
             goToStage(4);
             document.getElementById('finalEquityVal').innerText = money(r.finalEquity);
             document.getElementById('finalRoiVal').innerText = (r.roi >= 0 ? '+' : '') + r.roi.toFixed(2) + '%';
@@ -898,36 +1602,109 @@ Equity = assets − debt = ${money(r.finalEquity)}.
 ROI = (final equity − USD100,000) ÷ USD100,000 = ${r.roi.toFixed(2)}%.
 ${r.finalEquity < 0 ? 'Debt exceeds assets: the shortfall is ' + money(-r.finalEquity) + '.' : 'Positive terminal equity does not rule out earlier margin calls.'}
 No intraperiod margin rule or transaction costs are modeled; this result cannot certify that the position survives to maturity.`;
-            renderPayoffChart(portfolioState.equity, r.finalEquity);
+            renderResponseComparison(results);
+            renderHindsight(risk, results.hold.roi, r.roi);
+            renderShockFormula();
+            renderPayoffChart(portfolioState.equity, results);
             updateCrashProbability();
         }
 
-        function renderPayoffChart(baseEquity, finalEquity) {
+        function renderResponseComparison(results) {
+            const body = document.getElementById('responseCompareBody');
+            if (!body) return;
+            body.innerHTML = ['deleverage', 'hold', 'double'].map(action => {
+                const x = results[action], mine = action === selectedCrisisAction;
+                return '<tr class="' + (mine ? 'chosen' : '') + '">'
+                    + '<td>' + ACTION_LABELS[action] + (mine ? ' &larr; your choice' : '') + '</td>'
+                    + '<td>' + money0(x.finalEquity) + '</td>'
+                    + '<td style="color:' + (x.roi < 0 ? 'var(--danger)' : 'var(--success)') + ';">' + signedPct(x.roi) + '</td>'
+                    + '<td>' + money0(x.debt) + '</td></tr>';
+            }).join('');
+        }
+
+        function renderHindsight(risk, holdRoi, chosenRoi) {
+            const w = Number.isFinite(risk.wipeoutPts) ? risk.wipeoutPts.toFixed(1) + ' points' : 'no finite distance';
+            setText('hindsightText',
+                'Your Stage 2 risk read: \u2212' + risk.perPointPct.toFixed(2) + '% of equity per point, wipeout at ' + w + '.\n'
+                + 'The routine stress test there (EM \u22128%, JPY +6%) gave ' + signedPct(risk.stressRoi) + '.\n'
+                + 'What arrived instead: BRL \u221214%, MXN \u221211%, JPY +12.5%, roughly 12 to 14 points.\n'
+                + (selectedCrisisAction === 'hold'
+                    ? 'Holding through it returned ' + signedPct(holdRoi) + ', which is your result.'
+                    : 'Holding through it would have returned ' + signedPct(holdRoi)
+                      + '. Your response returned ' + signedPct(chosenRoi) + '.'));
+        }
+
+        function renderShockFormula() {
+            const st = portfolioState, L = st.leverage, cash = Math.max(0, st.cashPct || 0);
+            const assetTerm = st.usdPct * (1 + RATES.usd)
+                + st.brlPct * (1 + RATES.brl) * SHOCK_FX.brl
+                + st.mxnPct * (1 + RATES.mxn) * SHOCK_FX.mxn + cash;
+            const debtTerm = (L - 1) * (1 + RATES.jpy) * SHOCK_FX.jpy;
+            const ratio = L * assetTerm - debtTerm;
+            setText('formulaShockSub',
+                'E\u2081 \u00f7 E\u2080 = ' + L.toFixed(2) + ' \u00d7 [ '
+                + st.usdPct.toFixed(2) + '(1.0375)(1.0000) + '
+                + st.brlPct.toFixed(2) + '(1.1400)(0.8600) + '
+                + st.mxnPct.toFixed(2) + '(1.0650)(0.8900) + '
+                + cash.toFixed(2) + '(1.0000)(1.0000) ] \u2212 '
+                + (L - 1).toFixed(2) + ' \u00d7 (1.0100)(1.1250)\n'
+                + '= ' + L.toFixed(2) + ' \u00d7 ' + assetTerm.toFixed(6) + ' \u2212 ' + debtTerm.toFixed(6)
+                + ' = ' + ratio.toFixed(6) + ', so ROI = ' + signedPct(100 * (ratio - 1)));
+            setText('formulaShockNote',
+                'The 1.1250 on the debt is S\u2080/S\u2081: USD/JPY falls from 150.00 to 133.33, so it takes 12.5% more USD to '
+                + 'repay each yen you borrowed. The 0.8600 and 0.8900 are what happened to BRL and MXN against USD. '
+                + 'This is the hold-to-maturity path, so it is Option B exactly'
+                + (selectedCrisisAction === 'hold' ? ', which is the result shown above. ' : '. ')
+                + 'Options A and C trade at month 6, which changes L and the weights part-way through the year, so the formula no '
+                + 'longer applies in one line. Use the step-by-step breakdown below for those.');
+        }
+
+        function renderHistory() {
+            const rows = roundHistory.map(h => '<tr>' + [
+                h.round,
+                h.leverage.toFixed(1) + 'x',
+                (100 * h.usdPct).toFixed(0) + '%',
+                (100 * h.brlPct).toFixed(0) + '%',
+                (100 * h.mxnPct).toFixed(0) + '%',
+                (100 * h.cashPct).toFixed(0) + '%',
+                ACTION_LABELS[h.action],
+                signedPct(h.quietRoi),
+                signedPct(h.stressRoi)
+            ].map(cell => '<td>' + cell + '</td>').join('') + '</tr>').join('');
+            for (const n of ['4', '5']) {
+                const body = document.getElementById('historyBody' + n);
+                const panel = document.getElementById('historyPanel' + n);
+                if (body) body.innerHTML = rows;
+                if (panel) panel.style.display = roundHistory.length ? 'block' : 'none';
+            }
+        }
+
+        function renderPayoffChart(baseEquity, results) {
             const ctx = document.getElementById('payoffChart').getContext('2d');
             if (payoffChart) payoffChart.destroy();
 
-            const quietRoi = baselineRoi;
-            const quietEquity = baseEquity * (1 + quietRoi / 100);
+            const quietEquity = baseEquity * (1 + baselineRoi / 100);
+            const order = ['deleverage', 'hold', 'double'];
+            const values = [baseEquity, quietEquity].concat(order.map(a => results[a].finalEquity));
+            const fills = ['rgba(59, 130, 246, 0.7)', 'rgba(218, 165, 32, 0.7)'].concat(order.map(a =>
+                results[a].finalEquity >= baseEquity ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.55)'));
+            const edges = ['#3B82F6', '#DAA520'].concat(order.map(a =>
+                results[a].finalEquity >= baseEquity ? '#10B981' : '#EF4444'));
+            const widths = [1, 1].concat(order.map(a => a === selectedCrisisAction ? 4 : 1));
+            const labels = ['Starting equity', 'Unchanged FX, no shock'].concat(order.map(a =>
+                ACTION_LABELS[a] + (a === selectedCrisisAction ? ' (yours)' : '')));
 
             const defaults = FINA3020Utils.getChartDefaults();
             payoffChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['Initial Base Equity', 'Unchanged FX, original portfolio', 'Post-Shock Executed Equity'],
+                    labels,
                     datasets: [{
                         label: 'Desk Equity ($ USD)',
-                        data: [baseEquity, quietEquity, finalEquity],
-                        backgroundColor: [
-                            'rgba(59, 130, 246, 0.7)', 
-                            'rgba(218, 165, 32, 0.7)', 
-                            finalEquity >= baseEquity ? 'rgba(16, 185, 129, 0.7)' : 'rgba(239, 68, 68, 0.7)'
-                        ],
-                        borderColor: [
-                            '#3B82F6', 
-                            '#DAA520', 
-                            finalEquity >= baseEquity ? '#10B981' : '#EF4444'
-                        ],
-                        borderWidth: 1
+                        data: values,
+                        backgroundColor: fills,
+                        borderColor: edges.map((c, idx) => widths[idx] > 1 ? '#DAA520' : c),
+                        borderWidth: widths
                     }]
                 },
                 options: {
@@ -936,7 +1713,7 @@ No intraperiod margin rule or transaction costs are modeled; this result cannot 
                         ...defaults.plugins,
                         title: {
                             display: true,
-                            text: ['Carry Trade Performance', 'Quiet Market vs Executed Shock'],
+                            text: ['Carry trade performance in the stress scenario', 'Your response is outlined in gold'],
                             color: '#F8FAFC',
                             font: { family: 'Outfit', size: 14 }
                         }
@@ -983,6 +1760,17 @@ No intraperiod margin rule or transaction costs are modeled; this result cannot 
                 leverage: portfolioState.leverage,
                 allocations: { usd: portfolioState.usdPct, brl: portfolioState.brlPct, mxn: portfolioState.mxnPct },
                 crisisAction: selectedCrisisAction,
+                rounds: roundHistory.length,
+                roundHistory: roundHistory,
+                riskRead: (() => {
+                    const r = riskProfile(portfolioState);
+                    const clean = x => Number.isFinite(x) ? Number(x.toFixed(4)) : null;
+                    return {
+                        lossPerPointPct: clean(r.perPointPct),
+                        wipeoutPoints: clean(r.wipeoutPts),
+                        stressTestRoi: clean(r.stressRoi)
+                    };
+                })(),
                 finalRoi: document.getElementById('finalRoiVal').innerText,
                 reflection: reflectionText.trim()
             };
