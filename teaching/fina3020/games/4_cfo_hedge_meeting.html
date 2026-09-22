@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>CFO Hedge Meeting | FINA3020 CUHK</title>
+    <!-- Chart.js -->
+    <script src="vendor/chart.umd-4.4.7.js"></script>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js?v=20260914-allweeks"></script>
+    <style>
+        /* ------------------------------------------------------------------
+           Page-scoped palette override.
+           The shared design system keeps its saturated red/green for the games
+           that are already released; this page softens them to muted clay and
+           sage, which read as loss/gain without shouting at a lecture hall
+           projector. Defined after design_system.css, so this page wins.
+           ------------------------------------------------------------------ */
+        :root {
+            --danger: #E39B93;
+            --danger-bg: rgba(227, 155, 147, 0.10);
+            --danger-border: rgba(227, 155, 147, 0.32);
+            --success: #86BFA5;
+            --success-bg: rgba(134, 191, 165, 0.10);
+            --success-border: rgba(134, 191, 165, 0.32);
+            --warning: #DDB472;
+            --warning-bg: rgba(221, 180, 114, 0.10);
+            --info: #8AB0DE;
+            --info-bg: rgba(138, 176, 222, 0.10);
+            --neutral-line: rgba(148, 163, 184, 0.35);
+        }
+
+        /* Shared-component type lifts, scoped to this page only. Several games
+           that are already released share css/design_system.css, so nothing
+           here edits that file. */
+        .app-title { font-size: 1.6rem; }
+        .cuhk-badge { font-size: 0.89rem; }
+        .btn { font-size: 1.06rem; }
+        .badge { font-size: 0.85rem; }
+        .course-navigation { font-size: 1rem; }
+        .main-container p, .main-container li { line-height: 1.6; }
+
+        /* .input-field carries no rule in the shared sheet, so these fell back
+           to the browser default (~13px) - smaller than the text around them,
+           and below the 16px at which iOS Safari zooms the page on focus. */
+        .input-field,
+        #cfoSectionSelect {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 1rem;
+            padding: 0.6rem 0.7rem;
+            background: rgba(11, 14, 20, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+        }
+
+        .input-field:focus,
+        #cfoSectionSelect:focus {
+            outline: none;
+            border-color: var(--cuhk-gold);
+            box-shadow: 0 0 10px rgba(218, 165, 32, 0.2);
+        }
+
+        .reflection-textarea { height: 120px; }
+
+        /* Left Sidebar & Vertical Stepper Styling */
+        .stage-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            height: fit-content;
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .vertical-stepper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.75rem 0.85rem;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: rgba(19, 24, 34, 0.6);
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .stepper-step:hover:not(.locked) {
+            background: rgba(30, 40, 58, 0.8);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .stepper-step.active {
+            background: rgba(218, 165, 32, 0.15);
+            border-color: var(--cuhk-gold);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed {
+            background: rgba(134, 191, 165, 0.08);
+            border-color: rgba(134, 191, 165, 0.3);
+        }
+
+        .stepper-step.locked {
+            opacity: 0.45;
+            cursor: not-allowed;
+            background: rgba(11, 14, 20, 0.4);
+            border-color: transparent;
+        }
+
+        .step-num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.94rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .stepper-step.active .step-num {
+            background: var(--cuhk-gold);
+            color: #000;
+            border-color: var(--cuhk-gold-light);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed .step-num {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+        }
+
+        .step-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .step-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.04rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .stepper-step.locked .step-title {
+            color: var(--text-muted);
+        }
+
+        .stepper-step.active .step-title {
+            color: var(--cuhk-gold-light);
+        }
+
+        .step-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .step-status {
+            font-size: 0.83rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .stepper-step.active .step-status {
+            color: var(--cuhk-gold);
+        }
+
+        .stepper-step.completed .step-status {
+            color: var(--success);
+        }
+
+        .sidebar-summary-card {
+            background: rgba(11, 14, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 0.9rem;
+        }
+
+        .market-scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .scenario-card {
+            background: rgba(19, 24, 34, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .scenario-label {
+            font-size: 0.89rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .scenario-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.59rem;
+            font-weight: 700;
+            color: var(--cuhk-gold-light);
+            margin: 0.25rem 0;
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .decision-card {
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem 1rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-align: center;
+            position: relative;
+        }
+
+        .decision-card:hover {
+            border-color: var(--cuhk-gold);
+            transform: translateY(-3px);
+            background: rgba(30, 40, 58, 0.9);
+        }
+
+        .decision-card.selected {
+            border-color: var(--cuhk-gold);
+            background: rgba(218, 165, 32, 0.15);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+        }
+
+        .badge-locked { background: rgba(138, 176, 222, 0.2); color: var(--info); }
+        .badge-option { background: rgba(134, 191, 165, 0.2); color: var(--success); }
+        .badge-float { background: rgba(227, 155, 147, 0.2); color: var(--danger); }
+
+        .shock-banner {
+            background: rgba(19, 24, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--neutral-line);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: border-color var(--transition-smooth), background var(--transition-smooth);
+        }
+
+        .shock-banner.tone-down { border-left-color: var(--danger); background: var(--danger-bg); }
+        .shock-banner.tone-up { border-left-color: var(--success); background: var(--success-bg); }
+        .shock-banner.tone-warn { border-left-color: var(--warning); background: var(--warning-bg); }
+
+        .shock-headline {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.42rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .shock-banner.tone-down .shock-headline { color: var(--danger); }
+        .shock-banner.tone-up .shock-headline { color: var(--success); }
+        .shock-banner.tone-warn .shock-headline { color: var(--warning); }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-box {
+            background: rgba(19, 24, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .result-box.highlight {
+            border-color: var(--cuhk-gold);
+            background: rgba(218, 165, 32, 0.1);
+        }
+
+        .reflection-textarea {
+            width: 100%;
+            height: 90px;
+            background: rgba(11, 14, 20, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            padding: 0.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.12rem;
+            resize: vertical;
+            margin-top: 0.5rem;
+        }
+
+        .reflection-textarea:focus {
+            outline: none;
+            border-color: var(--cuhk-gold);
+            box-shadow: 0 0 10px rgba(218, 165, 32, 0.2);
+        }
+
+        .misconception-box {
+            background: rgba(227, 155, 147, 0.08);
+            border-left: 4px solid var(--danger);
+            border-radius: 0 8px 8px 0;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 1.06rem;
+        }
+
+        /* ---------------- Stage 5: partial hedge mix lab ---------------- */
+        .mix-layout {
+            display: grid;
+            grid-template-columns: minmax(270px, 330px) 1fr;
+            gap: 1.25rem;
+            align-items: start;
+        }
+
+        .mix-panel {
+            background: rgba(11, 14, 20, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.1rem;
+        }
+
+        .mix-slider-row { margin-bottom: 1.1rem; }
+
+        .mix-slider-row:last-child { margin-bottom: 0; }
+
+        .mix-slider-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .mix-slider-name { font-size: 1rem; font-weight: 600; color: var(--text-primary); }
+
+        .mix-slider-pct {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.18rem;
+            font-weight: 700;
+        }
+
+        .mix-slider-row input[type="range"] { width: 100%; }
+
+        .mix-sleeve-note { font-size: 0.89rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+        .mix-residual {
+            border-top: 1px solid var(--border-color);
+            margin-top: 1rem;
+            padding-top: 0.9rem;
+        }
+
+        .mix-bar {
+            display: flex;
+            height: 14px;
+            border-radius: 7px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            margin-top: 0.6rem;
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        .mix-bar span { display: block; height: 100%; transition: width var(--transition-fast); }
+
+        .mix-bar .seg-forward { background: var(--info); }
+        .mix-bar .seg-option { background: var(--success); }
+        .mix-bar .seg-unhedged { background: var(--danger); }
+
+        .mix-chart-wrap { height: 390px; position: relative; min-width: 0; }
+
+        .mix-presets { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+
+        .mix-preset-btn {
+            font-size: 0.89rem;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .mix-preset-btn:hover { border-color: var(--cuhk-gold); color: var(--cuhk-gold-light); }
+
+        .mix-metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .mix-metric {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.8rem;
+            text-align: center;
+        }
+
+        .mix-metric-label { font-size: 0.89rem; color: var(--text-muted); }
+
+        .mix-metric-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 1.18rem;
+            margin-top: 0.2rem;
+        }
+
+        /* Card-shaped controls are real buttons for keyboard and screen-reader users. */
+        .decision-card:focus-visible,
+        .stepper-step:focus-visible,
+        .mix-preset-btn:focus-visible {
+            outline: 2px solid var(--cuhk-gold-light);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 900px) {
+            .decision-cards { grid-template-columns: repeat(2, 1fr); }
+            .results-grid { grid-template-columns: repeat(2, 1fr); }
+            .mix-layout { grid-template-columns: 1fr; }
+            .mix-chart-wrap { height: 300px; }
+        }
+
+        @media (max-width: 600px) {
+            .stage-stepper { flex-direction: column; gap: 0.5rem; }
+            .decision-cards { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr; }
+            .mix-chart-wrap { height: 260px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .decision-card:hover, .game:hover { transform: none; }
+            * { transition-duration: 0.01ms !important; }
+        }
+    </style>
+<link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
+<script src="js/numeric_controls.js?v=20260909" defer></script>
+<link rel="stylesheet" href="css/mobile.css?v=20260909">
+</head>
+<body>
+<nav class="course-navigation" aria-label="Course games">
+    <a href="./">← Game list</a>
+    <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
+</nav>
+
+    <header class="app-header">
+        <div class="brand-section">
+            <span class="cuhk-badge">FINA3020 &middot; Week 4 Game</span>
+            <div>
+                <h1 class="app-title">CFO Hedge Meeting</h1>
+                <p style="font-size:0.94rem; color:var(--text-secondary);">Corporate Transaction Exposure, Forward Lock vs Option Downside Floor Simulator</p>
+            </div>
+        </div>
+        <div class="header-actions" style="display:flex; align-items:center; gap:0.75rem;">
+            <button class="btn btn-gold" id="btn-student-id" onclick="FINA3020Utils.ensureStudentCredentials(true)">Set Name & CUHK ID</button>
+            <button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export Responses (.csv)</button>
+        </div>
+    </header>
+
+    <main class="main-container">
+
+        <!-- Left Sidebar: Stage Workflow Stepper & Contract Overview -->
+        <aside class="glass-panel stage-sidebar">
+            <div class="sidebar-header">
+                <h3 class="sidebar-title">CFO Workflow</h3>
+                <span class="badge badge-gold" id="stage-progress-badge">Stage 1 of 6</span>
+            </div>
+
+            <div class="vertical-stepper">
+                <div class="stepper-step active" id="step1-indicator" onclick="handleStepClick(1)" role="button" tabindex="0">
+                    <div class="step-num" id="step1-num">1</div>
+                    <div class="step-details">
+                        <div class="step-title">1. Identification</div>
+                        <div class="step-subtitle">Contractual Exposure</div>
+                    </div>
+                    <div class="step-status" id="step1-status">In Progress</div>
+                </div>
+
+                <div class="stepper-step locked" id="step2-indicator" onclick="handleStepClick(2)" role="button" tabindex="0">
+                    <div class="step-num" id="step2-num">2</div>
+                    <div class="step-details">
+                        <div class="step-title">2. Baseline Choice</div>
+                        <div class="step-subtitle">Strategy Selection</div>
+                    </div>
+                    <div class="step-status" id="step2-status">&#128274; Locked</div>
+                </div>
+
+                <div class="stepper-step locked" id="step3-indicator" onclick="handleStepClick(3)" role="button" tabindex="0">
+                    <div class="step-num" id="step3-num">3</div>
+                    <div class="step-details">
+                        <div class="step-title">3. Market Shock</div>
+                        <div class="step-subtitle" id="step3-subtitle">Unannounced Market Event</div>
+                    </div>
+                    <div class="step-status" id="step3-status">&#128274; Locked</div>
+                </div>
+
+                <div class="stepper-step locked" id="step4-indicator" onclick="handleStepClick(4)" role="button" tabindex="0">
+                    <div class="step-num" id="step4-num">4</div>
+                    <div class="step-details">
+                        <div class="step-title">4. Execution Debrief</div>
+                        <div class="step-subtitle">Payoffs & Lessons</div>
+                    </div>
+                    <div class="step-status" id="step4-status">&#128274; Locked</div>
+                </div>
+
+                <div class="stepper-step locked" id="step5-indicator" onclick="handleStepClick(5)" role="button" tabindex="0">
+                    <div class="step-num" id="step5-num">5</div>
+                    <div class="step-details">
+                        <div class="step-title">5. Hedge Mix Lab</div>
+                        <div class="step-subtitle">Partial Hedge Payoffs</div>
+                    </div>
+                    <div class="step-status" id="step5-status">&#128274; Locked</div>
+                </div>
+
+                <div class="stepper-step locked" id="step6-indicator" onclick="handleStepClick(6)" role="button" tabindex="0">
+                    <div class="step-num" id="step6-num">6</div>
+                    <div class="step-details">
+                        <div class="step-title">6. Exit Reflection</div>
+                        <div class="step-subtitle">Participation Credit</div>
+                    </div>
+                    <div class="step-status" id="step6-status">&#128274; Locked</div>
+                </div>
+            </div>
+
+            <div class="sidebar-summary-card">
+                <h4 style="font-size:0.89rem; color:var(--cuhk-gold-light); margin-bottom:0.6rem; font-family:'Outfit'; text-transform:uppercase; letter-spacing:0.05em;">Contract Parameters</h4>
+                <div class="mobile-stack" style="font-size:0.94rem; display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; color:var(--text-secondary);">
+                    <div>Notional: <strong style="color:var(--info);">€1,000,000</strong></div>
+                    <div>Tenor: <strong>90 Days</strong></div>
+                    <div>Spot <i>S</i><sub>0</sub>: <strong>8.4000</strong></div>
+                    <div>Forward <i>F</i><sub>0</sub>: <strong>8.4200</strong></div>
+                    <div>Strike <i>K</i>: <strong>8.4000</strong></div>
+                    <div>Premium: <strong style="color:var(--success);">0.1200</strong></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- STAGE 1: IDENTIFICATION & CONTEXT -->
+        <div class="glass-panel stage-panel" id="stage1-panel">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <div>
+                    <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 1: Contractual Exposure Identification</h2>
+                    <p style="font-size:1.06rem; color:var(--text-secondary);">You are the Chief Financial Officer (CFO) of a Hong Kong Trading Firm.</p>
+                </div>
+                <span class="badge badge-locked">90-Day Settlement</span>
+            </div>
+
+            <div class="mobile-stack form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                <div>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:1rem;">CUHK Student ID(s):</label>
+                    <input type="text" id="studentIdInput" class="input-field" placeholder="e.g. 1155123456" style="width:100%; box-sizing:border-box;" required>
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:1rem;">Student Full Name(s) (given name SURNAME; ...):</label>
+                    <input type="text" id="studentNameInput" class="input-field" placeholder="e.g. Seon LOU; John CHAN" style="width:100%; box-sizing:border-box;">
+                </div>
+                <div>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:1rem;">Course Section:</label>
+                    <select id="cfoSectionSelect" class="input-field" style="width:100%; box-sizing:border-box;" required>
+                        <option value="">-- Select Section --</option>
+                        <option value="A">Section A</option>
+                        <option value="B">Section B</option>
+                        <option value="C">Section C</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="market-scenario-grid">
+                <div class="scenario-card">
+                    <div class="scenario-label">Contractual Cash Flow</div>
+                    <div class="scenario-val" style="color:var(--info);">€1,000,000</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted);">Due in 90 Days (<i>T</i> = 0.25)</div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-label">Spot Rate (<i>S</i><sub>0</sub>)</div>
+                    <div class="scenario-val">8.4000</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted);">HKD per EUR</div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-label">90-Day Forward (<i>F</i><sub>0</sub>)</div>
+                    <div class="scenario-val">8.4200</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted);">Bank Executable Quote</div>
+                </div>
+                <div class="scenario-card">
+                    <div class="scenario-label">90-Day Option (<i>K</i> = 8.40)</div>
+                    <div class="scenario-val" style="color:var(--success);">0.1200</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted);">Premium (HKD/EUR)</div>
+                </div>
+            </div>
+
+            <div style="background:rgba(11, 14, 20, 0.6); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                <h3 style="font-size:1.18rem; color:var(--text-primary); margin-bottom:0.5rem;">Step 1 Check: Identify Exposure Nature</h3>
+                <p style="font-size:1rem; color:var(--text-secondary); margin-bottom:1rem;">
+                    Your firm exported precision machinery to Germany. The German importer will pay you <strong>€1,000,000 in 90 days</strong>. What is the economic nature of this contractual cash flow?
+                </p>
+                
+                <div class="mobile-stack" style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="decision-card" id="exp-type-rec" onclick="setExposureType('receivable')" role="button" tabindex="0">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:1.3rem; color:var(--text-primary);">Foreign Receivable (Asset)</div>
+                        <div style="font-size:0.94rem; color:var(--text-muted); margin-top:0.3rem;">Risk: Euro Depreciates (<i>S<sub>T</sub></i> &downarrow;) &rarr; Fewer HKD received.</div>
+                    </div>
+                    <div class="decision-card" id="exp-type-pay" onclick="setExposureType('payable')" role="button" tabindex="0">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:1.3rem; color:var(--text-primary);">Foreign Payable (Liability)</div>
+                        <div style="font-size:0.94rem; color:var(--text-muted); margin-top:0.3rem;">Risk: Euro Appreciates (<i>S<sub>T</sub></i> &uparrow;) &rarr; More HKD required.</div>
+                    </div>
+                </div>
+
+                <!-- Sanity Check Feedback Box -->
+                <div id="sanity-check-feedback" style="display:none; margin-top:1.25rem; padding:1rem; border-radius:8px; font-size:1.04rem; line-height:1.5;"></div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-stage1-proceed" onclick="proceedFromStage1()" disabled style="width:100%; opacity:0.5; cursor:not-allowed;">Select Exposure Type to Verify Sanity Check &rarr;</button>
+        </div>
+
+        <!-- STAGE 2: BASELINE STRATEGY SELECTION -->
+        <div class="glass-panel stage-panel" id="stage2-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <div>
+                    <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 2: Evaluate Probability Distribution & Select Hedge</h2>
+                    <p style="font-size:1.06rem; color:var(--text-secondary);">Analyze the ex-ante spot rate probability distribution <i>f</i>(<i>S<sub>T</sub></i>) before selecting your corporate hedging strategy.</p>
+                </div>
+                <span class="badge badge-locked">Exposure: €1M Receivable</span>
+            </div>
+
+            <!-- Probability Distribution Summary Card -->
+            <div style="background:rgba(11, 14, 20, 0.6); border:1px solid var(--border-color); border-radius:10px; padding:1rem; margin-bottom:1.25rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.5rem;">
+                    <div style="font-size:1rem; font-weight:700; color:var(--cuhk-gold-light);">Ex-Ante Spot Rate Probability Distribution: <i>f</i>(<i>S<sub>T</sub></i>)</div>
+                    <button class="btn" id="btn-toggle-states" onclick="toggleStateHighlight()" style="font-size:0.89rem; padding:0.3rem 0.6rem; background:rgba(255,255,255,0.05); color:var(--cuhk-gold-light); border:1px solid var(--border-color);">
+                        💡 Highlight 3 Macro States on Graph
+                    </button>
+                </div>
+                <p style="font-size:0.94rem; color:var(--text-secondary); margin-bottom:0.75rem;">
+                    At <i>t</i> = 0, future spot rate <i>S<sub>T</sub></i> in 90 days is uncertain. Market consensus models 3 macro states:
+                </p>
+
+                <div class="mobile-stack" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.75rem; text-align:center;">
+                    <div style="background:rgba(227, 155, 147,0.1); border:1px solid rgba(227, 155, 147,0.3); border-radius:8px; padding:0.6rem; cursor:pointer;" onclick="toggleStateHighlight()">
+                        <div style="font-size:0.85rem; color:var(--danger); font-weight:700;">📉 State 1: ECB Rate Cut (25%)</div>
+                        <div style="font-size:1.18rem; font-family:'JetBrains Mono'; font-weight:700; color:var(--text-primary); margin:0.2rem 0;"><i>S<sub>T</sub></i> = 7.8000</div>
+                        <div style="font-size:0.83rem; color:var(--text-muted);">Euro Crash</div>
+                    </div>
+                    <div style="background:rgba(138, 176, 222,0.1); border:1px solid rgba(138, 176, 222,0.3); border-radius:8px; padding:0.6rem; cursor:pointer;" onclick="toggleStateHighlight()">
+                        <div style="font-size:0.85rem; color:var(--info); font-weight:700;">↔️ State 2: Expected (50%)</div>
+                        <div style="font-size:1.18rem; font-family:'JetBrains Mono'; font-weight:700; color:var(--text-primary); margin:0.2rem 0;"><i>S<sub>T</sub></i> = 8.4000</div>
+                        <div style="font-size:0.83rem; color:var(--text-muted);">Baseline Consensus</div>
+                    </div>
+                    <div style="background:rgba(134, 191, 165,0.1); border:1px solid rgba(134, 191, 165,0.3); border-radius:8px; padding:0.6rem; cursor:pointer;" onclick="toggleStateHighlight()">
+                        <div style="font-size:0.85rem; color:var(--success); font-weight:700;">📈 State 3: Euro Rally (25%)</div>
+                        <div style="font-size:1.18rem; font-family:'JetBrains Mono'; font-weight:700; color:var(--text-primary); margin:0.2rem 0;"><i>S<sub>T</sub></i> = 9.1000</div>
+                        <div style="font-size:0.83rem; color:var(--text-muted);">Euro Appreciation</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payoff Curve Chart -->
+            <div style="height: 280px; margin-bottom: 1.25rem; position: relative;">
+                <canvas id="payoffChart"></canvas>
+            </div>
+
+            <!-- Strategy Choice Cards -->
+            <div class="decision-cards">
+                <div class="decision-card" id="strat-unhedged" onclick="selectStrategy('unhedged')" role="button" tabindex="0">
+                    <span class="card-badge badge-float">Floating</span>
+                    <div style="font-family:'Outfit'; font-weight:700; font-size:1.18rem; margin-top:0.3rem;">1. Unhedged</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted); margin-top:0.2rem;">Full spot exposure <i>f</i>(<i>S<sub>T</sub></i>).</div>
+                    <div style="font-size:0.89rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.425M</strong></div>
+                    <div style="font-family:'JetBrains Mono'; font-size:0.89rem; font-weight:700; color:var(--warning); margin-top:0.2rem;">No floor &middot; worst modelled state HKD 7,800,000</div>
+                </div>
+
+                <div class="decision-card" id="strat-forward" onclick="selectStrategy('forward')" role="button" tabindex="0">
+                    <span class="card-badge badge-locked">Hard Lock</span>
+                    <div style="font-family:'Outfit'; font-weight:700; font-size:1.18rem; margin-top:0.3rem;">2. Forward Hedge</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted); margin-top:0.2rem;">Lock <i>F</i><sub>0</sub> = 8.4200.</div>
+                    <div style="font-size:0.89rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.420M</strong></div>
+                    <div style="font-family:'JetBrains Mono'; font-size:0.89rem; font-weight:700; color:var(--info); margin-top:0.2rem;">Certain: HKD 8,420,000</div>
+                </div>
+
+                <div class="decision-card" id="strat-option" onclick="selectStrategy('option')" role="button" tabindex="0">
+                    <span class="card-badge badge-option">Asymmetric Floor</span>
+                    <div style="font-family:'Outfit'; font-weight:700; font-size:1.18rem; margin-top:0.3rem;">3. Put Option</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted); margin-top:0.2rem;">Strike 8.40 (Prem FV 0.1215).</div>
+                    <div style="font-size:0.89rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.453M</strong></div>
+                    <div style="font-family:'JetBrains Mono'; font-size:0.89rem; font-weight:700; color:var(--success); margin-top:0.2rem;">Floor: HKD 8,278,500</div>
+                </div>
+            </div>
+
+            <p style="font-size:0.94rem; color:var(--text-muted); margin-top:0.75rem; line-height:1.5;">
+                A money-market hedge is deliberately left out. Borrowing euros today, converting at
+                <i>S</i><sub>0</sub> and repaying out of the receivable replicates the forward exactly whenever covered
+                interest parity holds, so it is the same contract wearing a different name, not a fourth choice.
+            </p>
+
+            <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+                <button class="btn" style="background:rgba(255,255,255,0.05); color:var(--text-secondary);" onclick="goToStage(1)">&larr; Back</button>
+                <button class="btn btn-primary" style="flex:1;" onclick="goToStage(3)">Lock Ex-Ante Strategy &amp; Observe Market Realization &rarr;</button>
+            </div>
+        </div>
+
+        <!-- STAGE 3: MARKET REALIZATION & SETTLEMENT -->
+        <div class="glass-panel stage-panel" id="stage3-panel" style="display:none;">
+            
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <div>
+                    <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 3: Market Realization & Contract Settlement</h2>
+                    <p style="font-size:1.06rem; color:var(--text-secondary);">90 days have elapsed. Nature draws the realized market state <i>S<sub>T</sub></i> from distribution <i>f</i>(<i>S<sub>T</sub></i>).</p>
+                </div>
+                <span class="badge badge-locked">Settlement Phase</span>
+            </div>
+
+            <!-- Market Realization Scenario Selector -->
+            <div style="background:rgba(11,14,20,0.6); border:1px solid var(--border-color); border-radius:10px; padding:1rem; margin-bottom:1.25rem;">
+                <label style="font-size:1rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:0.75rem;">
+                    Simulate Market Realization (Explore all 3 States from <i>f</i>(<i>S<sub>T</sub></i>)):
+                </label>
+                <div class="mobile-stack" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.75rem;">
+                    <div class="decision-card selected" id="shock-btn-ecb" onclick="selectShockScenario('ecb_cut')" role="button" tabindex="0" style="padding:0.75rem 0.5rem; text-align:center; position:relative;">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:1.06rem; color:var(--danger);">📉 State 1: ECB Rate Cut</div>
+                        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.2rem;">Realized <i>S<sub>T</sub></i> = 7.8000</div>
+                        <span id="viewed-badge-ecb" style="display:none; font-size:0.83rem; color:var(--success); font-weight:700; margin-top:0.3rem;">✓ Explored</span>
+                    </div>
+                    <div class="decision-card" id="shock-btn-rally" onclick="selectShockScenario('eur_rally')" role="button" tabindex="0" style="padding:0.75rem 0.5rem; text-align:center; position:relative;">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:1.06rem; color:var(--success);">📈 State 3: Euro Rally</div>
+                        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.2rem;">Realized <i>S<sub>T</sub></i> = 9.1000</div>
+                        <span id="viewed-badge-rally" style="display:none; font-size:0.83rem; color:var(--success); font-weight:700; margin-top:0.3rem;">✓ Explored</span>
+                    </div>
+                    <div class="decision-card" id="shock-btn-cip" onclick="selectShockScenario('cip_basis')" role="button" tabindex="0" style="padding:0.75rem 0.5rem; text-align:center; position:relative;">
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:1.06rem; color:var(--warning);">⚡ State 2: CIP Basis Shock</div>
+                        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.2rem;">Forward drops to 8.1000</div>
+                        <span id="viewed-badge-cip" style="display:none; font-size:0.83rem; color:var(--success); font-weight:700; margin-top:0.3rem;">✓ Explored</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Shock Banner -->
+            <div class="shock-banner tone-down" id="shock-banner-container">
+                <div class="shock-headline" id="shock-headline-text">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                    REALIZED MARKET STATE: ECB Emergency Rate Cut (Depreciation Shock)
+                </div>
+                <p style="font-size:1.12rem; color:var(--text-primary); margin-bottom:0.5rem;" id="shock-desc-text">
+                    Week 4 Lecture Case: The European Central Bank cut rates unexpectedly by 75 bps. Spot Euro depreciated to 7.8000 HKD.
+                </p>
+                <div style="display:flex; align-items:center; gap:1.5rem; margin-top:1rem;">
+                    <div>
+                        <span style="font-size:0.89rem; color:var(--text-muted); display:block;">Ex-Ante Spot (<i>S</i><sub>0</sub>)</span>
+                        <span style="font-family:'JetBrains Mono'; font-size:1.42rem; font-weight:700;" id="shock-initial-spot">8.4000 HKD</span>
+                    </div>
+                    <div style="font-size:1.77rem; color:var(--text-muted);" id="shock-arrow-icon">&rarr;</div>
+                    <div>
+                        <span style="font-size:0.89rem; color:var(--text-muted); display:block;" id="shock-rate-label">Realized Spot Rate (<i>S<sub>T</sub></i>)</span>
+                        <span style="font-family:'JetBrains Mono'; font-size:1.65rem; font-weight:700; color:var(--danger);" id="shock-rate-val">7.8000 HKD (&minus;7.14%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ex-Post Strategy Execution Evaluation -->
+            <div style="background:rgba(19, 24, 34, 0.8); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                <h3 style="font-family:'Outfit'; color:var(--cuhk-gold-light); margin-bottom:0.5rem;">Ex-Post Performance of Pre-Committed Strategy</h3>
+                <p style="font-size:1.06rem; color:var(--text-secondary); margin-bottom:0.75rem;">
+                    Your pre-committed ex-ante strategy: <strong id="userSelectedBaselineLabel" style="color:var(--cuhk-gold-light);">FORWARD HEDGE</strong>.
+                </p>
+
+                <!-- Step 3 Interactive Analytical Hint -->
+                <div id="stage3-hint-box" style="padding:1rem; border-radius:8px; background:rgba(218, 165, 32, 0.12); border:1px solid var(--cuhk-gold); font-size:1.04rem; line-height:1.5;"></div>
+            </div>
+
+            <button class="btn btn-primary" id="btn-stage3-proceed" onclick="goToStage(4)" style="width:100%;">Proceed to Final Execution Debrief & Payoffs &rarr;</button>
+        </div>
+
+        <!-- STAGE 4: DEBRIEF & PAYOFF BREAKDOWN -->
+        <div class="glass-panel stage-panel" id="stage4-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
+                <div>
+                    <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 4: Execution Debrief & Payoffs</h2>
+                    <p style="font-size:1.06rem; color:var(--text-secondary);" id="stage4-executed-rate">Executed Spot Rate: <strong style="color:var(--danger); font-family:'JetBrains Mono';"><i>S<sub>T</sub></i> = 7.8000 HKD/EUR</strong></p>
+                </div>
+                <span class="badge badge-locked">Post-Shock Payoffs</span>
+            </div>
+
+            <div class="results-grid">
+                <div class="result-box" id="res-box-unhedged">
+                    <div class="scenario-label">1. Unhedged</div>
+                    <div class="scenario-val" style="color:var(--danger);" id="res-val-unhedged">HKD 7,800,000</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted);" id="res-diff-unhedged">Converted at realized spot</div>
+                </div>
+
+                <div class="result-box highlight" id="res-box-forward">
+                    <div class="scenario-label">2. Forward Hedge</div>
+                    <div class="scenario-val" style="color:var(--info);" id="res-val-forward">HKD 8,420,000</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted);" id="res-diff-forward">Settled at the locked <i>F</i><sub>0</sub></div>
+                </div>
+
+                <div class="result-box" id="res-box-option">
+                    <div class="scenario-label">3. Put Option</div>
+                    <div class="scenario-val" style="color:var(--success);" id="res-val-option">HKD 8,278,500</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted);" id="res-diff-option">Exercised at the 8.40 floor</div>
+                </div>
+            </div>
+
+            <!-- PROBABILITY DISTRIBUTION & BREAKEVEN ANALYSIS -->
+            <div style="background:rgba(19, 24, 34, 0.95); border:1px solid var(--border-color); border-radius:12px; padding:1.25rem; margin:1.5rem 0;">
+                <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:1.06rem; gap:0.75rem; flex-wrap:wrap;">
+                    <span>Ex-Ante Probability of Euro Crash / ECB Cut (<i>S<sub>T</sub></i> = 7.80):</span>
+                    <span id="cfoCrashProbText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--danger); font-size:1.36rem;">25%</span>
+                </div>
+                <input type="range" id="cfoCrashProbSlider" min="0" max="100" value="25" oninput="updateCfoProbability()" style="width:100%;">
+
+                <div class="mobile-stack" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-top:1rem;">
+                    <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
+                        <div style="font-size:0.89rem; color:var(--text-muted);">Forward Revenue (Locked)</div>
+                        <div style="font-family:'JetBrains Mono'; font-weight:700; color:var(--info);">HKD 8.420M</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
+                        <div style="font-size:0.89rem; color:var(--text-muted);">Expected Unhedged Revenue</div>
+                        <div id="cfoExpectedUnhedgedText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--cuhk-gold-light);">HKD 8.425M</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
+                        <div style="font-size:0.89rem; color:var(--text-muted);">Breakeven Crash Prob (<i>p</i>*)</div>
+                        <div id="cfoBreakevenText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--info);">25.60%</div>
+                    </div>
+                </div>
+
+                <div style="font-size:0.97rem; color:var(--text-muted); margin-top:0.75rem; line-height:1.4;" id="cfoBreakevenNote">
+                    <strong>Breakeven Intuition:</strong> Raising the crash probability shifts weight from the two
+                    stronger states onto <i>S<sub>T</sub></i> = 7.80 while keeping their 2:1 ratio. Once the crash
+                    probability passes <strong id="cfoBreakevenNoteVal">25.60%</strong>, the locked forward beats staying unhedged in expectation
+                    as well as in certainty. Below it you are paying a small expected-revenue premium for a known number.
+                </div>
+            </div>
+
+            <div class="misconception-box">
+                <strong style="color:var(--cuhk-gold-light); display:block; margin-bottom:0.3rem;">Core Misconception Debrief & Lessons:</strong>
+                <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:1rem; line-height:1.5;">
+                    <li><strong>Misconception 1 (Wrong Option Type)</strong>: If you bought a <em>Call Option</em> for a receivable, you paid an upfront premium for the right to buy Euros at 8.40 when you needed to sell Euros. You suffered the full spot drop to 7.80 PLUS the lost premium!</li>
+                    <li><strong>Forward vs Option Trade-Off</strong>: In the ECB-cut state the Forward lock yields <strong>HKD 8,420,000</strong> (fully protected at zero upfront cost), while the Put Option floor yields <strong>HKD 8,278,500</strong> (exercised at the 8.40 strike, less the 0.1215 premium FV). Protection through the option costs <strong>HKD 141,500</strong> more, which is the price of keeping the upside.</li>
+                    <li><strong>When is the Option Better?</strong> The Put Option outperforms the Forward only if the Euro rallies above <strong><i>S<sub>T</sub></i> &gt; <i>F</i><sub>0</sub> + <i>p</i><sub>fv</sub> = 8.4200 + 0.1215 = 8.5415 HKD/EUR</strong>.</li>
+                </ul>
+            </div>
+
+            <button class="btn btn-primary" onclick="goToStage(5)" style="width:100%; margin-top:1.5rem;">Proceed to Stage 5: Build Your Own Hedge Mix &rarr;</button>
+        </div>
+
+        <!-- STAGE 5: PARTIAL HEDGE MIX LAB -->
+        <div class="glass-panel stage-panel" id="stage5-panel" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem; gap:1rem; flex-wrap:wrap;">
+                <div>
+                    <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 5: Build Your Own Hedge Mix</h2>
+                    <p style="font-size:1.06rem; color:var(--text-secondary);">Hedging is not all-or-nothing. Split the &euro;1,000,000 receivable across a forward sleeve, a put option sleeve and an open sleeve, and watch the payoff curve rebuild itself.</p>
+                </div>
+                <span class="badge badge-locked">Any Mix Allowed</span>
+            </div>
+
+            <div class="mix-layout">
+                <div class="mix-panel">
+                    <div class="mix-slider-row">
+                        <div class="mix-slider-head">
+                            <span class="mix-slider-name">Forward sleeve</span>
+                            <span class="mix-slider-pct" style="color:var(--info);" id="mixForwardPct">100%</span>
+                        </div>
+                        <input type="range" id="mixForwardSlider" min="0" max="100" value="100" step="1"
+                               aria-label="Share of the receivable sold forward"
+                               oninput="setMixFromSlider('forward')">
+                        <div class="mix-sleeve-note">Sold forward at <i>F</i><sub>0</sub> = 8.4200. Certain HKD, no upside.</div>
+                    </div>
+
+                    <div class="mix-slider-row">
+                        <div class="mix-slider-head">
+                            <span class="mix-slider-name">Put option sleeve</span>
+                            <span class="mix-slider-pct" style="color:var(--success);" id="mixOptionPct">0%</span>
+                        </div>
+                        <input type="range" id="mixOptionSlider" min="0" max="100" value="0" step="1"
+                               aria-label="Share of the receivable protected with a put option"
+                               oninput="setMixFromSlider('option')">
+                        <div class="mix-sleeve-note">Put struck at <i>K</i> = 8.4000, premium FV 0.1215 per euro. Floor plus upside.</div>
+                    </div>
+
+                    <div class="mix-residual">
+                        <div class="mix-slider-head">
+                            <span class="mix-slider-name">Open sleeve (unhedged)</span>
+                            <span class="mix-slider-pct" style="color:var(--danger);" id="mixUnhedgedPct">0%</span>
+                        </div>
+                        <div class="mix-sleeve-note">Whatever the two sleeves above leave behind, converted at the realized spot.</div>
+                        <div class="mix-bar" role="img" aria-label="Composition of the hedge mix">
+                            <span class="seg-forward" id="mixBarForward" style="width:100%;"></span>
+                            <span class="seg-option" id="mixBarOption" style="width:0%;"></span>
+                            <span class="seg-unhedged" id="mixBarUnhedged" style="width:0%;"></span>
+                        </div>
+                        <div class="mix-sleeve-note" id="mixProtectedNote">Protected share: 100% of the notional.</div>
+                    </div>
+
+                    <div class="mix-presets">
+                        <button type="button" class="mix-preset-btn" onclick="applyMix(0, 0)">Fully open</button>
+                        <button type="button" class="mix-preset-btn" onclick="applyMix(100, 0)">100% forward</button>
+                        <button type="button" class="mix-preset-btn" onclick="applyMix(0, 100)">100% put</button>
+                        <button type="button" class="mix-preset-btn" onclick="applyMix(50, 0)">50% forward</button>
+                        <button type="button" class="mix-preset-btn" onclick="applyMix(50, 50)">50 / 50 forward &amp; put</button>
+                        <button type="button" class="mix-preset-btn" onclick="applyMix(75, 25)">75 / 25 forward &amp; put</button>
+                    </div>
+                </div>
+
+                <div class="mix-chart-wrap">
+                    <canvas id="mixChart"></canvas>
+                    <p id="mixChartFallback" style="display:none; font-size:1rem; color:var(--text-muted);">
+                        The payoff chart could not load. The revenue figures below are still exact.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mix-metric-grid">
+                <div class="mix-metric">
+                    <div class="mix-metric-label">Expected revenue <i>E</i>[Rev]</div>
+                    <div class="mix-metric-val" style="color:var(--cuhk-gold-light);" id="mixExpected">HKD 8,420,000</div>
+                </div>
+                <div class="mix-metric">
+                    <div class="mix-metric-label">ECB cut &middot; <i>S<sub>T</sub></i> = 7.80</div>
+                    <div class="mix-metric-val" style="color:var(--danger);" id="mixCrash">HKD 8,420,000</div>
+                </div>
+                <div class="mix-metric">
+                    <div class="mix-metric-label">Baseline &middot; <i>S<sub>T</sub></i> = 8.40</div>
+                    <div class="mix-metric-val" style="color:var(--info);" id="mixBase">HKD 8,420,000</div>
+                </div>
+                <div class="mix-metric">
+                    <div class="mix-metric-label">Euro rally &middot; <i>S<sub>T</sub></i> = 9.10</div>
+                    <div class="mix-metric-val" style="color:var(--success);" id="mixRally">HKD 8,420,000</div>
+                </div>
+                <div class="mix-metric">
+                    <div class="mix-metric-label">Lost per 0.10 fall below 8.40</div>
+                    <div class="mix-metric-val" style="color:var(--danger);" id="mixDownSlope">HKD 0</div>
+                </div>
+                <div class="mix-metric">
+                    <div class="mix-metric-label">Gained per 0.10 rise above 8.40</div>
+                    <div class="mix-metric-val" style="color:var(--success);" id="mixUpSlope">HKD 0</div>
+                </div>
+                <div class="mix-metric">
+                    <div class="mix-metric-label">Option premium paid (FV)</div>
+                    <div class="mix-metric-val" style="color:var(--text-secondary);" id="mixPremium">HKD 0</div>
+                </div>
+            </div>
+
+            <div class="misconception-box" style="border-left-color:var(--cuhk-gold);">
+                <strong style="color:var(--cuhk-gold-light); display:block; margin-bottom:0.3rem;">Reading the curve</strong>
+                <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:1rem; line-height:1.5;">
+                    <li>The forward sleeve is a flat line. It contributes the same HKD at every <i>S<sub>T</sub></i>, which is why adding forward flattens the whole curve.</li>
+                    <li>The open sleeve is a 45-degree line through the origin. It sets how steeply you fall when the euro falls.</li>
+                    <li>The put sleeve is flat below <i>K</i> = 8.40 and 45-degree above it. That is the kink: your mix has slope <span id="mixSlopeSentence">0% below the strike and 0% above it</span>.</li>
+                    <li>Only the open and put sleeves earn anything from a euro rally, and only the forward and put sleeves protect you from a euro crash. Moving the sliders is how you price that trade-off against your own view of <i>f</i>(<i>S<sub>T</sub></i>).</li>
+                </ul>
+            </div>
+
+            <div style="margin-top:1.5rem; display:flex; gap:1rem; flex-wrap:wrap;">
+                <button class="btn" style="background:rgba(255,255,255,0.05); color:var(--text-secondary);" onclick="goToStage(4)">&larr; Back to Debrief</button>
+                <button class="btn btn-primary" style="flex:1;" onclick="goToStage(6)">Record This Mix &amp; Proceed to Exit Reflection &rarr;</button>
+            </div>
+        </div>
+
+        <!-- STAGE 6: EXIT REFLECTION & PARTICIPATION -->
+        <div class="glass-panel stage-panel" id="stage6-panel" style="display:none;">
+            <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light); margin-bottom:0.5rem;">Stage 6: Individual Exit Reflection</h2>
+            <p style="font-size:1.06rem; color:var(--text-secondary); margin-bottom:1.5rem;">
+                Submit your final 1-sentence reflection to earn full participation credit for Week 4 Game.
+            </p>
+
+            <div style="background:rgba(19, 24, 34, 0.8); border:1px solid var(--border-color); border-radius:10px; padding:1rem; margin-bottom:1.25rem; font-size:1rem; color:var(--text-secondary);">
+                Mix you are submitting: <strong id="mixSummaryLine" style="color:var(--cuhk-gold-light);">100% forward, 0% put, 0% open</strong>
+            </div>
+
+            <div style="background:rgba(19, 24, 34, 0.8); border:1px solid var(--border-color); border-radius:10px; padding:1.25rem; margin-bottom:1.5rem;">
+                <label style="font-size:1rem; font-weight:600; color:var(--text-primary); display:block;" for="reflectionText">
+                    Exit Prompt: <em>“Which hedge mix would you take into the board meeting, and what does the shape of its payoff curve buy you that a full forward lock does not?”</em>
+                </label>
+                <textarea id="reflectionText" class="reflection-textarea" placeholder="Type your 1-sentence analytical reflection here..."></textarea>
+            </div>
+
+            <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+                <button class="btn" style="background:rgba(255,255,255,0.05); color:var(--text-secondary);" onclick="goToStage(5)">&larr; Back to Mix Lab</button>
+                <button class="btn btn-primary" style="flex:2;" onclick="submitGameResponse()">Submit &amp; Save Participation Record</button>
+                <button class="btn" style="background:rgba(255,255,255,0.05); color:var(--text-secondary); flex:1;" onclick="FINA3020Utils.exportResponsesCSV()">Export History CSV</button>
+            </div>
+
+            <div id="submissionAlert" style="display:none; margin-top:1rem; padding:1rem; border-radius:8px; background:var(--success-bg); border:1px solid var(--success); color:var(--success); font-size:1.06rem; text-align:center;">
+                Submission status will appear here.
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        /* ------------------------------------------------------------------
+           Contract primitives and the ex-ante distribution.
+           Stages 2, 4 and 5 all quote expected revenue, so the state space is
+           declared once here and never restated inline.
+           ------------------------------------------------------------------ */
+        const TOTAL_STAGES = 6;
+
+        const STATES = [
+            { key: 'crash',    ST: 7.8000, prob: 0.25, label: 'ECB Rate Cut' },
+            { key: 'baseline', ST: 8.4000, prob: 0.50, label: 'Baseline Consensus' },
+            { key: 'rally',    ST: 9.1000, prob: 0.25, label: 'Euro Rally' }
+        ];
+
+        let gameState = {
+            currentStage: 1,
+            maxUnlockedStage: 1,
+            exposureType: null,          // initially null, student must choose
+            selectedStrategy: 'forward', // default strategy
+            notional: 1000000,
+            S0: 8.4000,
+            F0: 8.4200,
+            strike: 8.4000,
+            premium: 0.1200,
+            rHKD: 0.0500,
+            rEUR: 0.0400,
+            days: 90,
+            ST_shock: 7.8000,
+            activeShockScenario: 'ecb_cut',
+            hedgeMix: { forward: 100, option: 0, unhedged: 0 }
+        };
+
+        let chartInstance = null;
+        let mixChartInstance = null;
+
+        /* Quoted to 4 decimals, like every other rate on this page. The cards,
+           hints and debrief all print figures built on 0.1215; computing with
+           the unrounded 0.12147945 instead put HKD 8,278,521 in the result box
+           next to a card reading HKD 8,278,500. */
+        function premiumFV() {
+            const raw = gameState.premium * (1 + gameState.rHKD * (gameState.days / 365));
+            return Math.round(raw * 10000) / 10000;
+        }
+
+        function revenueUnhedged(ST) { return ST * gameState.notional; }
+        function revenueForward() { return gameState.F0 * gameState.notional; }
+        function revenueOption(ST) {
+            return (Math.max(ST, gameState.strike) - premiumFV()) * gameState.notional;
+        }
+
+        /* Revenue of an arbitrary sleeve mix. Shares are percentages, not fractions. */
+        function revenueMix(ST, mix) {
+            const m = mix || gameState.hedgeMix;
+            return (m.forward / 100) * revenueForward()
+                 + (m.option / 100) * revenueOption(ST)
+                 + (m.unhedged / 100) * revenueUnhedged(ST);
+        }
+
+        function hkd(value) { return 'HKD ' + Math.round(value).toLocaleString('en-US'); }
+
+        /* Built from integers so 7.80, 8.40 and 9.10 land on exact labels;
+           accumulating 0.10 in a float loop does not guarantee that. */
+        function spotGrid() {
+            const grid = [];
+            for (let tick = 750; tick <= 930; tick += 10) grid.push(tick / 100);
+            return grid;
+        }
+
+        /* Chart.js is a local vendor file. If it fails to load, the numbers on
+           every stage must still be correct rather than the stage throwing. */
+        function chartsAvailable() { return typeof Chart !== 'undefined'; }
+
+        function handleStepClick(targetStage) {
+            if (targetStage > gameState.maxUnlockedStage) {
+                alert(`Stage ${targetStage} is locked. Please complete the current stage first.`);
+                return;
+            }
+            goToStage(targetStage);
+        }
+
+        function setExposureType(type) {
+            gameState.exposureType = type;
+            document.getElementById('exp-type-rec').classList.toggle('selected', type === 'receivable');
+            document.getElementById('exp-type-pay').classList.toggle('selected', type === 'payable');
+
+            const feedbackEl = document.getElementById('sanity-check-feedback');
+            const proceedBtn = document.getElementById('btn-stage1-proceed');
+
+            if (type === 'receivable') {
+                // Correct Sanity Check!
+                feedbackEl.style.display = 'block';
+                feedbackEl.style.background = 'var(--success-bg)';
+                feedbackEl.style.border = '1px solid var(--success)';
+                feedbackEl.style.color = 'var(--text-primary)';
+                feedbackEl.innerHTML = `
+                    <strong style="color:var(--success); font-size:1.12rem; display:block; margin-bottom:0.3rem;">&#10004; Correct Sanity Check!</strong>
+                    The German importer owes you euros, so the export creates a future foreign currency cash inflow (<strong>&euro;1,000,000 Foreign Receivable / Asset</strong>).
+                    <br><span style="color:var(--text-secondary); font-size:0.97rem;">Your primary risk is Euro depreciation (<i>S<sub>T</sub></i> &downarrow;), which reduces your HKD conversion value. A hedge must lock or floor the conversion rate.</span>
+                `;
+
+                gameState.maxUnlockedStage = Math.max(gameState.maxUnlockedStage, 2);
+                proceedBtn.disabled = false;
+                proceedBtn.style.opacity = '1';
+                proceedBtn.style.cursor = 'pointer';
+                proceedBtn.innerHTML = 'Sanity Check Passed! Proceed to Stage 2: Strategy Evaluation &rarr;';
+            } else if (type === 'payable') {
+                // Incorrect Sanity Check!
+                feedbackEl.style.display = 'block';
+                feedbackEl.style.background = 'var(--danger-bg)';
+                feedbackEl.style.border = '1px solid var(--danger)';
+                feedbackEl.style.color = 'var(--text-primary)';
+                feedbackEl.innerHTML = `
+                    <strong style="color:var(--danger); font-size:1.12rem; display:block; margin-bottom:0.3rem;">&#10008; Incorrect Sanity Check!</strong>
+                    You shipped the machinery and the German importer will <strong>PAY you &euro;1,000,000</strong> in 90 days. This is a foreign currency cash inflow (Receivable / Asset), NOT a Payable / Liability.
+                    <br><span style="color:var(--text-secondary); font-size:0.97rem;">A Payable (Liability) represents an obligation to pay foreign currency when importing. Re-evaluate your position to proceed.</span>
+                `;
+
+                proceedBtn.disabled = true;
+                proceedBtn.style.opacity = '0.5';
+                proceedBtn.style.cursor = 'not-allowed';
+                proceedBtn.innerHTML = 'Fix Sanity Check to Proceed &rarr;';
+            }
+
+            updateStepperUI();
+        }
+
+        function proceedFromStage1() {
+            if (gameState.exposureType !== 'receivable') {
+                alert('Please pass the Step 1 Sanity Check by selecting Foreign Receivable (Asset) before proceeding.');
+                return;
+            }
+            goToStage(2);
+        }
+
+        function updateStepperUI() {
+            const badgeEl = document.getElementById('stage-progress-badge');
+            if (badgeEl) badgeEl.textContent = `Stage ${gameState.currentStage} of ${TOTAL_STAGES}`;
+
+            const step3Sub = document.getElementById('step3-subtitle');
+            if (step3Sub) {
+                if (gameState.currentStage >= 3) {
+                    const activeKey = gameState.activeShockScenario || 'ecb_cut';
+                    const scen = shockScenarios[activeKey] || shockScenarios['ecb_cut'];
+                    step3Sub.textContent = scen.subtitle;
+                } else {
+                    step3Sub.textContent = 'Unannounced Market Event';
+                }
+            }
+
+            for (let i = 1; i <= TOTAL_STAGES; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                const numEl = document.getElementById(`step${i}-num`);
+                const statusEl = document.getElementById(`step${i}-status`);
+
+                if (!indicator) continue;
+
+                indicator.classList.remove('active', 'completed', 'locked');
+
+                if (i === gameState.currentStage) {
+                    indicator.classList.add('active');
+                    if (statusEl) statusEl.textContent = 'In Progress';
+                    if (numEl) numEl.textContent = i;
+                } else if (i < gameState.currentStage) {
+                    indicator.classList.add('completed');
+                    if (statusEl) statusEl.textContent = 'Completed';
+                    if (numEl) numEl.textContent = '✓';
+                } else if (i <= gameState.maxUnlockedStage) {
+                    // Unlocked but not active
+                    if (statusEl) statusEl.textContent = 'Unlocked';
+                    if (numEl) numEl.textContent = i;
+                } else {
+                    // Locked
+                    indicator.classList.add('locked');
+                    if (statusEl) statusEl.innerHTML = '&#128274; Locked';
+                    if (numEl) numEl.textContent = i;
+                }
+            }
+        }
+
+        /* The header "Set Name & CUHK ID" button and the Stage 1 fields are two
+           doors into the same record. Keep them in step, or a student who used
+           the header dialog is blocked by empty Stage 1 fields. */
+        function prefillIdentityInputs() {
+            const pairs = [
+                ['studentIdInput', FINA3020Utils.getStudentID()],
+                ['studentNameInput', FINA3020Utils.getFullName()],
+                ['cfoSectionSelect', FINA3020Utils.getSection()]
+            ];
+            pairs.forEach(([id, stored]) => {
+                const el = document.getElementById(id);
+                if (el && !el.value && stored) el.value = stored;
+            });
+        }
+
+        function goToStage(stageNum) {
+            // Validate Student ID & Section if moving past stage 1
+            if (stageNum > 1) {
+                const idInput = document.getElementById('studentIdInput');
+                const nameInput = document.getElementById('studentNameInput');
+                const secInput = document.getElementById('cfoSectionSelect');
+
+                const sId = ((idInput && idInput.value.trim()) || FINA3020Utils.getStudentID() || '').trim();
+                const sName = ((nameInput && nameInput.value.trim()) || FINA3020Utils.getFullName() || '').trim();
+                const sec = ((secInput && secInput.value.trim()) || FINA3020Utils.getSection() || '').trim().toUpperCase();
+
+                if (!sId || !sName) {
+                    alert('Please enter your full name and 10-digit CUHK Student ID before proceeding.');
+                    return;
+                }
+                if (!sec || !['A', 'B', 'C'].includes(sec)) {
+                    alert('Please select a valid Course Section (Section A, B, or C).');
+                    return;
+                }
+
+                if (!FINA3020Utils.setStudentCredentials(sId, sName, sec)) {
+                    alert('Please check your full name, 10-digit CUHK ID, and section.');
+                    return;
+                }
+                prefillIdentityInputs();
+            }
+
+            gameState.currentStage = stageNum;
+            gameState.maxUnlockedStage = Math.max(gameState.maxUnlockedStage, stageNum);
+
+            // Hide/Show stage panels
+            for (let i = 1; i <= TOTAL_STAGES; i++) {
+                const panel = document.getElementById(`stage${i}-panel`);
+                if (panel) {
+                    panel.style.display = (i === stageNum) ? 'block' : 'none';
+                }
+            }
+
+            updateStepperUI();
+
+            if (stageNum === 2) {
+                renderPayoffChart();
+            } else if (stageNum === 3) {
+                selectShockScenario(gameState.activeShockScenario || 'ecb_cut');
+            } else if (stageNum === 4) {
+                updateStage4Payoffs();
+                updateCfoProbability();
+            } else if (stageNum === 5) {
+                applyMix(gameState.hedgeMix.forward, gameState.hedgeMix.option);
+            } else if (stageNum === 6) {
+                updateMixSummaryLine();
+            }
+        }
+
+        const shockScenarios = {
+            'ecb_cut': {
+                key: 'ecb_cut',
+                headline: 'MARKET SHOCK 1: ECB Emergency Rate Cut (Depreciation Shock)',
+                desc: 'Week 4 Lecture Case: The European Central Bank cuts benchmark interest rates unexpectedly by 75 bps to combat recession fears. Capital flees the Eurozone.',
+                ST: 7.8000,
+                pct: '−7.14%',
+                subtitle: 'ECB Rate Cut (7.80 HKD)',
+                tone: 'tone-down',
+                rateLabel: 'Realized Spot Rate (<i>S<sub>T</sub></i>)',
+                color: 'var(--danger)',
+                hintHold: `
+                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 1: Realized <i>S<sub>T</sub></i> = 7.8000 HKD/EUR):</strong>
+                    The spot exchange rate at 90-day maturity is 7.8000 HKD per Euro.
+                    <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.98rem; margin-top:0.3rem; line-height:1.5;">
+                        <li><strong>Forward Hedge</strong>: Settles at contractual lock <i>F</i><sub>0</sub> = 8.4200, delivering <strong>HKD 8,420,000</strong>.</li>
+                        <li><strong>Put Option</strong>: Since realized spot (7.8000) is below strike (8.4000), the firm exercises the put floor at 8.4000. Net of option premium FV (0.1215 HKD/EUR), net revenue is <strong>HKD 8,278,500</strong>.</li>
+                        <li><strong>Unhedged</strong>: Converts &euro;1,000,000 at market spot 7.8000, delivering <strong>HKD 7,800,000</strong>.</li>
+                    </ul>
+                `
+            },
+            'eur_rally': {
+                key: 'eur_rally',
+                headline: 'MARKET SHOCK 2: Global Risk-On Rally (Euro Appreciation)',
+                desc: 'Week 3 UIP & Macro Case: Strong European economic indicators trigger a major Euro rally. The Euro surges against HKD.',
+                ST: 9.1000,
+                pct: '+8.33%',
+                subtitle: 'Euro Rally (9.10 HKD)',
+                tone: 'tone-up',
+                rateLabel: 'Realized Spot Rate (<i>S<sub>T</sub></i>)',
+                color: 'var(--success)',
+                hintHold: `
+                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 3: Realized <i>S<sub>T</sub></i> = 9.1000 HKD/EUR):</strong>
+                    The spot exchange rate at 90-day maturity is 9.1000 HKD per Euro.
+                    <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.98rem; margin-top:0.3rem; line-height:1.5;">
+                        <li><strong>Unhedged</strong>: Converts &euro;1,000,000 at market spot 9.1000, delivering <strong>HKD 9,100,000</strong>. In this state the open position is the best of the three.</li>
+                        <li><strong>Put Option</strong>: Since realized spot (9.1000) exceeds strike (8.4000), the firm lets the option expire unexercised and converts at spot (9.1000). Net revenue is <strong>HKD 8,978,500</strong> (&euro;1,000,000 &times; 9.1000 minus option premium FV of HKD 121,500).</li>
+                        <li><strong>Forward Hedge</strong>: Settles at contractual lock <i>F</i><sub>0</sub> = 8.4200, delivering <strong>HKD 8,420,000</strong>. The lock that protected you in State 1 is what caps you here.</li>
+                    </ul>
+                `
+            },
+            'cip_basis': {
+                key: 'cip_basis',
+                headline: 'MARKET SHOCK 3: Interbank Swap Market Disruption (CIP Basis Shock)',
+                desc: 'Week 4 CIP & Funding Case: Bank balance-sheet constraints tighten, interbank CIP swap spreads widen, and the euro slips to 8.1000 spot while the dealer reprices a new 90-day forward to the same 8.1000.',
+                ST: 8.1000,
+                pct: '−3.57%',
+                subtitle: 'CIP Swap Friction (8.10 HKD)',
+                tone: 'tone-warn',
+                rateLabel: 'Realized Spot &amp; Repriced Forward',
+                color: 'var(--warning)',
+                hintHold: `
+                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 2: Interbank Swap Friction, spot and new forward both 8.1000 HKD/EUR):</strong>
+                    Interbank FX swap liquidity squeezes widen dealer spreads, and the forward premium collapses.
+                    <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.98rem; margin-top:0.3rem; line-height:1.5;">
+                        <li><strong>Pre-Committed Forward</strong>: A contract struck at <i>t</i> = 0 still settles at the agreed <i>F</i><sub>0</sub> = 8.4200, delivering <strong>HKD 8,420,000</strong>. Its value is precisely that it is immune to the repricing.</li>
+                        <li><strong>Put Option</strong>: Spot (8.1000) is below strike (8.4000), so the firm exercises at 8.4000 and nets <strong>HKD 8,278,500</strong> after premium.</li>
+                        <li><strong>Unhedged, or hedging only now</strong>: Converting at spot, or entering a fresh forward during the disruption, both lock the repriced 8.1000, delivering <strong>HKD 8,100,000</strong>. Waiting for a better moment is what the friction taxes.</li>
+                    </ul>
+                `
+            }
+        };
+
+        const visitedStates = {
+            'ecb_cut': false,
+            'eur_rally': false,
+            'cip_basis': false
+        };
+
+        function selectShockScenario(scenKey) {
+            gameState.activeShockScenario = scenKey;
+            visitedStates[scenKey] = true;
+
+            const scen = shockScenarios[scenKey] || shockScenarios['ecb_cut'];
+            gameState.ST_shock = scen.ST;
+
+            // Highlight scenario selector cards & update viewed badges
+            ['ecb_cut', 'eur_rally', 'cip_basis'].forEach(sKey => {
+                const sBtnKey = sKey === 'ecb_cut' ? 'ecb' : (sKey === 'eur_rally' ? 'rally' : 'cip');
+                const card = document.getElementById(`shock-btn-${sBtnKey}`);
+                const badge = document.getElementById(`viewed-badge-${sBtnKey}`);
+
+                if (card) {
+                    card.classList.toggle('selected', sKey === scenKey);
+                }
+                if (badge) {
+                    badge.style.display = visitedStates[sKey] ? 'block' : 'none';
+                }
+            });
+
+            // Update Shock Banner
+            const bannerEl = document.getElementById('shock-banner-container');
+            const headlineEl = document.getElementById('shock-headline-text');
+            const descEl = document.getElementById('shock-desc-text');
+            const rateValEl = document.getElementById('shock-rate-val');
+            const rateLabelEl = document.getElementById('shock-rate-label');
+            const arrowEl = document.getElementById('shock-arrow-icon');
+
+            if (bannerEl) {
+                bannerEl.classList.remove('tone-down', 'tone-up', 'tone-warn');
+                bannerEl.classList.add(scen.tone);
+            }
+            if (headlineEl) headlineEl.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> ${scen.headline}`;
+            if (descEl) descEl.textContent = scen.desc;
+            if (rateLabelEl) rateLabelEl.innerHTML = scen.rateLabel;
+            if (arrowEl) arrowEl.style.color = scen.color;
+            if (rateValEl) {
+                rateValEl.textContent = `${scen.ST.toFixed(4)} HKD (${scen.pct})`;
+                rateValEl.style.color = scen.color;
+            }
+
+            // Update sidebar subtitle if Stage 3 is active/unlocked
+            const subTitleEl = document.getElementById('step3-subtitle');
+            if (subTitleEl && gameState.currentStage >= 3) {
+                subTitleEl.textContent = scen.subtitle;
+            }
+
+            // Render analytical hint directly
+            const hintBox = document.getElementById('stage3-hint-box');
+            if (hintBox) {
+                hintBox.style.display = 'block';
+                hintBox.style.background = 'rgba(218, 165, 32, 0.12)';
+                hintBox.style.borderColor = 'var(--cuhk-gold)';
+                hintBox.innerHTML = scen.hintHold;
+            }
+
+            // Check if all 3 states have been viewed
+            const visitedCount = Object.values(visitedStates).filter(Boolean).length;
+            const proceedBtn = document.getElementById('btn-stage3-proceed');
+
+            if (proceedBtn) {
+                if (visitedCount < 3) {
+                    proceedBtn.disabled = true;
+                    proceedBtn.style.opacity = '0.5';
+                    proceedBtn.style.cursor = 'not-allowed';
+                    proceedBtn.innerHTML = `Explore All 3 Market Realization States to Proceed (${visitedCount}/3 States Explored) &rarr;`;
+                } else {
+                    proceedBtn.disabled = false;
+                    proceedBtn.style.opacity = '1';
+                    proceedBtn.style.cursor = 'pointer';
+                    proceedBtn.innerHTML = `All 3 States Explored! Proceed to Stage 4: Execution Debrief &amp; Payoffs &rarr;`;
+                    gameState.maxUnlockedStage = Math.max(gameState.maxUnlockedStage, 4);
+                }
+            }
+
+            updateStepperUI();
+        }
+
+        function selectStrategy(strat) {
+            gameState.selectedStrategy = strat;
+            ['unhedged', 'forward', 'option'].forEach(s => {
+                const el = document.getElementById(`strat-${s}`);
+                if (el) el.classList.toggle('selected', s === strat);
+            });
+            const labelEl = document.getElementById('userSelectedBaselineLabel');
+            if (labelEl) labelEl.textContent = strat.toUpperCase();
+        }
+
+        let isStateHighlightActive = false;
+
+        function toggleStateHighlight() {
+            isStateHighlightActive = !isStateHighlightActive;
+            const btn = document.getElementById('btn-toggle-states');
+            if (btn) {
+                btn.style.background = isStateHighlightActive ? 'rgba(218, 165, 32, 0.25)' : 'rgba(255, 255, 255, 0.05)';
+                btn.style.borderColor = isStateHighlightActive ? 'var(--cuhk-gold)' : 'var(--border-color)';
+                btn.innerHTML = isStateHighlightActive
+                    ? '✨ Macro States Highlighted (Click to Reset View)'
+                    : '💡 Highlight 3 Macro States on Graph';
+            }
+            renderPayoffChart();
+        }
+
+        /* The shared chart defaults are sized for a laptop; this game is read
+           off a lecture-hall projector, so lift legend and tick type locally. */
+        function gameChartDefaults() {
+            const base = FINA3020Utils.getChartDefaults ? FINA3020Utils.getChartDefaults() : {};
+            const plugins = base.plugins || {};
+            const legend = plugins.legend || {};
+            const scales = base.scales || {};
+            const axis = name => {
+                const spec = scales[name] || {};
+                const ticks = spec.ticks || {};
+                return {
+                    ...spec,
+                    ticks: {
+                        ...ticks,
+                        font: { ...(ticks.font || {}), size: 13 },
+                        // 19 spot labels crowd and rotate in a narrow canvas.
+                        autoSkip: true, maxTicksLimit: 10, maxRotation: 0, minRotation: 0
+                    }
+                };
+            };
+            return {
+                ...base,
+                plugins: {
+                    ...plugins,
+                    legend: {
+                        ...legend,
+                        labels: { ...(legend.labels || {}), font: { family: 'Outfit', size: 14, weight: '600' }, boxWidth: 14, padding: 14 }
+                    }
+                },
+                scales: { ...scales, x: axis('x'), y: axis('y') }
+            };
+        }
+
+        const STATE_POINT_COLORS = { '7.80': '#E39B93', '8.40': '#8AB0DE', '9.10': '#86BFA5' };
+
+        function renderPayoffChart() {
+            const canvas = document.getElementById('payoffChart');
+            if (!canvas || !chartsAvailable()) return;
+            const ctx = canvas.getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            const spotRange = [];
+            const unhedgedPayoffs = [];
+            const forwardPayoffs = [];
+            const optionPayoffs = [];
+
+            spotGrid().forEach(s => {
+                spotRange.push(s.toFixed(2));
+                unhedgedPayoffs.push(revenueUnhedged(s));
+                forwardPayoffs.push(revenueForward());
+                optionPayoffs.push(revenueOption(s));
+            });
+
+            const stateColors = spotRange.map(sStr => STATE_POINT_COLORS[sStr] || 'transparent');
+            const stateRadii = spotRange.map(sStr => (STATE_POINT_COLORS[sStr] && isStateHighlightActive) ? 7 : 0);
+
+            const chartConfig = gameChartDefaults();
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: spotRange,
+                    datasets: [
+                        {
+                            label: '1. Unhedged (Floating Spot)',
+                            data: unhedgedPayoffs,
+                            borderColor: isStateHighlightActive ? 'rgba(227, 155, 147, 0.35)' : '#E39B93',
+                            borderDash: isStateHighlightActive ? [4, 4] : [5, 5],
+                            borderWidth: 2,
+                            pointRadius: stateRadii,
+                            pointHoverRadius: stateRadii.map(r => r ? 10 : 0),
+                            pointBackgroundColor: stateColors,
+                            pointBorderColor: '#0F172A',
+                            pointBorderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: '2. Forward Hedge (Hard Lock)',
+                            data: forwardPayoffs,
+                            borderColor: isStateHighlightActive ? 'rgba(138, 176, 222, 0.35)' : '#8AB0DE',
+                            borderDash: isStateHighlightActive ? [4, 4] : [],
+                            borderWidth: 3,
+                            pointRadius: stateRadii,
+                            pointHoverRadius: stateRadii.map(r => r ? 10 : 0),
+                            pointBackgroundColor: stateColors,
+                            pointBorderColor: '#0F172A',
+                            pointBorderWidth: 2,
+                            fill: false
+                        },
+                        {
+                            label: '3. Put Option Net (Floor at 8.278 HKD)',
+                            data: optionPayoffs,
+                            borderColor: isStateHighlightActive ? 'rgba(134, 191, 165, 0.35)' : '#86BFA5',
+                            borderDash: isStateHighlightActive ? [4, 4] : [],
+                            borderWidth: 3,
+                            pointRadius: stateRadii,
+                            pointHoverRadius: stateRadii.map(r => r ? 10 : 0),
+                            pointBackgroundColor: stateColors,
+                            pointBorderColor: '#0F172A',
+                            pointBorderWidth: 2,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    ...chartConfig,
+                    plugins: {
+                        ...(chartConfig.plugins || {}),
+                        title: {
+                            display: true,
+                            text: 'Net HKD Revenue Payoff Curves (€1,000,000 Receivable)',
+                            color: '#DAA520',
+                            font: { family: 'Outfit', size: 17, weight: '700' }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(tooltipItems) {
+                                    const val = tooltipItems[0].label;
+                                    if (val === '7.80') return '📉 State 1: ECB Rate Cut (S_T = 7.80)';
+                                    if (val === '8.40') return '↔️ State 2: Baseline Expected (S_T = 8.40)';
+                                    if (val === '9.10') return '📈 State 3: Euro Rally (S_T = 9.10)';
+                                    return `Spot Rate S_T = ${val}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        ...(chartConfig.scales || {}),
+                        x: {
+                            ...((chartConfig.scales && chartConfig.scales.x) || {}),
+                            ticks: {
+                                color: function(ctx) {
+                                    const label = ctx.tick && ctx.tick.label;
+                                    if (isStateHighlightActive) {
+                                        return STATE_POINT_COLORS[label] || '#5A6B80';
+                                    }
+                                    return '#94A3B8';
+                                },
+                                font: {
+                                    family: 'JetBrains Mono',
+                                    weight: '700',
+                                    size: 13
+                                },
+                                autoSkip: true, maxTicksLimit: 10, maxRotation: 0, minRotation: 0
+                            },
+                            grid: {
+                                color: function(ctx) {
+                                    const label = ctx.tick && ctx.tick.label;
+                                    if (isStateHighlightActive && STATE_POINT_COLORS[label]) {
+                                        return 'rgba(218, 165, 32, 0.4)';
+                                    }
+                                    return 'rgba(255, 255, 255, 0.04)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        /* ------------------------------------------------------------------
+           Stage 4: probability slider.
+           Stage 2 quotes E[Rev] under all three states, so this slider has to
+           move inside that same distribution. Raising the crash probability
+           rescales the other two states and keeps their 2:1 ratio.
+           ------------------------------------------------------------------ */
+        function conditionalNonCrashSpot() {
+            const rest = STATES.slice(1);
+            const weight = rest.reduce((sum, s) => sum + s.prob, 0);
+            if (weight <= 0) return STATES[0].ST;
+            return rest.reduce((sum, s) => sum + (s.prob / weight) * s.ST, 0);
+        }
+
+        function expectedUnhedgedAt(crashProb) {
+            const conditional = conditionalNonCrashSpot();
+            return (crashProb * STATES[0].ST + (1 - crashProb) * conditional) * gameState.notional;
+        }
+
+        function breakevenCrashProb() {
+            const conditional = conditionalNonCrashSpot();
+            const spread = conditional - STATES[0].ST;
+            if (spread <= 0) return null;
+            return (conditional - gameState.F0) / spread;
+        }
+
+        function updateCfoProbability() {
+            const slider = document.getElementById('cfoCrashProbSlider');
+            if (!slider) return;
+            const parsed = parseFloat(slider.value);
+            const prob = Math.min(1, Math.max(0, isFinite(parsed) ? parsed / 100 : 0));
+
+            const probText = document.getElementById('cfoCrashProbText');
+            if (probText) probText.innerText = Math.round(prob * 100) + '%';
+
+            const expectedText = document.getElementById('cfoExpectedUnhedgedText');
+            if (expectedText) {
+                expectedText.innerText = 'HKD ' + (expectedUnhedgedAt(prob) / 1000000).toFixed(3) + 'M';
+            }
+
+            const breakeven = breakevenCrashProb();
+            const formatted = breakeven === null ? 'n/a' : (breakeven * 100).toFixed(2) + '%';
+            const beText = document.getElementById('cfoBreakevenText');
+            if (beText) beText.innerText = formatted;
+            const beNote = document.getElementById('cfoBreakevenNoteVal');
+            if (beNote) beNote.innerText = formatted;
+        }
+
+        /* ------------------------------------------------------------------
+           Stage 5: partial hedge mix.
+           Two sliders drive three sleeves. The sleeve being dragged keeps the
+           value the student asked for; the other gives way, so the mix can
+           never claim more than the notional.
+           ------------------------------------------------------------------ */
+        let mixSyncing = false;
+
+        function clampPct(value) {
+            const n = parseFloat(value);
+            if (!isFinite(n)) return 0;
+            return Math.min(100, Math.max(0, n));
+        }
+
+        function roundPct(value) { return Math.round(value * 100) / 100; }
+
+        function setMixFromSlider(moved) {
+            if (mixSyncing) return;
+            const fwdEl = document.getElementById('mixForwardSlider');
+            const optEl = document.getElementById('mixOptionSlider');
+            if (!fwdEl || !optEl) return;
+
+            let forward = clampPct(fwdEl.value);
+            let option = clampPct(optEl.value);
+
+            if (forward + option > 100) {
+                if (moved === 'forward') option = 100 - forward;
+                else forward = 100 - option;
+            }
+            applyMix(forward, option);
+        }
+
+        function applyMix(forward, option) {
+            forward = clampPct(forward);
+            option = clampPct(option);
+            if (forward + option > 100) option = 100 - forward;
+
+            gameState.hedgeMix = {
+                forward: roundPct(forward),
+                option: roundPct(option),
+                unhedged: roundPct(Math.max(0, 100 - forward - option))
+            };
+
+            syncMixInputs();
+            updateMixReadouts();
+            renderMixChart();
+        }
+
+        function syncMixInputs() {
+            mixSyncing = true;
+            try {
+                const fwdEl = document.getElementById('mixForwardSlider');
+                const optEl = document.getElementById('mixOptionSlider');
+                if (fwdEl) fwdEl.value = gameState.hedgeMix.forward;
+                if (optEl) optEl.value = gameState.hedgeMix.option;
+            } finally {
+                mixSyncing = false;
+            }
+        }
+
+        /* Pure arithmetic: safe to call from the submit handler. */
+        function mixMetrics(mix) {
+            const m = mix || gameState.hedgeMix;
+            const step = 0.10;
+            const perState = {};
+            let expected = 0;
+
+            STATES.forEach(s => {
+                const value = revenueMix(s.ST, m);
+                perState[s.key] = value;
+                expected += s.prob * value;
+            });
+
+            return {
+                expected: expected,
+                crash: perState.crash,
+                baseline: perState.baseline,
+                rally: perState.rally,
+                // Below the strike the put sleeve is flat, so only the open sleeve moves.
+                downsidePer10: (m.unhedged / 100) * gameState.notional * step,
+                // Above it the put sleeve converts at spot as well.
+                upsidePer10: ((m.unhedged + m.option) / 100) * gameState.notional * step,
+                premiumPaid: (m.option / 100) * gameState.notional * premiumFV(),
+                protectedShare: roundPct(m.forward + m.option)
+            };
+        }
+
+        function mixLabel(mix) {
+            const m = mix || gameState.hedgeMix;
+            return `${m.forward}% forward, ${m.option}% put, ${m.unhedged}% open`;
+        }
+
+        function updateMixSummaryLine() {
+            const el = document.getElementById('mixSummaryLine');
+            if (el) el.textContent = mixLabel();
+        }
+
+        function updateMixReadouts() {
+            const m = gameState.hedgeMix;
+            const metrics = mixMetrics(m);
+
+            const text = {
+                mixForwardPct: m.forward + '%',
+                mixOptionPct: m.option + '%',
+                mixUnhedgedPct: m.unhedged + '%',
+                mixExpected: hkd(metrics.expected),
+                mixCrash: hkd(metrics.crash),
+                mixBase: hkd(metrics.baseline),
+                mixRally: hkd(metrics.rally),
+                mixDownSlope: hkd(metrics.downsidePer10),
+                mixUpSlope: hkd(metrics.upsidePer10),
+                mixPremium: hkd(metrics.premiumPaid)
+            };
+            Object.keys(text).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = text[id];
+            });
+
+            const widths = {
+                mixBarForward: m.forward,
+                mixBarOption: m.option,
+                mixBarUnhedged: m.unhedged
+            };
+            Object.keys(widths).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.width = widths[id] + '%';
+            });
+
+            const protectedNote = document.getElementById('mixProtectedNote');
+            if (protectedNote) {
+                protectedNote.textContent = metrics.protectedShare >= 100
+                    ? 'Protected share: 100% of the notional. Nothing is left floating.'
+                    : `Protected share: ${metrics.protectedShare}% of the notional; ${m.unhedged}% still converts at whatever spot turns out to be.`;
+            }
+
+            const slopeSentence = document.getElementById('mixSlopeSentence');
+            if (slopeSentence) {
+                slopeSentence.textContent = `${m.unhedged}% below the strike and ${roundPct(m.unhedged + m.option)}% above it`;
+            }
+
+            updateMixSummaryLine();
+        }
+
+        function renderMixChart() {
+            const canvas = document.getElementById('mixChart');
+            const fallback = document.getElementById('mixChartFallback');
+
+            if (!canvas || !chartsAvailable()) {
+                if (fallback) fallback.style.display = 'block';
+                return;
+            }
+            if (fallback) fallback.style.display = 'none';
+
+            const ctx = canvas.getContext('2d');
+            if (mixChartInstance) mixChartInstance.destroy();
+
+            const labels = [];
+            const mixLine = [];
+            const forwardLine = [];
+            const optionLine = [];
+            const openLine = [];
+
+            spotGrid().forEach(s => {
+                labels.push(s.toFixed(2));
+                mixLine.push(revenueMix(s));
+                forwardLine.push(revenueForward());
+                optionLine.push(revenueOption(s));
+                openLine.push(revenueUnhedged(s));
+            });
+
+            const chartConfig = gameChartDefaults();
+            const faint = { borderWidth: 1.5, borderDash: [5, 5], pointRadius: 0, fill: false };
+
+            mixChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Your mix', data: mixLine, borderColor: '#DAA520', borderWidth: 4, pointRadius: 0, fill: false, tension: 0 },
+                        { label: '100% forward', data: forwardLine, borderColor: 'rgba(138, 176, 222, 0.55)', ...faint },
+                        { label: '100% put', data: optionLine, borderColor: 'rgba(134, 191, 165, 0.55)', ...faint },
+                        { label: 'Fully open', data: openLine, borderColor: 'rgba(227, 155, 147, 0.55)', ...faint }
+                    ]
+                },
+                options: {
+                    ...chartConfig,
+                    plugins: {
+                        ...(chartConfig.plugins || {}),
+                        title: {
+                            display: true,
+                            text: `Net HKD revenue for ${mixLabel()}`,
+                            color: '#DAA520',
+                            font: { family: 'Outfit', size: 16, weight: '700' }
+                        }
+                    },
+                    scales: {
+                        ...(chartConfig.scales || {}),
+                        x: {
+                            ...((chartConfig.scales && chartConfig.scales.x) || {}),
+                            title: { display: true, text: 'Realized spot S_T (HKD per EUR)', color: '#94A3B8', font: { family: 'Outfit', size: 13 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function submitGameResponse() {
+            const reflection = document.getElementById('reflectionText').value.trim();
+            if (!reflection) {
+                alert('Please enter a 1-sentence reflection before submitting.');
+                return;
+            }
+
+            const sectionEl = document.getElementById('cfoSectionSelect');
+            const sectionVal = (sectionEl && sectionEl.value)
+                ? sectionEl.value
+                : (FINA3020Utils.getSection ? FINA3020Utils.getSection() : '');
+
+            const crashSlider = document.getElementById('cfoCrashProbSlider');
+            const crashParsed = crashSlider ? parseFloat(crashSlider.value) : NaN;
+
+            const payload = {
+                game: 'CFO_Hedge_Meeting',
+                targetTab: 'CFO_Hedge',
+                question: 'Identify FX exposure, choose a hedge, respond to the shock, and build a partial hedge mix.',
+                responseText: document.getElementById('reflectionText').value,
+                activityName: 'CFO Hedge Meeting',
+                scenario: { ...gameState },
+                visitedScenarios: { ...visitedStates },
+                crashProbability: isFinite(crashParsed) ? crashParsed / 100 : null,
+                week: 4,
+                section: sectionVal,
+                exposureType: gameState.exposureType,
+                selectedStrategy: gameState.selectedStrategy,
+                hedgeMix: { ...gameState.hedgeMix },
+                hedgeMixMetrics: mixMetrics(),
+                executedPayoff: calculateExecutedPayoff(),
+                reflection: reflection
+            };
+
+            const saved = FINA3020Utils.recordResponse(payload);
+            const alertBox = document.getElementById('submissionAlert');
+            alertBox.style.display = 'block';
+            alertBox.innerText = 'Submitting response…';
+            saved.deliveryPromise.then(confirmed => {
+                alertBox.style.background = confirmed ? 'var(--success-bg)' : 'var(--warning-bg)';
+                alertBox.style.borderColor = confirmed ? 'var(--success)' : 'var(--warning)';
+                alertBox.style.color = confirmed ? 'var(--success)' : 'var(--warning)';
+                alertBox.innerText = confirmed
+                    ? 'Response confirmed. Participation credit logged.'
+                    : 'Response saved in this tab but NOT confirmed. Leave it open for retry, or export the CSV and contact the TA.';
+            });
+        }
+
+        function updateStage4Payoffs() {
+            const ST = gameState.ST_shock || STATES[0].ST;
+            const exercised = ST < gameState.strike;
+
+            const rows = [
+                {
+                    key: 'unhedged',
+                    value: revenueUnhedged(ST),
+                    note: `Converted at the realized ${ST.toFixed(4)}`
+                },
+                {
+                    key: 'forward',
+                    value: revenueForward(),
+                    note: `Settled at the locked <i>F</i><sub>0</sub> = ${gameState.F0.toFixed(4)}`
+                },
+                {
+                    key: 'option',
+                    value: revenueOption(ST),
+                    note: exercised
+                        ? `Exercised at the ${gameState.strike.toFixed(2)} floor, less premium`
+                        : `Expired unexercised; spot conversion, less premium`
+                }
+            ];
+
+            const rateSubEl = document.getElementById('stage4-executed-rate');
+            if (rateSubEl) {
+                const tone = ST >= gameState.S0 ? 'var(--success)' : 'var(--danger)';
+                rateSubEl.innerHTML = `Executed Spot Rate: <strong style="color:${tone}; font-family:'JetBrains Mono';"><i>S<sub>T</sub></i> = ${ST.toFixed(4)} HKD/EUR</strong>`;
+            }
+
+            let best = rows[0];
+            rows.forEach(row => {
+                const valEl = document.getElementById(`res-val-${row.key}`);
+                if (valEl) valEl.textContent = hkd(row.value);
+                const noteEl = document.getElementById(`res-diff-${row.key}`);
+                if (noteEl) noteEl.innerHTML = row.note;
+                const box = document.getElementById(`res-box-${row.key}`);
+                if (box) box.classList.remove('highlight');
+                if (row.value > best.value) best = row;
+            });
+
+            // Highlight whichever strategy actually paid the most in this state,
+            // rather than assuming the forward always wins.
+            const bestBox = document.getElementById(`res-box-${best.key}`);
+            if (bestBox) bestBox.classList.add('highlight');
+            const bestNote = document.getElementById(`res-diff-${best.key}`);
+            if (bestNote) bestNote.innerHTML = `${bestNote.innerHTML} &middot; <span style="color:var(--success); font-weight:700;">highest in this state</span>`;
+        }
+
+        function calculateExecutedPayoff() {
+            const ST = gameState.ST_shock || STATES[0].ST;
+            if (gameState.selectedStrategy === 'unhedged') return revenueUnhedged(ST);
+            if (gameState.selectedStrategy === 'forward') return revenueForward();
+            return revenueOption(ST);
+        }
+
+        /* Card-shaped controls carry role="button"; give them the Enter/Space
+           behaviour a real button would have for keyboard and screen readers. */
+        document.addEventListener('keydown', event => {
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            const target = event.target;
+            if (!target || typeof target.getAttribute !== 'function') return;
+            if (target.getAttribute('role') !== 'button') return;
+            event.preventDefault();
+            if (typeof target.click === 'function') target.click();
+        });
+
+        // Initialize default UI selections
+        document.addEventListener('DOMContentLoaded', () => {
+            selectStrategy('forward');
+            selectShockScenario('ecb_cut');
+            applyMix(gameState.hedgeMix.forward, gameState.hedgeMix.option);
+            updateCfoProbability();
+            updateStepperUI();
+            prefillIdentityInputs();
+        });
+    </script>
+</body>
+</html>
