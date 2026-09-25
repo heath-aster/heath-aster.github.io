@@ -11,7 +11,7 @@
     <script src="vendor/chart.umd-4.4.7.js"></script>
     <!-- Custom Design System & Shared Utils -->
     <link rel="stylesheet" href="css/design_system.css">
-    <script src="js/common_utils.js?v=20260914-allweeks"></script>
+    <script src="js/common_utils.js?v=20260925-reliability"></script>
     <style>
         /* ------------------------------------------------------------------
            Page-scoped palette override.
@@ -604,11 +604,11 @@
 
             <div class="mobile-stack form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
                 <div>
-                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:1rem;">CUHK Student ID(s):</label>
-                    <input type="text" id="studentIdInput" class="input-field" placeholder="e.g. 1155123456" style="width:100%; box-sizing:border-box;" required>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:1rem;">Your 10-digit CUHK Student ID:</label>
+                    <input type="text" id="studentIdInput" inputmode="numeric" autocomplete="off" class="input-field" placeholder="e.g. 1155123456" style="width:100%; box-sizing:border-box;" required>
                 </div>
                 <div>
-                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:1rem;">Student Full Name(s) (given name SURNAME; ...):</label>
+                    <label style="display:block; margin-bottom:0.5rem; font-weight:600; color:var(--text-secondary); font-size:1rem;">Your full name (given name SURNAME):</label>
                     <input type="text" id="studentNameInput" class="input-field" placeholder="e.g. Seon LOU; John CHAN" style="width:100%; box-sizing:border-box;">
                 </div>
                 <div>
@@ -1031,11 +1031,11 @@
 
             <div style="display:flex; gap:1rem; flex-wrap:wrap;">
                 <button class="btn" style="background:rgba(255,255,255,0.05); color:var(--text-secondary);" onclick="goToStage(5)">&larr; Back to Mix Lab</button>
-                <button class="btn btn-primary" style="flex:2;" onclick="submitGameResponse()">Submit &amp; Save Participation Record</button>
+                <button id="submit-cfo-response" class="btn btn-primary" style="flex:2;" onclick="submitGameResponse()">Submit &amp; Save Participation Record</button>
                 <button class="btn" style="background:rgba(255,255,255,0.05); color:var(--text-secondary); flex:1;" onclick="FINA3020Utils.exportResponsesCSV()">Export History CSV</button>
             </div>
 
-            <div id="submissionAlert" style="display:none; margin-top:1rem; padding:1rem; border-radius:8px; background:var(--success-bg); border:1px solid var(--success); color:var(--success); font-size:1.06rem; text-align:center;">
+            <div id="submissionAlert" role="status" aria-live="polite" style="display:none; margin-top:1rem; padding:1rem; border-radius:8px; background:var(--success-bg); border:1px solid var(--success); color:var(--success); font-size:1.06rem; text-align:center;">
                 Submission status will appear here.
             </div>
         </div>
@@ -1875,7 +1875,29 @@
             });
         }
 
+        let cfoSubmission = null;
+        let cfoSubmissionKey = '';
+        let cfoSending = false;
+
+        function showSubmissionStatus(message, confirmed = false) {
+            const box = document.getElementById('submissionAlert');
+            box.style.display = 'block';
+            box.style.background = confirmed ? 'var(--success-bg)' : 'var(--warning-bg)';
+            box.style.borderColor = confirmed ? 'var(--success)' : 'var(--warning)';
+            box.style.color = confirmed ? 'var(--success)' : 'var(--warning)';
+            box.innerText = message;
+        }
+
+        function refreshSubmissionReceipt() {
+            if (!cfoSubmission) return;
+            const receipt = FINA3020Utils._readHistory().find(row => row.submissionId === cfoSubmission.submissionId);
+            if (receipt && receipt.delivered) {
+                showSubmissionStatus('Response confirmed. Participation record saved. Receipt: ' + receipt.receiptId, true);
+            }
+        }
+
         function submitGameResponse() {
+            if (cfoSending) return;
             const reflection = document.getElementById('reflectionText').value.trim();
             if (!reflection) {
                 alert('Please enter a 1-sentence reflection before submitting.');
@@ -1909,18 +1931,34 @@
                 reflection: reflection
             };
 
-            const saved = FINA3020Utils.recordResponse(payload);
-            const alertBox = document.getElementById('submissionAlert');
-            alertBox.style.display = 'block';
-            alertBox.innerText = 'Submitting response…';
-            saved.deliveryPromise.then(confirmed => {
-                alertBox.style.background = confirmed ? 'var(--success-bg)' : 'var(--warning-bg)';
-                alertBox.style.borderColor = confirmed ? 'var(--success)' : 'var(--warning)';
-                alertBox.style.color = confirmed ? 'var(--success)' : 'var(--warning)';
-                alertBox.innerText = confirmed
-                    ? 'Response confirmed. Participation credit logged.'
-                    : 'Response saved in this tab but NOT confirmed. Leave it open for retry, or export the CSV and contact the TA.';
-            });
+            const key = JSON.stringify([payload, FINA3020Utils.getStudentID(), FINA3020Utils.getFullName(), FINA3020Utils.getSection()]);
+            const button = document.getElementById('submit-cfo-response');
+            try {
+                // A second tap retries the existing record, never inventing another ID.
+                if (!cfoSubmission || key !== cfoSubmissionKey) {
+                    cfoSubmission = FINA3020Utils.recordResponse(payload);
+                    cfoSubmissionKey = key;
+                }
+                const prior = FINA3020Utils._readHistory().find(row => row.submissionId === cfoSubmission.submissionId);
+                if (prior && prior.delivered) { refreshSubmissionReceipt(); return; }
+                cfoSending = true;
+                button.disabled = true;
+                button.innerText = 'Sending…';
+                showSubmissionStatus('Submitting response… Keep this tab open. You can export a copy while waiting.');
+                const pending = FINA3020Utils._readPending().find(row => row.submissionId === cfoSubmission.submissionId);
+                const delivery = pending ? FINA3020Utils._deliver(pending) : cfoSubmission.deliveryPromise;
+                delivery.then(confirmed => {
+                    if (confirmed) refreshSubmissionReceipt();
+                    else showSubmissionStatus('Not yet confirmed. Your response is saved in this tab. Tap Retry or export a copy for the TA; keep this tab open.');
+                }).catch(error => showSubmissionStatus('Not confirmed: ' + error.message + ' Keep this tab open and export a copy.'))
+                  .finally(() => {
+                      cfoSending = false;
+                      button.disabled = false;
+                      button.innerText = 'Submit / Retry Participation Record';
+                  });
+            } catch (error) {
+                showSubmissionStatus(error.message + ' Your reflection is still here. Check your details using Set Name & CUHK ID, then submit again.');
+            }
         }
 
         function updateStage4Payoffs() {
@@ -1998,6 +2036,7 @@
             updateCfoProbability();
             updateStepperUI();
             prefillIdentityInputs();
+            FINA3020Utils.onDeliveryChange(refreshSubmissionReceipt);
         });
     </script>
 </body>

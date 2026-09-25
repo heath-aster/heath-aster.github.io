@@ -506,7 +506,7 @@ const FINA3020Utils = {
         return Promise.race([request, timeout]).catch(originalError => {
             // Apps Script can commit a POST even when its redirect response times out.
             // Confirm the existing row by its opaque submission ID before retrying.
-            const receiptUrl = `${webhookUrl}?submissionId=${encodeURIComponent(payload.submissionId)}&targetTab=${encodeURIComponent(payload.targetTab)}`;
+            const receiptUrl = `${webhookUrl}?submissionId=${encodeURIComponent(payload.submissionId)}&targetTab=${encodeURIComponent(payload.targetTab)}&check=${Date.now()}-${Math.random().toString(36).slice(2)}`;
             const receiptController = typeof AbortController !== 'undefined' ? new AbortController() : null;
             let receiptTimer;
             const receiptTimeout = new Promise((resolve, reject) => {
@@ -516,9 +516,12 @@ const FINA3020Utils = {
                 }, 12000);
             });
             const receiptRequest = fetch(receiptUrl, {
-                credentials: 'omit', redirect: 'follow', referrerPolicy: 'no-referrer',
+                credentials: 'omit', cache: 'no-store', redirect: 'follow', referrerPolicy: 'no-referrer',
                 signal: receiptController ? receiptController.signal : undefined
-            }).then(response => response.json()).then(ack => {
+            }).then(response => {
+                if (!response.ok) throw originalError;
+                return response.json();
+            }).then(ack => {
                 if (!ack || ack.ok !== true || ack.submissionId !== payload.submissionId || !ack.receiptId || !ack.serverTimestamp || !Number.isFinite(Date.parse(ack.serverTimestamp))) throw originalError;
                 return ack;
             });
@@ -559,7 +562,7 @@ const FINA3020Utils = {
             return true;
         }).catch(err => {
             if (attempt < delays.length) {
-                return new Promise(resolve => setTimeout(resolve, delays[attempt]))
+                return new Promise(resolve => setTimeout(resolve, delays[attempt] + Math.floor(Math.random() * 1500)))
                     .then(() => this._attemptDelivery(payload, attempt + 1));
             }
             console.warn('Submission not confirmed:', err);
@@ -692,6 +695,15 @@ const FINA3020Utils = {
      */
     exportResponsesCSV: function() {
         const history = this._readHistory();
+        const known = new Set(history.map(row => row.submissionId));
+        this._readPending().forEach(payload => {
+            if (!known.has(payload.submissionId)) {
+                const row = { ...payload };
+                delete row.accessCode;
+                history.push(row);
+                known.add(row.submissionId);
+            }
+        });
         if (history.length === 0) {
             alert('No response history found to export.');
             return;
@@ -797,6 +809,12 @@ document.addEventListener('DOMContentLoaded', () => {
     FINA3020Utils.onDeliveryChange(update);
     update();
     const recover = () => { if (FINA3020Utils.getPendingCount()) FINA3020Utils.flushPending(); };
+    window.addEventListener('beforeunload', event => {
+        if (FINA3020Utils.getPendingCount()) {
+            event.preventDefault();
+            event.returnValue = '';
+        }
+    });
     window.addEventListener('online', recover);
     window.addEventListener('pageshow', recover);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) recover(); });
