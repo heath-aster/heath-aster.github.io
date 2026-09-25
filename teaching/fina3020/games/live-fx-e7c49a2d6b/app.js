@@ -27,16 +27,47 @@ function hostLinks() { document.querySelectorAll('.host-bookmark').forEach(a=>a.
 function message(text) { $('message').textContent = text; }
 function save(key, value) { storage.setItem('livefx_' + key, JSON.stringify(value)); }
 function read(key) { try { return JSON.parse(storage.getItem('livefx_' + key) || 'null'); } catch { return null; } }
-async function api(path, body, auth = token) {
+function validApiResult(path, value, body) {
+    if (!value || typeof value !== 'object') return false;
+    if (path === '/api/state') return typeof value.code === 'string' && Array.isArray(value.known) && Array.isArray(value.rounds) && Number.isInteger(value.round) && Number.isInteger(value.revision) && ['lobby','open','locked','results','finished'].includes(value.status);
+    if (path === '/api/action') return value.ok === true && (body.action === 'join' ? typeof value.token === 'string' : ['allocate','reflect'].includes(body.action) ? value.receiptId === body.operationId : true);
+    if (path === '/api/create') return typeof value.code === 'string';
+    if (path === '/api/config') return Array.isArray(value.known) && Array.isArray(value.shifted);
+    if (path === '/api/rooms') return Array.isArray(value);
+    if (path === '/api/export') return typeof value.csv === 'string';
+    return false;
+}
+async function apiOnce(path, body, auth) {
     const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), scriptApi ? 30000 : 10000);
     try {
         const route = new URL(path, location.origin);
         const scriptBody = {...(body || {}), liveFx:true, path:route.pathname, room:body?.room || route.searchParams.get('room') || '', token:auth};
-        const response = await fetch(scriptApi ? apiBase : apiBase + path, scriptApi ? {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(scriptBody), signal:controller.signal, credentials:'omit', redirect:'follow'} : {method:body ? 'POST':'GET', headers:{'Content-Type':'application/json', ...(auth ? {'Authorization':'Bearer '+auth}:{})}, body:body ? JSON.stringify(body):undefined, signal:controller.signal});
-        const value = await response.json();
-        if (!response.ok || value.error) { const error = new Error(value.error || 'Request failed'); error.definitive = true; throw error; }
+        const response = await fetch(scriptApi ? apiBase : apiBase + path, scriptApi ? {method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(scriptBody), signal:controller.signal, credentials:'omit', redirect:'follow', cache:'no-store'} : {method:body ? 'POST':'GET', headers:{'Content-Type':'application/json', ...(auth ? {'Authorization':'Bearer '+auth}:{})}, body:body ? JSON.stringify(body):undefined, signal:controller.signal});
+        let value;
+        try { value = await response.json(); } catch { throw new Error('The server returned an unreadable response. Your saved request can be retried.'); }
+        if (!response.ok || value?.error) {
+            const error = new Error(value?.error || 'Request failed');
+            error.definitive = response.ok && Boolean(value?.error) && !/busy|quota|too many|rate.limit|temporar|try again|timed? out/i.test(error.message);
+            throw error;
+        }
+        if (!validApiResult(route.pathname, value, body)) throw new Error('The server returned an incomplete response. Your saved request can be retried.');
         return value;
     } finally { clearTimeout(timeout); }
+}
+async function api(path, body, auth = token) {
+    // Only actions with a saved operation ID are automatically retried. A retry
+    // sends exactly the same body, so a lost acknowledgement cannot duplicate it.
+    const retryable = scriptApi && body?.operationId && path === '/api/action';
+    const delays = retryable ? [2000, 4000, 8000, 12000, 20000, 30000] : [];
+    if (retryable && ['join','allocate','reflect'].includes(body.action)) await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random()*8000)));
+    for (let attempt=0;;attempt++) {
+        try { return await apiOnce(path, body, auth); }
+        catch (error) {
+            if (error.definitive || attempt >= delays.length) throw error;
+            message('The server is busy or the connection was interrupted. Retrying your saved request automatically; keep this tab open.');
+            await new Promise(resolve => setTimeout(resolve, delays[attempt]+Math.floor(Math.random()*8000)));
+        }
+    }
 }
 function link(view = 'student') { return location.origin + location.pathname + '?room=' + room + (view ? '&view=' + view : ''); }
 function renderQR() {
@@ -199,14 +230,14 @@ function render() {
 }
 async function refresh() {
     if(!room||busy)return;
-    try{state=await api('/api/state?room='+encodeURIComponent(room));online=true;$('connection').textContent=(scriptApi ? 'Connected · updates every 6–8s' : 'Connected · updates every 2s');render();}
+    try{const next=await api('/api/state?room='+encodeURIComponent(room));if(next.code!==room)throw new Error('The server returned a different room. Retrying.');state=next;online=true;$('connection').textContent=(scriptApi ? 'Connected · updates every 10–15s' : 'Connected · updates every 2s');render();}
     catch(e){online=false;$('connection').textContent='Disconnected · retrying';if(state)render();else {$('welcome').hidden=false;message(e.message);}}
 }
 async function action(name, extra={}) {
     if(busy)return;busy=true;message('');if(state)render();
     const key='operation_'+room+'_'+name;
     const old=read(key),body=old||{room,action:name,operationId:uuid(),revision:state?.revision,...extra};save(key,body);
-    try{const result=await api('/api/action',body);storage.removeItem('livefx_'+key);return result;}
+    try{const result=await api('/api/action',body);storage.removeItem('livefx_'+key);message('');return result;}
     catch(e){if(e.definitive)storage.removeItem('livefx_'+key);message(e.definitive?e.message:'Connection interrupted. Retry the same button to recover the saved operation.');throw e;}
     finally{busy=false;if(name!=='join')await refresh();}
 }
@@ -262,5 +293,5 @@ document.addEventListener('DOMContentLoaded',async()=>{
     $('new-room').onclick=()=>{room='';state=null;history.replaceState(null,'',location.pathname);setup().catch(e=>message(e.message));};
     try{if(hostToken&&!room)await setup();else if(room&&(token||projector))await refresh();else $('connection').textContent='Ready to join';}catch(e){message(e.message);$('welcome').hidden=false;$('setup').hidden=true;$('instructor-signin').open=!!hostToken;}
     // No overlapping polling requests; preserve student edits while updating server state.
-    async function poll(){if(room&&(token||projector))await refresh();setTimeout(poll,scriptApi ? 6000+Math.random()*1500 : 2000);}setTimeout(poll,scriptApi ? 6000+Math.random()*1500 : 2000);
+    async function poll(){if(!busy&&room&&(token||projector)&&!document.hidden)await refresh();setTimeout(poll,scriptApi ? (state?.status==='finished' ? 30000 : 10000)+Math.random()*5000 : 2000);}setTimeout(poll,scriptApi ? (state?.status==='finished' ? 30000 : 10000)+Math.random()*5000 : 2000);
 });
