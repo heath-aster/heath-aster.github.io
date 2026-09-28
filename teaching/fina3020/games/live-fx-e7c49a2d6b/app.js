@@ -203,14 +203,16 @@ function render() {
     $('new-room').hidden=!!state.instructorScoped;
     $('economics').hidden=false;
     const forwardRate=1+state.forwardChange,cipRate=1/(1+state.foreignRate);
-    $('forward-terms').textContent=`Quoted one-year forward F = $${forwardRate.toFixed(6)} per foreign unit (${percent(state.forwardChange)} versus spot). ${Math.abs(forwardRate-cipRate)<1e-10?'CIP holds.':'CIP does not hold.'} Covered foreign-deposit return at this quote: ${percent((1+state.foreignRate)*forwardRate-1)}; domestic cash earns 0%. The financial exercise below uses an unhedged foreign deposit.`;
+    const forwardDescription=Math.abs(state.forwardChange)<1e-10?'at spot':percent(Math.abs(state.forwardChange))+(state.forwardChange<0?' discount':' premium');
+    $('forward-terms').textContent=`Quoted one-year forward F = $${forwardRate.toFixed(6)} per foreign unit: ${forwardDescription} relative to today’s spot. A 100% hedge fixes the exporter’s FX P&L at ${money(state.notional*state.forwardChange)} for this round. The foreign-deposit exercise remains unhedged.`;
+    $('cip-comparison').textContent=`With domestic interest at 0% and foreign interest at ${percent(state.foreignRate)}, the CIP benchmark is F = 1 / ${(1+state.foreignRate).toFixed(2)} = $${cipRate.toFixed(6)}. ${Math.abs(forwardRate-cipRate)<1e-10?'The selected quote equals this benchmark.':'The selected quote differs from this benchmark.'} A foreign deposit covered at the selected quote would return ${percent((1+state.foreignRate)*forwardRate-1)} in domestic currency.`;
     if(state.instructor){
         hostLinks();
         const canEditForward=!!state.forwardRateSupported&&['lobby','results'].includes(state.status);
         const forwardKey=room+':'+state.forwardChange;
         if(forwardEditorKey!==forwardKey){$('forward-rate').value=String(forwardRate);forwardEditorKey=forwardKey;}
-        ['forward-rate','save-forward','reset-forward'].forEach(id=>$(id).disabled=busy||!canEditForward);
-        $('forward-edit-hint').textContent=!state.forwardRateSupported?'Forward-rate control requires the updated classroom backend.':canEditForward?'CIP benchmark: '+cipRate.toFixed(6)+'. Save a different quote to demonstrate a CIP deviation.':'Available before round 1 and between completed rounds.';
+        ['forward-rate','save-forward','discount-forward','reset-forward'].forEach(id=>$(id).disabled=busy||!canEditForward);
+        $('forward-edit-hint').textContent=!state.forwardRateSupported?'Forward-rate control requires the updated classroom backend.':canEditForward?'Current quote: F = '+forwardRate.toFixed(6)+' ('+forwardDescription+'). Use 1% discount saves F = 0.99 immediately.':'Available before round 1 and between completed rounds.';
         const canEditLaw=state.status==='lobby'&&state.round===0;
         $('room-law-settings').hidden=!canEditLaw;
         if(canEditLaw&&lawEditorRoom!==room){editor('room-known-editor',state.known);editor('room-shifted-editor',state.shifted);lawEditorRoom=room;}
@@ -354,6 +356,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
         if(result){forwardEditorKey=null;render();message('Forward rate saved for the next round.');}
     }
     $('forward-form').onsubmit=async e=>{e.preventDefault();await saveForward(Number($('forward-rate').value));};
+    $('discount-forward').onclick=async()=>{await saveForward(.99);};
     $('reset-forward').onclick=async()=>{await saveForward(1/(1+state.foreignRate));};
     $('room-law-form').onsubmit=async e=>{e.preventDefault();try{const result=await action('configure',{known:editorValue('room-known-editor'),shifted:editorValue('room-shifted-editor')});if(result){$('room-law-settings').open=false;message('Distributions saved. Students will see the corrected Part 1 law on their next update.');}}catch{}};
     $('submit-allocation').onclick=()=>{if(!allocationValidity()||state.status!=='open')return;action('allocate',{round:state.round,hedge:allocationValue('hedge')/100,carry:allocationValue('carry')/100}).catch(()=>{});};
