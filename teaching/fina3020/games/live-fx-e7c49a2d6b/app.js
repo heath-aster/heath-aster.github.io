@@ -18,6 +18,9 @@ let draftEdited = false, lawEditorRoom = null;
 let state = null, busy = false, online = false, charts = {}, renderedRound = null, chartKey = '', latestReflection = null, qrLink = '';
 const money = n => new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
 const percent = n => Number((n * 100).toFixed(2)) + '%';
+function normalizeRoomCode(value) {
+    return String(value).normalize('NFKC').replace(/[\s\u200B-\u200D\uFEFF]/g, '').replace(/^["'“”‘’]+|["'“”‘’]+$/g, '').toUpperCase();
+}
 function uuid() {
     if (crypto.randomUUID) return crypto.randomUUID();
     return Array.from(crypto.getRandomValues(new Uint8Array(24)), x => x.toString(16).padStart(2,'0')).join('');
@@ -271,7 +274,8 @@ document.addEventListener('DOMContentLoaded',async()=>{
     if (!backendReady) { $('connection').textContent='Website ready · live connection pending'; message('The live game page is ready. The classroom connection is being set up; your instructor will announce when rooms are available.'); document.querySelectorAll('#welcome button').forEach(b=>b.disabled=true); return; }
     $('join-form').onsubmit=async e=>{
         e.preventDefault();if(busy)return;
-        $('room-input').value=$('room-input').value.trim().toUpperCase();$('id-input').value=$('id-input').value.trim();
+        $('room-input').value=normalizeRoomCode($('room-input').value);$('id-input').value=$('id-input').value.trim();
+        if(!/^[A-Z0-9]{6}$/.test($('room-input').value)){message('Enter the six-character room code, for example HF2AA2.');$('room-input').focus();return;}
         if(!$('join-form').checkValidity()){message('Enter the six-character room code, your full name, 10-digit CUHK ID and section. The room must first be created by your instructor.');$('join-form').reportValidity();return;}
         room=$('room-input').value;const b=$('join-form').querySelector('button');b.disabled=true;b.textContent='Joining…';
         try{const saved=storage.getItem('livefx_student_'+room);if(saved){const existing=await api('/api/state?room='+room,null,saved);if(existing.me?.studentId===$('id-input').value){message('');await enter(room,saved);return;}}
