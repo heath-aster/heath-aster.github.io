@@ -14,7 +14,7 @@ if (fragment.get('host')) storage.setItem('livefx_host', fragment.get('host'));
 if (location.hash) history.replaceState(null, '', location.pathname + location.search);
 let hostToken = (projector || studentView) ? '' : storage.getItem('livefx_host') || '';
 let token = hostToken || (room && !projector ? storage.getItem('livefx_student_' + room) || '' : '');
-let draftEdited = false, lawEditorRoom = null;
+let draftEdited = false, lawEditorRoom = null, refreshEpoch = 0, refreshPending = false;
 let state = null, busy = false, online = false, charts = {}, renderedRound = null, chartKey = '', latestReflection = null, qrLink = '';
 const money = n => new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
 const percent = n => Number((n * 100).toFixed(2)) + '%';
@@ -200,11 +200,13 @@ function render() {
         const canEditLaw=state.status==='lobby'&&state.round===0;
         $('room-law-settings').hidden=!canEditLaw;
         if(canEditLaw&&lawEditorRoom!==room){editor('room-known-editor',state.known);editor('room-shifted-editor',state.shifted);lawEditorRoom=room;}
-        $('save-room-laws').disabled=busy||!online||!canEditLaw;
+        $('save-room-laws').disabled=busy||!canEditLaw;
         const allowed={open:['lobby','results'].includes(state.status),lock:state.status==='open',draw:state.status==='locked'&&state.submitted>0,reopen:state.status==='locked',shift:state.status==='results'&&!uncertain,finish:state.status==='results',reveal:state.status==='finished'&&uncertain&&!state.revealed};
-        document.querySelectorAll('[data-action]').forEach(b=>b.disabled=busy||!online||!allowed[b.dataset.action]);
+        document.querySelectorAll('[data-action]').forEach(b=>b.disabled=busy||!allowed[b.dataset.action]);
+        $('manual-draw').disabled=busy||!state.manualDrawSupported||!allowed.draw;
+        $('manual-shock').disabled=busy;
         $('projector-link').href=link('projector');$('join-link').value=link();showLaw($('private-law'),state.shifted);
-        $('host-hint').textContent=state.status==='open'?'Wait for submissions, then lock. Students may revise submitted allocations until you lock.':state.status==='locked'?'Allocations are locked. Draw once, or reopen if someone needs more time.':state.status==='results'?(uncertain?'Open the next round, or finish for reflection and optional reveal.':'Suggested pacing: four rounds with the known law, then announce the policy shift and open the next round.'):'Suggested pacing: four known-risk rounds and four uncertainty rounds. Project the separate screen, which has no instructor controls.';
+        $('host-hint').textContent=state.status==='open'?'Wait for submissions, then lock. Students may revise submitted allocations until you lock.':state.status==='locked'?'Allocations are locked. Next random draw uses '+(uncertain?'Part 2: ':'Part 1: ')+(uncertain?state.shifted:state.known).map(x=>percent(x.change)+' ('+percent(x.probability)+')').join(', ')+'. Draw once, or reopen allocations.':state.status==='results'?(uncertain?'Open the next round, or finish for reflection and optional reveal.':'Suggested pacing: four rounds with the known law, then announce the policy shift and open the next round.'):'Suggested pacing: four known-risk rounds and four uncertainty rounds. Project the separate screen, which has no instructor controls.';
     }
     $('projector-join').hidden=!projector;$('projector-url').textContent=link();if(projector)renderQR();
     $('student-panel').hidden=!state.me;
@@ -231,18 +233,30 @@ function render() {
         renderCharts();
     }
 }
+function applyState(next) {
+    if(!validApiResult('/api/state',next)||next.code!==room)throw new Error('The server returned an incomplete room state.');
+    state=next;online=true;$('connection').textContent='Connected';render();
+}
 async function refresh() {
-    if(!room||busy)return;
-    try{const next=await api('/api/state?room='+encodeURIComponent(room));if(next.code!==room)throw new Error('The server returned a different room. Retrying.');state=next;online=true;$('connection').textContent=(scriptApi ? 'Connected · updates every 10–15s' : 'Connected · updates every 2s');render();}
-    catch(e){online=false;$('connection').textContent='Disconnected · retrying';if(state)render();else {$('welcome').hidden=false;message(e.message);}}
+    if(!room||busy||refreshPending)return;
+    const epoch=refreshEpoch, requestedRoom=room;refreshPending=true;
+    try{const next=await api('/api/state?room='+encodeURIComponent(room));if(epoch===refreshEpoch&&room===requestedRoom)applyState(next);}
+    catch(e){if(epoch!==refreshEpoch||room!==requestedRoom)return;online=false;$('connection').textContent='Connection delayed · retrying';if(state)render();else {$('welcome').hidden=false;message(e.message);}}
+    finally{refreshPending=false;}
 }
 async function action(name, extra={}) {
-    if(busy)return;busy=true;message('');if(state)render();
+    if(busy)return;busy=true;refreshEpoch++;
+    message(({open:'Opening round…',lock:'Locking allocations…',draw:'Drawing the common shock…',shift:'Announcing the new regime…',allocate:'Saving allocations…'})[name]||'Saving…');if(state)render();
     const key='operation_'+room+'_'+name;
     const old=read(key),body=old||{room,action:name,operationId:uuid(),revision:state?.revision,...extra};save(key,body);
-    try{const result=await api('/api/action',body);storage.removeItem('livefx_'+key);message('');return result;}
+    let receivedState=false;
+    try{const result=await api('/api/action',body);storage.removeItem('livefx_'+key);message('');
+        busy=false;
+        if(name!=='join'&&result.state){applyState(result.state);receivedState=true;}
+        return result;
+    }
     catch(e){if(e.definitive)storage.removeItem('livefx_'+key);message(e.definitive?e.message:'Connection interrupted. Retry the same button to recover the saved operation.');throw e;}
-    finally{busy=false;if(name!=='join')await refresh();}
+    finally{busy=false;if(state)render();if(name!=='join'&&!receivedState)void refresh();}
 }
 async function submitReflection() {
     const result=await action('reflect',{responseText:$('reflection-input').value});
@@ -286,6 +300,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     $('recover-form').onsubmit=async e=>{e.preventDefault();const code=$('recover-room').value.trim().toUpperCase(),key=$('recover-key').value.trim();try{const s=await api('/api/state?room='+code,null,key);if(!s.me)throw Error('Recovery key does not match this room.');storage.setItem('livefx_student_'+code,key);await enter(code,key);}catch(err){message(err.message);}};
     $('create-form').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;const b=$('create-form').querySelector('button');b.disabled=true;b.textContent='Creating room…';message('');try{const r=await api('/api/create',{title:$('title-input').value,known:editorValue('known-editor'),shifted:editorValue('shifted-editor'),seed:$('seed-input').value},hostToken);busy=false;await enter(r.code,hostToken);}catch(err){message(err.message);}finally{busy=false;b.disabled=false;b.textContent='Create room';if(state)render();}};
     document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action).catch(()=>{}));
+    $('manual-draw').onclick=()=>{const raw=$('manual-shock').value.trim(),shock=Number(raw)/100;if(!raw||!Number.isFinite(shock)||shock<=-1||shock>2){message('Enter a shock greater than −100% and at most 200%.');return;}action('draw',{shock}).catch(()=>{});};
     $('room-law-form').onsubmit=async e=>{e.preventDefault();try{const result=await action('configure',{known:editorValue('room-known-editor'),shifted:editorValue('room-shifted-editor')});if(result){$('room-law-settings').open=false;message('Distributions saved. Students will see the corrected Part 1 law on their next update.');}}catch{}};
     $('submit-allocation').onclick=()=>{if(!allocationValidity()||state.status!=='open')return;action('allocate',{round:state.round,hedge:allocationValue('hedge')/100,carry:allocationValue('carry')/100}).catch(()=>{});};
     ['hedge','carry'].forEach(id=>{$(id).oninput=()=>editAllocation(id,true);$(id+'-number').oninput=()=>editAllocation(id,false);});
@@ -297,5 +312,5 @@ document.addEventListener('DOMContentLoaded',async()=>{
     $('new-room').onclick=()=>{room='';state=null;history.replaceState(null,'',location.pathname);setup().catch(e=>message(e.message));};
     try{if(hostToken&&!room)await setup();else if(room&&(token||projector))await refresh();else $('connection').textContent='Ready to join';}catch(e){message(e.message);$('welcome').hidden=false;$('setup').hidden=true;$('instructor-signin').open=!!hostToken;}
     // No overlapping polling requests; preserve student edits while updating server state.
-    async function poll(){if(!busy&&room&&(token||projector)&&!document.hidden)await refresh();setTimeout(poll,scriptApi ? (state?.status==='finished' ? 30000 : 10000)+Math.random()*5000 : 2000);}setTimeout(poll,scriptApi ? (state?.status==='finished' ? 30000 : 10000)+Math.random()*5000 : 2000);
+    async function poll(){if(!busy&&room&&(token||projector)&&!document.hidden)await refresh();setTimeout(poll,scriptApi ? (state?.status==='finished' ? 30000 : (hostToken||projector ? 5000 : 20000))+Math.random()*5000 : 2000);}setTimeout(poll,scriptApi ? (state?.status==='finished' ? 30000 : (hostToken||projector ? 5000 : 20000))+Math.random()*5000 : 2000);
 });
