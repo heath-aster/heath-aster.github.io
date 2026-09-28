@@ -12,7 +12,7 @@ let room = (params.get('room') || '').toUpperCase();
 const fragment = new URLSearchParams(location.hash.slice(1));
 if (fragment.get('host')) storage.setItem('livefx_host', fragment.get('host'));
 if (location.hash) history.replaceState(null, '', location.pathname + location.search);
-let hostToken = (projector || studentView) ? '' : storage.getItem('livefx_host') || '';
+let hostToken = (projector || studentView) ? '' : (room&&storage.getItem('livefx_host_'+room)) || storage.getItem('livefx_host') || '';
 let token = hostToken || (room && !projector ? storage.getItem('livefx_student_' + room) || '' : '');
 const resumedOperations = new Set();
 let forwardEditorKey = null;
@@ -27,7 +27,7 @@ function uuid() {
     if (crypto.randomUUID) return crypto.randomUUID();
     return Array.from(crypto.getRandomValues(new Uint8Array(24)), x => x.toString(16).padStart(2,'0')).join('');
 }
-function instructorLink() { return location.origin + location.pathname + '?view=instructor#host=' + encodeURIComponent(hostToken); }
+function instructorLink() { if(state?.instructorScoped)return link('instructor');return location.origin + location.pathname + '?view=instructor#host=' + encodeURIComponent(hostToken); }
 function hostLinks() { document.querySelectorAll('.host-bookmark').forEach(a=>a.href=instructorLink()); }
 function message(text) { $('message').textContent = text; }
 function save(key, value) { storage.setItem('livefx_' + key, JSON.stringify(value)); }
@@ -37,6 +37,7 @@ function validApiResult(path, value, body) {
     if (path === '/api/state') return typeof value.code === 'string' && Array.isArray(value.known) && Array.isArray(value.rounds) && Number.isInteger(value.round) && Number.isInteger(value.revision) && ['lobby','open','locked','results','finished'].includes(value.status);
     if (path === '/api/action') return value.ok === true && (body.action === 'join' ? typeof value.token === 'string' : ['allocate','reflect'].includes(body.action) ? value.receiptId === body.operationId : true);
     if (path === '/api/create') return typeof value.code === 'string';
+    if (path === '/api/instructor-login') return value.ok===true&&typeof value.token==='string'&&typeof value.room==='string'&&value.state?.instructor===true;
     if (path === '/api/config') return Array.isArray(value.known) && Array.isArray(value.shifted);
     if (path === '/api/rooms') return Array.isArray(value);
     if (path === '/api/export') return typeof value.csv === 'string';
@@ -199,6 +200,7 @@ function render() {
     $('policy-text').textContent=uncertain?'The policy regime has changed. The old distribution no longer applies. The new possible outcomes and their probabilities have not been announced. You can observe realized shocks as play continues.':'Each round represents a one-year FX change, independently drawn from this same distribution. A past draw does not change the probabilities for the next round. FX change is the change in domestic-currency value of one unit of foreign currency.';
     showLaw($('law-display'),uncertain&&state.revealed?state.shifted:state.known,uncertain?(state.revealed?'DEBRIEF · The instructor has now revealed the post-shift law.':'PRE-SHIFT REFERENCE ONLY · This law is no longer valid.'):'');
     $('host-controls').hidden=!state.instructor;
+    $('new-room').hidden=!!state.instructorScoped;
     $('economics').hidden=false;
     const forwardRate=1+state.forwardChange,cipRate=1/(1+state.foreignRate);
     $('forward-terms').textContent=`Quoted one-year forward F = $${forwardRate.toFixed(6)} per foreign unit (${percent(state.forwardChange)} versus spot). ${Math.abs(forwardRate-cipRate)<1e-10?'CIP holds.':'CIP does not hold.'} Covered foreign-deposit return at this quote: ${percent((1+state.foreignRate)*forwardRate-1)}; domestic cash earns 0%. The financial exercise below uses an unhedged foreign deposit.`;
@@ -309,7 +311,26 @@ async function syncReflection() {
 function download(content,filename,type){const url=URL.createObjectURL(new Blob([content],{type})),a=node('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 document.addEventListener('DOMContentLoaded',async()=>{
     document.body.classList.toggle('projector',projector);$('room-input').value=room;
-    $('host-form').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;const button=$('host-form').querySelector('button');button.disabled=true;message('Checking instructor access…');try{const raw=$('host-key').value.trim();let key=raw;if(raw.includes('#'))key=new URLSearchParams(raw.split('#')[1]).get('host')||'';await api('/api/config',null,key);hostToken=key;token=key;storage.setItem('livefx_host',key);$('host-key').value='';room='';state=null;history.replaceState(null,'',location.pathname+'?view=instructor');message('');await setup();}catch(err){message(err.message);}finally{busy=false;button.disabled=false;}};
+    $('host-room').value=room;
+    $('host-form').onsubmit=async e=>{
+        e.preventDefault();if(busy)return;busy=true;const button=$('host-form').querySelector('button');button.disabled=true;message('Checking instructor access…');
+        try{
+            const raw=$('host-key').value.trim(),code=normalizeRoomCode($('host-room').value);
+            let key=raw;
+            if(raw.includes('#'))key=new URLSearchParams(raw.split('#')[1]).get('host')||'';
+            if(/^\d{3,12}$/.test(raw)){
+                if(!/^[A-Z0-9]{6}$/.test(code))throw Error('Enter the six-character room code for instructor sign-in.');
+                const result=await api('/api/instructor-login',{room:code,pin:raw},'');
+                hostToken=result.token;token=result.token;storage.setItem('livefx_host_'+code,token);$('host-key').value='';
+                history.replaceState(null,'',location.pathname+'?room='+code+'&view=instructor');await enter(code,token,result.state);
+            }else{
+                await api('/api/config',null,key);hostToken=key;token=key;storage.setItem('livefx_host',key);$('host-key').value='';
+                if(code){history.replaceState(null,'',location.pathname+'?room='+code+'&view=instructor');await enter(code,key,await api('/api/state?room='+code,null,key));}
+                else{room='';state=null;history.replaceState(null,'',location.pathname+'?view=instructor');await setup();}
+            }
+            message('');
+        }catch(err){message(err.message);}finally{busy=false;button.disabled=false;if(state)render();}
+    };
     if(params.get('view')==='instructor'&&!hostToken)$('instructor-signin').open=true;
     if (!backendReady) { $('connection').textContent='Website ready · live connection pending'; message('The live game page is ready. The classroom connection is being set up; your instructor will announce when rooms are available.'); document.querySelectorAll('#welcome button').forEach(b=>b.disabled=true); return; }
     $('join-form').onsubmit=async e=>{
