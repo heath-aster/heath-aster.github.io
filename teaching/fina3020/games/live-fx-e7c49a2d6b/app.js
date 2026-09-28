@@ -15,6 +15,7 @@ if (location.hash) history.replaceState(null, '', location.pathname + location.s
 let hostToken = (projector || studentView) ? '' : storage.getItem('livefx_host') || '';
 let token = hostToken || (room && !projector ? storage.getItem('livefx_student_' + room) || '' : '');
 const resumedOperations = new Set();
+let forwardEditorKey = null;
 let draftEdited = false, lawEditorRoom = null, refreshEpoch = 0, refreshPending = false;
 let state = null, busy = false, online = false, charts = {}, renderedRound = null, chartKey = '', latestReflection = null, qrLink = '';
 const money = n => new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
@@ -113,7 +114,7 @@ async function setup() {
     rooms.forEach(r=>{const b=node('button',r.code+' · '+r.title);b.onclick=()=>enter(r.code,hostToken).catch(e=>message(e.message));$('saved-rooms').append(b);});
     $('connection').textContent='Instructor connected';$('create-form').querySelector('button').disabled=false;
 }
-function outcomes(h,c,x) { return {trade:state.notional*(h*state.forwardChange+(1-h)*x),financial:state.notional*c*((1+state.foreignRate)*(1+x)-1)}; }
+function outcomes(h,c,x,f=state.forwardChange) { return {trade:state.notional*(h*f+(1-h)*x),financial:state.notional*c*((1+state.foreignRate)*(1+x)-1)}; }
 function allocationValue(id) {
     const raw=$(id+'-number').value.trim();
     if (!/^(?:\d+(?:\.\d{0,2})?|\.\d{1,2})$/.test(raw)) return null;
@@ -170,7 +171,7 @@ function renderCharts() {
     const key=[room,r.round,view,r.outcomes.length].join(':');
     if(key===chartKey)return;chartKey=key;
     $('shock-title').textContent=`Round ${r.round} · FX ${percent(r.shock)}`;
-    $('result-note').textContent=`${r.phase==='risk'?'Known distribution':'After the policy shift'}. One common shock; differences across students reflect different allocations. These charts show realized outcomes, not the probability law.`;
+    $('result-note').textContent=`${r.phase==='risk'?'Known distribution':'After the policy shift'}. This round’s forward F = $${(1+(r.forwardChange??(1/1.02-1))).toFixed(6)}. One common shock; differences across students reflect different allocations. These charts show realized outcomes, not the probability law.`;
     if(view==='cumulative')$('result-note').textContent+=' Totals include participants who played at least once; late joiners may have fewer rounds.';
     if(state.me){const mine=state.me.history.find(x=>x.round===r.round);$('personal-result').hidden=false;$('personal-result').textContent=mine?`Your round: trade ${money(mine.trade)} · financial ${money(mine.financial)}. Hedge ${percent(mine.hedge)} · carry ${percent(mine.carry)}.`:'You sat out this round; no submitted allocations were scored.';}
     ['trade','financial'].forEach(k=>{
@@ -180,7 +181,7 @@ function renderCharts() {
         const scatter=view==='allocation',hist=histogram(values),color=k==='trade'?'#b7e4b8':'#f5c877';
         charts[k]=new Chart($(k+'-chart'),{type:scatter?'scatter':'bar',data:scatter?{datasets:[{label:'Student allocation',data:r.outcomes.map(x=>({x:100*x[k==='trade'?'hedge':'carry'],y:x[k]})),backgroundColor:color,pointRadius:6}]}:{labels:hist.labels,datasets:[{label:'Students',data:hist.bins,backgroundColor:color,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,animation:false,plugins:{legend:{display:false}},scales:{x:{min:scatter?0:undefined,max:scatter?100:undefined,title:{display:true,text:scatter?(k==='trade'?'Hedge proportion (%)':'Foreign allocation (%)'):'P&L bins (USD)',color:'#b0beba'},ticks:{color:'#b0beba',maxRotation:45},grid:{color:'#34444e'}},y:{beginAtZero:true,title:{display:true,text:scatter?'P&L (USD)':'Number of students',color:'#b0beba'},ticks:{color:'#b0beba',precision:scatter?undefined:0},grid:{color:'#34444e'}}}}});
         const rounds=view==='cumulative'?state.rounds.filter(x=>x.round<=r.round):[r];
-        const refs=[0,.5,1].map(w=>money(rounds.reduce((sum,round)=>sum+outcomes(w,w,round.shock)[k],0)));
+        const refs=[0,.5,1].map(w=>money(rounds.reduce((sum,round)=>sum+outcomes(w,w,round.shock,round.forwardChange??(1/1.02-1))[k],0)));
         $(k+'-benchmarks').textContent=`${view==='cumulative'?'All-round reference strategies':'Reference strategies'} · ${k==='trade'?'0 / 50 / 100% hedged':'0 / 50 / 100% foreign'}: ${refs.join(' / ')}.`;
     });
     $('history').replaceChildren();
@@ -199,8 +200,15 @@ function render() {
     showLaw($('law-display'),uncertain&&state.revealed?state.shifted:state.known,uncertain?(state.revealed?'DEBRIEF · The instructor has now revealed the post-shift law.':'PRE-SHIFT REFERENCE ONLY · This law is no longer valid.'):'');
     $('host-controls').hidden=!state.instructor;
     $('economics').hidden=false;
+    const forwardRate=1+state.forwardChange,cipRate=1/(1+state.foreignRate);
+    $('forward-terms').textContent=`Quoted one-year forward F = $${forwardRate.toFixed(6)} per foreign unit (${percent(state.forwardChange)} versus spot). ${Math.abs(forwardRate-cipRate)<1e-10?'CIP holds.':'CIP does not hold.'} Covered foreign-deposit return at this quote: ${percent((1+state.foreignRate)*forwardRate-1)}; domestic cash earns 0%. The financial exercise below uses an unhedged foreign deposit.`;
     if(state.instructor){
         hostLinks();
+        const canEditForward=!!state.forwardRateSupported&&['lobby','results'].includes(state.status);
+        const forwardKey=room+':'+state.forwardChange;
+        if(forwardEditorKey!==forwardKey){$('forward-rate').value=String(forwardRate);forwardEditorKey=forwardKey;}
+        ['forward-rate','save-forward','reset-forward'].forEach(id=>$(id).disabled=busy||!canEditForward);
+        $('forward-edit-hint').textContent=!state.forwardRateSupported?'Forward-rate control requires the updated classroom backend.':canEditForward?'CIP benchmark: '+cipRate.toFixed(6)+'. Save a different quote to demonstrate a CIP deviation.':'Available before round 1 and between completed rounds.';
         const canEditLaw=state.status==='lobby'&&state.round===0;
         $('room-law-settings').hidden=!canEditLaw;
         if(canEditLaw&&lawEditorRoom!==room){editor('room-known-editor',state.known);editor('room-shifted-editor',state.shifted);lawEditorRoom=room;}
@@ -319,6 +327,13 @@ document.addEventListener('DOMContentLoaded',async()=>{
     $('create-form').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;const b=$('create-form').querySelector('button');b.disabled=true;b.textContent='Creating room…';message('');try{const r=await api('/api/create',{title:$('title-input').value,known:editorValue('known-editor'),shifted:editorValue('shifted-editor'),seed:$('seed-input').value},hostToken);busy=false;await enter(r.code,hostToken);}catch(err){message(err.message);}finally{busy=false;b.disabled=false;b.textContent='Create room';if(state)render();}};
     document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action).catch(()=>{}));
     $('manual-draw').onclick=()=>{const raw=$('manual-shock').value.trim(),shock=Number(raw)/100;if(!raw||!Number.isFinite(shock)||shock<=-1||shock>2){message('Enter a shock greater than −100% and at most 200%.');return;}action('draw',{shock}).catch(()=>{});};
+    async function saveForward(rate){
+        if(!Number.isFinite(rate)||rate<=0||rate>3){message('Enter a forward rate greater than 0 and at most 3.');return;}
+        const result=await action('forward',{forwardRate:rate});
+        if(result){forwardEditorKey=null;render();message('Forward rate saved for the next round.');}
+    }
+    $('forward-form').onsubmit=async e=>{e.preventDefault();await saveForward(Number($('forward-rate').value));};
+    $('reset-forward').onclick=async()=>{await saveForward(1/(1+state.foreignRate));};
     $('room-law-form').onsubmit=async e=>{e.preventDefault();try{const result=await action('configure',{known:editorValue('room-known-editor'),shifted:editorValue('room-shifted-editor')});if(result){$('room-law-settings').open=false;message('Distributions saved. Students will see the corrected Part 1 law on their next update.');}}catch{}};
     $('submit-allocation').onclick=()=>{if(!allocationValidity()||state.status!=='open')return;action('allocate',{round:state.round,hedge:allocationValue('hedge')/100,carry:allocationValue('carry')/100}).catch(()=>{});};
     ['hedge','carry'].forEach(id=>{$(id).oninput=()=>editAllocation(id,true);$(id+'-number').oninput=()=>editAllocation(id,false);});
