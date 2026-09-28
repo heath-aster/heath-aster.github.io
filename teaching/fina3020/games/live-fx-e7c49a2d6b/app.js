@@ -225,6 +225,7 @@ function render() {
         $('choice-receipt').textContent=c?`Saved for round ${state.round}: hedge ${percent(c.hedge)}, carry ${percent(c.carry)}. ${state.status==='open'?'You can update until allocations lock.':'Allocations are closed.'}`:state.status==='open'?'No allocation saved for this round. Previous sliders are suggestions; submit again to participate.':'Wait for the instructor to open a round.';
         $('reflection').hidden=state.status!=='finished';$('reflection-question').textContent=state.question;
         latestReflection=state.me.responses.at(-1)||null;
+        $('reflection-receipt').textContent=latestReflection?'Saved on classroom server · receipt '+latestReflection.submissionId+'.':'';
         if(!$('reflection-input').value)$('reflection-input').value=read('reflection_draft_'+room)?.text||latestReflection?.responseText||'';
         $('sync-reflection').disabled=!latestReflection||busy;
         $('save-reflection').disabled=busy||!online;
@@ -325,7 +326,7 @@ document.addEventListener('DOMContentLoaded',async()=>{
     $('save-reflection').onclick=()=>submitReflection().catch(()=>{});
     $('reflection-input').oninput=()=>save('reflection_draft_'+room,{text:$('reflection-input').value});
     $('sync-reflection').onclick=()=>syncReflection().catch(e=>message(e.message));
-    $('export-own').onclick=()=>download(JSON.stringify({room,student:state.me,pendingSheet:FINA3020Utils._readPending()},null,2),'live-fx-'+room+'-my-record.json','application/json');
+    $('export-own').onclick=()=>download(JSON.stringify({room,student:state.me,pendingClassroom:['allocate','reflect'].map(name=>read('operation_'+room+'_'+name)).filter(Boolean),allocationDraft:read('draft_'+room+'_'+state.round),reflectionDraft:read('reflection_draft_'+room),pendingSheet:FINA3020Utils._readPending()},null,2),'live-fx-'+room+'-my-record.json','application/json');
     $('export-class').onclick=async()=>{try{const csv=scriptApi?(await api('/api/export?room='+room,null,hostToken)).csv:await (async()=>{const response=await fetch(apiBase+'/api/export?room='+room,{headers:{Authorization:'Bearer '+hostToken}});if(!response.ok)throw Error('Export failed');return response.text();})();download(csv,'live-fx-'+room+'.csv','text/csv');}catch(e){message(e.message);}};
     $('new-room').onclick=()=>{room='';state=null;history.replaceState(null,'',location.pathname);setup().catch(e=>message(e.message));};
     try{if(hostToken&&!room)await setup();else if(room&&(token||projector))await refresh();else $('connection').textContent='Ready to join';}catch(e){message(e.message);$('welcome').hidden=false;$('setup').hidden=true;$('instructor-signin').open=!!hostToken;}
