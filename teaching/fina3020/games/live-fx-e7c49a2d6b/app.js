@@ -50,7 +50,7 @@ async function apiOnce(path, body, auth) {
         try { value = await response.json(); } catch { throw new Error('The server returned an unreadable response. Your saved request can be retried.'); }
         if (!response.ok || value?.error) {
             const error = new Error(value?.error || 'Request failed');
-            error.definitive = response.ok && Boolean(value?.error) && !/busy|quota|too many|rate.limit|temporar|try again|timed? out/i.test(error.message);
+            error.definitive = (response.ok || (response.status>=400 && response.status<500 && response.status!==429)) && Boolean(value?.error) && !/busy|quota|too many|rate.limit|temporar|try again|timed? out/i.test(error.message);
             throw error;
         }
         if (!validApiResult(route.pathname, value, body)) throw new Error('The server returned an incomplete response. Your saved request can be retried.');
@@ -60,15 +60,15 @@ async function apiOnce(path, body, auth) {
 async function api(path, body, auth = token) {
     // Only actions with a saved operation ID are automatically retried. A retry
     // sends exactly the same body, so a lost acknowledgement cannot duplicate it.
-    const retryable = scriptApi && body?.operationId && path === '/api/action';
-    const delays = retryable ? [2000, 4000, 8000, 12000, 20000, 30000] : [];
-    if (retryable && ['join','allocate','reflect'].includes(body.action)) await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random()*8000)));
+    const retryable = body?.operationId && path === '/api/action';
+    const delays = retryable ? (scriptApi ? [1000, 2000, 3000, 4000, 5000, 6000, 8000, 10000] : [500, 1000, 2000, 4000]) : [];
+    if (scriptApi && retryable && ['join','allocate','reflect'].includes(body.action)) await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random()*8000)));
     for (let attempt=0;;attempt++) {
         try { return await apiOnce(path, body, auth); }
         catch (error) {
             if (error.definitive || attempt >= delays.length) throw error;
             message('The server is busy or the connection was interrupted. Retrying your saved request automatically; keep this tab open.');
-            await new Promise(resolve => setTimeout(resolve, delays[attempt]+Math.floor(Math.random()*8000)));
+            await new Promise(resolve => setTimeout(resolve, delays[attempt]+Math.floor(Math.random()*(scriptApi?8000:500))));
         }
     }
 }
@@ -81,10 +81,11 @@ function renderQR() {
     ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#000';
     for(let r=0;r<count;r++)for(let c=0;c<count;c++)if(qr.isDark(r,c))ctx.fillRect((c+margin)*scale,(r+margin)*scale,scale,scale);
 }
-function enter(code, auth) {
-    room = code; token = auth; renderedRound = null; draftEdited = false;
+function enter(code, auth, next=null) {
+    room = code; token = auth; refreshEpoch++; renderedRound = null; draftEdited = false;
     history.replaceState(null, '', location.pathname + '?room=' + room + (projector ? '&view=projector' : auth===hostToken&&hostToken ? '&view=instructor' : '&view=student'));
     $('welcome').hidden = true; $('setup').hidden = true;
+    if(next){applyState(next);return;}
     return refresh();
 }
 function node(tag, text, className) { const n=document.createElement(tag); if(text!==undefined)n.textContent=text; if(className)n.className=className; return n; }
@@ -206,7 +207,7 @@ function render() {
         $('manual-draw').disabled=busy||!state.manualDrawSupported||!allowed.draw;
         $('manual-shock').disabled=busy;
         $('projector-link').href=link('projector');$('join-link').value=link();showLaw($('private-law'),state.shifted);
-        $('host-hint').textContent=state.status==='open'?'Wait for submissions, then lock. Students may revise submitted allocations until you lock.':state.status==='locked'?'Allocations are locked. Next random draw uses '+(uncertain?'Part 2: ':'Part 1: ')+(uncertain?state.shifted:state.known).map(x=>percent(x.change)+' ('+percent(x.probability)+')').join(', ')+'. Draw once, or reopen allocations.':state.status==='results'?(uncertain?'Open the next round, or finish for reflection and optional reveal.':'Suggested pacing: four rounds with the known law, then announce the policy shift and open the next round.'):'Suggested pacing: four known-risk rounds and four uncertainty rounds. Project the separate screen, which has no instructor controls.';
+        $('host-hint').textContent=state.status==='finished'?'Game finished. Export the class CSV and collect saved reflections. Reveal the private law only when ready for the debrief.':state.status==='open'?'Wait for submissions, then lock. Students may revise submitted allocations until you lock.':state.status==='locked'?'Allocations are locked. Next random draw uses '+(uncertain?'Part 2: ':'Part 1: ')+(uncertain?state.shifted:state.known).map(x=>percent(x.change)+' ('+percent(x.probability)+')').join(', ')+'. Draw once, or reopen allocations.':state.status==='results'?(uncertain?'Open the next round, or finish for reflection and optional reveal.':'Suggested pacing: four rounds with the known law, then announce the policy shift and open the next round.'):'Suggested pacing: four known-risk rounds and four uncertainty rounds. Project the separate screen, which has no instructor controls.';
     }
     $('projector-join').hidden=!projector;$('projector-url').textContent=link();if(projector)renderQR();
     $('student-panel').hidden=!state.me;
@@ -292,12 +293,12 @@ document.addEventListener('DOMContentLoaded',async()=>{
         if(!/^[A-Z0-9]{6}$/.test($('room-input').value)){message('Enter the six-character room code, for example HF2AA2.');$('room-input').focus();return;}
         if(!$('join-form').checkValidity()){message('Enter the six-character room code, your full name, 10-digit CUHK ID and section. The room must first be created by your instructor.');$('join-form').reportValidity();return;}
         room=$('room-input').value;const b=$('join-form').querySelector('button');b.disabled=true;b.textContent='Joining…';
-        try{const saved=storage.getItem('livefx_student_'+room);if(saved){const existing=await api('/api/state?room='+room,null,saved);if(existing.me?.studentId===$('id-input').value){message('');await enter(room,saved);return;}}
+        try{const saved=storage.getItem('livefx_student_'+room);if(saved){const existing=await api('/api/state?room='+room,null,saved);if(existing.me?.studentId===$('id-input').value){message('');await enter(room,saved,existing);return;}}
             const result=await action('join',{studentId:$('id-input').value,fullName:$('name-input').value.trim(),section:$('section-input').value});
-            if(result){storage.setItem('livefx_student_'+room,result.token);await enter(room,result.token);}
+            if(result){storage.setItem('livefx_student_'+room,result.token);await enter(room,result.token,result.state);}
         }catch(err){message(err.message==='Room not found.'?'Room not found. Check the code supplied by your instructor; students cannot create a room with Join game.':err.message);}finally{b.disabled=false;b.textContent='Join game';}
     };
-    $('recover-form').onsubmit=async e=>{e.preventDefault();const code=$('recover-room').value.trim().toUpperCase(),key=$('recover-key').value.trim();try{const s=await api('/api/state?room='+code,null,key);if(!s.me)throw Error('Recovery key does not match this room.');storage.setItem('livefx_student_'+code,key);await enter(code,key);}catch(err){message(err.message);}};
+    $('recover-form').onsubmit=async e=>{e.preventDefault();const code=$('recover-room').value.trim().toUpperCase(),key=$('recover-key').value.trim();try{const s=await api('/api/state?room='+code,null,key);if(!s.me)throw Error('Recovery key does not match this room.');storage.setItem('livefx_student_'+code,key);await enter(code,key,s);}catch(err){message(err.message);}};
     $('create-form').onsubmit=async e=>{e.preventDefault();if(busy)return;busy=true;const b=$('create-form').querySelector('button');b.disabled=true;b.textContent='Creating room…';message('');try{const r=await api('/api/create',{title:$('title-input').value,known:editorValue('known-editor'),shifted:editorValue('shifted-editor'),seed:$('seed-input').value},hostToken);busy=false;await enter(r.code,hostToken);}catch(err){message(err.message);}finally{busy=false;b.disabled=false;b.textContent='Create room';if(state)render();}};
     document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>action(b.dataset.action).catch(()=>{}));
     $('manual-draw').onclick=()=>{const raw=$('manual-shock').value.trim(),shock=Number(raw)/100;if(!raw||!Number.isFinite(shock)||shock<=-1||shock>2){message('Enter a shock greater than −100% and at most 200%.');return;}action('draw',{shock}).catch(()=>{});};
