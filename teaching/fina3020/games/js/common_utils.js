@@ -464,12 +464,13 @@ const FINA3020Utils = {
         const webhookUrl = window.FINA3020_WEBHOOK_URL;
         if (!webhookUrl) return Promise.reject(new Error('No submission endpoint is configured.'));
         const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const requestTimeout = payload.targetTab === 'CFO_Hedge' ? 30000 : 12000;
         let timer;
         const timeout = new Promise((resolve, reject) => {
             timer = setTimeout(() => {
                 reject(new Error('Connection timed out. Your response is still queued; retry when connected.'));
                 if (controller) controller.abort();
-            }, 12000);
+            }, requestTimeout);
         });
         const request = fetch(webhookUrl, {
             signal: controller ? controller.signal : undefined,
@@ -548,13 +549,17 @@ const FINA3020Utils = {
     _inFlight: new Map(),
     _deliver: function(payload) {
         if (this._inFlight.has(payload.submissionId)) return this._inFlight.get(payload.submissionId);
-        const promise = this._attemptDelivery(payload).finally(() => this._inFlight.delete(payload.submissionId));
+        // Spread classroom submissions before entering the shared receiver lock.
+        const start = ['Live_FX', 'CFO_Hedge'].includes(payload.targetTab)
+            ? new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 8000)))
+            : Promise.resolve();
+        const promise = start.then(() => this._attemptDelivery(payload)).finally(() => this._inFlight.delete(payload.submissionId));
         this._inFlight.set(payload.submissionId, promise);
         return promise;
     },
 
     _attemptDelivery: function(payload, attempt = 0) {
-        const delays = [2000, 6000];
+        const delays = ['Live_FX', 'CFO_Hedge'].includes(payload.targetTab) ? [2000, 4000, 8000, 12000, 20000, 30000] : [2000, 6000];
         this._emitDelivery('sending');
         return this._post(payload).then(ack => {
             this._markDelivered(payload.submissionId, ack.serverTimestamp, ack.receiptId);
@@ -562,7 +567,7 @@ const FINA3020Utils = {
             return true;
         }).catch(err => {
             if (attempt < delays.length) {
-                return new Promise(resolve => setTimeout(resolve, delays[attempt] + Math.floor(Math.random() * 1500)))
+                return new Promise(resolve => setTimeout(resolve, delays[attempt] + Math.floor(Math.random() * (['Live_FX', 'CFO_Hedge'].includes(payload.targetTab) ? 8000 : 1500))))
                     .then(() => this._attemptDelivery(payload, attempt + 1));
             }
             console.warn('Submission not confirmed:', err);

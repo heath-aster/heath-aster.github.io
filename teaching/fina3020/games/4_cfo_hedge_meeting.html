@@ -11,7 +11,7 @@
     <script src="vendor/chart.umd-4.4.7.js"></script>
     <!-- Custom Design System & Shared Utils -->
     <link rel="stylesheet" href="css/design_system.css">
-    <script src="js/common_utils.js?v=20260925-reliability"></script>
+    <script src="js/common_utils.js?v=20260928-cfo-capacity"></script>
     <style>
         /* ------------------------------------------------------------------
            Page-scoped palette override.
@@ -641,7 +641,7 @@
                 <div class="scenario-card">
                     <div class="scenario-label">90-Day Option (<i>K</i> = 8.40)</div>
                     <div class="scenario-val" style="color:var(--success);">0.1200</div>
-                    <div style="font-size:0.89rem; color:var(--text-muted);">Premium (HKD/EUR)</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted);">Premium (HKD per EUR)</div>
                 </div>
             </div>
 
@@ -830,7 +830,7 @@
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
                 <div>
                     <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 4: Execution Debrief & Payoffs</h2>
-                    <p style="font-size:1.06rem; color:var(--text-secondary);" id="stage4-executed-rate">Executed Spot Rate: <strong style="color:var(--danger); font-family:'JetBrains Mono';"><i>S<sub>T</sub></i> = 7.8000 HKD/EUR</strong></p>
+                    <p style="font-size:1.06rem; color:var(--text-secondary);" id="stage4-executed-rate">Executed Spot Rate: <strong style="color:var(--danger); font-family:'JetBrains Mono';"><i>S<sub>T</sub></i> = 7.8000 HKD per EUR</strong></p>
                 </div>
                 <span class="badge badge-locked">Post-Shock Payoffs</span>
             </div>
@@ -891,7 +891,7 @@
                 <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:1rem; line-height:1.5;">
                     <li><strong>Misconception 1 (Wrong Option Type)</strong>: If you bought a <em>Call Option</em> for a receivable, you paid an upfront premium for the right to buy Euros at 8.40 when you needed to sell Euros. You suffered the full spot drop to 7.80 PLUS the lost premium!</li>
                     <li><strong>Forward vs Option Trade-Off</strong>: In the ECB-cut state the Forward lock yields <strong>HKD 8,420,000</strong> (fully protected at zero upfront cost), while the Put Option floor yields <strong>HKD 8,278,500</strong> (exercised at the 8.40 strike, less the 0.1215 premium FV). Protection through the option costs <strong>HKD 141,500</strong> more, which is the price of keeping the upside.</li>
-                    <li><strong>When is the Option Better?</strong> The Put Option outperforms the Forward only if the Euro rallies above <strong><i>S<sub>T</sub></i> &gt; <i>F</i><sub>0</sub> + <i>p</i><sub>fv</sub> = 8.4200 + 0.1215 = 8.5415 HKD/EUR</strong>.</li>
+                    <li><strong>When is the Option Better?</strong> The Put Option outperforms the Forward only if the Euro rallies above <strong><i>S<sub>T</sub></i> &gt; <i>F</i><sub>0</sub> + <i>p</i><sub>fv</sub> = 8.4200 + 0.1215 = 8.5415 HKD per EUR</strong>.</li>
                 </ul>
             </div>
 
@@ -1302,11 +1302,11 @@
                 rateLabel: 'Realized Spot Rate (<i>S<sub>T</sub></i>)',
                 color: 'var(--danger)',
                 hintHold: `
-                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 1: Realized <i>S<sub>T</sub></i> = 7.8000 HKD/EUR):</strong>
+                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 1: Realized <i>S<sub>T</sub></i> = 7.8000 HKD per EUR):</strong>
                     The spot exchange rate at 90-day maturity is 7.8000 HKD per Euro.
                     <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.98rem; margin-top:0.3rem; line-height:1.5;">
                         <li><strong>Forward Hedge</strong>: Settles at contractual lock <i>F</i><sub>0</sub> = 8.4200, delivering <strong>HKD 8,420,000</strong>.</li>
-                        <li><strong>Put Option</strong>: Since realized spot (7.8000) is below strike (8.4000), the firm exercises the put floor at 8.4000. Net of option premium FV (0.1215 HKD/EUR), net revenue is <strong>HKD 8,278,500</strong>.</li>
+                        <li><strong>Put Option</strong>: Since realized spot (7.8000) is below strike (8.4000), the firm exercises the put floor at 8.4000. Net of option premium FV (0.1215 HKD per EUR), net revenue is <strong>HKD 8,278,500</strong>.</li>
                         <li><strong>Unhedged</strong>: Converts &euro;1,000,000 at market spot 7.8000, delivering <strong>HKD 7,800,000</strong>.</li>
                     </ul>
                 `
@@ -1322,7 +1322,7 @@
                 rateLabel: 'Realized Spot Rate (<i>S<sub>T</sub></i>)',
                 color: 'var(--success)',
                 hintHold: `
-                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 3: Realized <i>S<sub>T</sub></i> = 9.1000 HKD/EUR):</strong>
+                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 3: Realized <i>S<sub>T</sub></i> = 9.1000 HKD per EUR):</strong>
                     The spot exchange rate at 90-day maturity is 9.1000 HKD per Euro.
                     <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.98rem; margin-top:0.3rem; line-height:1.5;">
                         <li><strong>Unhedged</strong>: Converts &euro;1,000,000 at market spot 9.1000, delivering <strong>HKD 9,100,000</strong>. In this state the open position is the best of the three.</li>
@@ -1342,7 +1342,7 @@
                 rateLabel: 'Realized Spot &amp; Repriced Forward',
                 color: 'var(--warning)',
                 hintHold: `
-                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 2: Interbank Swap Friction, spot and new forward both 8.1000 HKD/EUR):</strong>
+                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 2: Interbank Swap Friction, spot and new forward both 8.1000 HKD per EUR):</strong>
                     Interbank FX swap liquidity squeezes widen dealer spreads, and the forward premium collapses.
                     <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.98rem; margin-top:0.3rem; line-height:1.5;">
                         <li><strong>Pre-Committed Forward</strong>: A contract struck at <i>t</i> = 0 still settles at the agreed <i>F</i><sub>0</sub> = 8.4200, delivering <strong>HKD 8,420,000</strong>. Its value is precisely that it is immune to the repricing.</li>
@@ -1944,7 +1944,7 @@
                 cfoSending = true;
                 button.disabled = true;
                 button.innerText = 'Sending…';
-                showSubmissionStatus('Submitting response… Keep this tab open. You can export a copy while waiting.');
+                showSubmissionStatus('Saving your response… When many students submit together, confirmation may take a few minutes. Keep this tab open; retries are automatic. You can export a copy while waiting.');
                 const pending = FINA3020Utils._readPending().find(row => row.submissionId === cfoSubmission.submissionId);
                 const delivery = pending ? FINA3020Utils._deliver(pending) : cfoSubmission.deliveryPromise;
                 delivery.then(confirmed => {
@@ -1988,7 +1988,7 @@
             const rateSubEl = document.getElementById('stage4-executed-rate');
             if (rateSubEl) {
                 const tone = ST >= gameState.S0 ? 'var(--success)' : 'var(--danger)';
-                rateSubEl.innerHTML = `Executed Spot Rate: <strong style="color:${tone}; font-family:'JetBrains Mono';"><i>S<sub>T</sub></i> = ${ST.toFixed(4)} HKD/EUR</strong>`;
+                rateSubEl.innerHTML = `Executed Spot Rate: <strong style="color:${tone}; font-family:'JetBrains Mono';"><i>S<sub>T</sub></i> = ${ST.toFixed(4)} HKD per EUR</strong>`;
             }
 
             let best = rows[0];
