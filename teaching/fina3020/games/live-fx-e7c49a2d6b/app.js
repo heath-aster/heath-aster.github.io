@@ -14,6 +14,7 @@ if (fragment.get('host')) storage.setItem('livefx_host', fragment.get('host'));
 if (location.hash) history.replaceState(null, '', location.pathname + location.search);
 let hostToken = (projector || studentView) ? '' : storage.getItem('livefx_host') || '';
 let token = hostToken || (room && !projector ? storage.getItem('livefx_student_' + room) || '' : '');
+const resumedOperations = new Set();
 let draftEdited = false, lawEditorRoom = null, refreshEpoch = 0, refreshPending = false;
 let state = null, busy = false, online = false, charts = {}, renderedRound = null, chartKey = '', latestReflection = null, qrLink = '';
 const money = n => new Intl.NumberFormat('en-US', {style:'currency',currency:'USD',maximumFractionDigits:0}).format(n);
@@ -50,7 +51,8 @@ async function apiOnce(path, body, auth) {
         try { value = await response.json(); } catch { throw new Error('The server returned an unreadable response. Your saved request can be retried.'); }
         if (!response.ok || value?.error) {
             const error = new Error(value?.error || 'Request failed');
-            error.definitive = (response.ok || (response.status>=400 && response.status<500 && response.status!==429)) && Boolean(value?.error) && !/busy|quota|too many|rate.limit|temporar|try again|timed? out/i.test(error.message);
+            const validation=/^(?:This round is closed|This game has finished|This ID is already|Enter your name|Enter a reflection|Enter a shock|Allocations must|Instructor access required|Student access required|Room not found|Room changed|Operation ID already used|Missing operation ID|Unknown (?:endpoint|action)|Only |Finish |Lock allocations|No allocations submitted|Announce the shift|Reveal only|Distributions can only|Use 2–8 outcomes|Invalid distribution|Probabilities must|Seed too long|Test rooms accept)/;
+            error.definitive = Boolean(value?.error) && (validation.test(error.message) || (!response.ok && response.status>=400 && response.status<500 && response.status!==408 && response.status!==429));
             throw error;
         }
         if (!validApiResult(route.pathname, value, body)) throw new Error('The server returned an incomplete response. Your saved request can be retried.');
@@ -85,7 +87,7 @@ function enter(code, auth, next=null) {
     room = code; token = auth; refreshEpoch++; renderedRound = null; draftEdited = false;
     history.replaceState(null, '', location.pathname + '?room=' + room + (projector ? '&view=projector' : auth===hostToken&&hostToken ? '&view=instructor' : '&view=student'));
     $('welcome').hidden = true; $('setup').hidden = true;
-    if(next){applyState(next);return;}
+    if(next){applyState(next);void resumeStudentRequests();return;}
     return refresh();
 }
 function node(tag, text, className) { const n=document.createElement(tag); if(text!==undefined)n.textContent=text; if(className)n.className=className; return n; }
@@ -122,7 +124,7 @@ function allocationValidity() {
     ['hedge','carry'].forEach(id=>{const ok=allocationValue(id)!==null;$(id+'-number').setAttribute('aria-invalid',String(!ok));valid=valid&&ok;});
     if(state?.me){
         $('submit-allocation').disabled=!valid||state.status!=='open'||!online||busy;
-        $('allocation-status').textContent=!valid?'Enter each percentage between 0 and 100, with at most two decimal places.':busy?'Saving your allocations…':!online?'Connection interrupted. Your draft stays here; submission will resume when connected.':state.status==='open'?'Round open: submit both allocations to participate. You can revise them until the instructor locks.':state.status==='locked'?'Allocations are locked while the instructor draws the shock.':state.status==='finished'?'The game has finished.':'Preview only: you can adjust your choices now. Submit after the instructor opens the next round.';
+        $('allocation-status').textContent=!valid?'Enter each percentage between 0 and 100, with at most two decimal places.':busy?'Saving your allocations…':!online?'Connection interrupted. Your draft stays here. Requests already sent will retry when connected.':state.status==='open'?'Round open: submit both allocations to participate. You can revise them until the instructor locks.':state.status==='locked'?'Allocations are locked while the instructor draws the shock.':state.status==='finished'?'The game has finished.':'Preview only: you can adjust your choices now. Submit after the instructor opens the next round.';
     }
     return valid;
 }
@@ -131,6 +133,7 @@ function editAllocation(id, fromSlider) {
     draftEdited=true;
     if(fromSlider)$(id+'-number').value=$(id).value;
     else {const value=allocationValue(id);if(value!==null)$(id).value=String(value);}
+    if(state?.me)save('draft_'+room+'_'+state.round,{hedge:$('hedge-number').value,carry:$('carry-number').value});
     previews();
 }
 function previews() {
@@ -215,14 +218,14 @@ function render() {
         $('student-name').textContent=`${state.me.fullName} · Section ${state.me.section}`;$('recovery-key').textContent=token;
         $('trade-terms').textContent=`The one-year forward locks in ${(1+state.forwardChange).toFixed(6)} domestic dollars per foreign unit (${percent(state.forwardChange)} versus today’s spot). P&L measures the change from the receivable’s initial $100,000 value; it excludes the underlying operating margin.`;
         if(renderedRound!==state.round){
-            if(!draftEdited){const prior=state.me.choice||state.me.history.at(-1)||{hedge:.5,carry:.5};setAllocation('hedge',prior.hedge);setAllocation('carry',prior.carry);}renderedRound=state.round;
+            if(!draftEdited){const draft=read('draft_'+room+'_'+state.round),prior=state.me.choice||state.me.history.at(-1)||{hedge:.5,carry:.5};setAllocation('hedge',prior.hedge);setAllocation('carry',prior.carry);if(draft){['hedge','carry'].forEach(id=>{$(id+'-number').value=draft[id];const n=allocationValue(id);if(n!==null)$(id).value=String(n);});draftEdited=true;}}renderedRound=state.round;
         }
         ['hedge','carry','hedge-number','carry-number'].forEach(id=>$(id).disabled=['locked','finished'].includes(state.status)||busy);
         const c=state.me.choice;
         $('choice-receipt').textContent=c?`Saved for round ${state.round}: hedge ${percent(c.hedge)}, carry ${percent(c.carry)}. ${state.status==='open'?'You can update until allocations lock.':'Allocations are closed.'}`:state.status==='open'?'No allocation saved for this round. Previous sliders are suggestions; submit again to participate.':'Wait for the instructor to open a round.';
         $('reflection').hidden=state.status!=='finished';$('reflection-question').textContent=state.question;
         latestReflection=state.me.responses.at(-1)||null;
-        if(latestReflection&&!$('reflection-input').value)$('reflection-input').value=latestReflection.responseText;
+        if(!$('reflection-input').value)$('reflection-input').value=read('reflection_draft_'+room)?.text||latestReflection?.responseText||'';
         $('sync-reflection').disabled=!latestReflection||busy;
         $('save-reflection').disabled=busy||!online;
         previews();
@@ -244,15 +247,28 @@ async function refresh() {
     try{const next=await api('/api/state?room='+encodeURIComponent(room));if(epoch===refreshEpoch&&room===requestedRoom)applyState(next);}
     catch(e){if(epoch!==refreshEpoch||room!==requestedRoom)return;online=false;$('connection').textContent='Connection delayed · retrying';if(state)render();else {$('welcome').hidden=false;message(e.message);}}
     finally{refreshPending=false;}
+    if(online)void resumeStudentRequests();
+}
+async function resumeStudentRequests() {
+    if(busy||!online||!state?.me)return;
+    for(const name of ['allocate','reflect']){
+        const pending=read('operation_'+room+'_'+name);
+        if(!pending||resumedOperations.has(pending.operationId))continue;
+        resumedOperations.add(pending.operationId);
+        try{await action(name);}catch{}
+    }
 }
 async function action(name, extra={}) {
     if(busy)return;busy=true;refreshEpoch++;
     message(({open:'Opening round…',lock:'Locking allocations…',draw:'Drawing the common shock…',shift:'Announcing the new regime…',allocate:'Saving allocations…'})[name]||'Saving…');if(state)render();
     const key='operation_'+room+'_'+name;
-    const old=read(key),body=old||{room,action:name,operationId:uuid(),revision:state?.revision,...extra};save(key,body);
+    let old=read(key);if(name==='join'&&old&&['studentId','fullName','section'].some(k=>old[k]!==extra[k]))old=null;
+    const body=old||{room,action:name,operationId:uuid(),revision:state?.revision,...extra};save(key,body);
     let receivedState=false;
     try{const result=await api('/api/action',body);storage.removeItem('livefx_'+key);message('');
         busy=false;
+        if(name==='allocate'){storage.removeItem('livefx_draft_'+room+'_'+body.round);draftEdited=false;renderedRound=null;}
+        if(name==='reflect')storage.removeItem('livefx_reflection_draft_'+room);
         if(name!=='join'&&result.state){applyState(result.state);receivedState=true;}
         return result;
     }
@@ -307,11 +323,14 @@ document.addEventListener('DOMContentLoaded',async()=>{
     ['hedge','carry'].forEach(id=>{$(id).oninput=()=>editAllocation(id,true);$(id+'-number').oninput=()=>editAllocation(id,false);});
     ['chart-view','result-round'].forEach(id=>$(id).onchange=renderCharts);
     $('save-reflection').onclick=()=>submitReflection().catch(()=>{});
+    $('reflection-input').oninput=()=>save('reflection_draft_'+room,{text:$('reflection-input').value});
     $('sync-reflection').onclick=()=>syncReflection().catch(e=>message(e.message));
     $('export-own').onclick=()=>download(JSON.stringify({room,student:state.me,pendingSheet:FINA3020Utils._readPending()},null,2),'live-fx-'+room+'-my-record.json','application/json');
     $('export-class').onclick=async()=>{try{const csv=scriptApi?(await api('/api/export?room='+room,null,hostToken)).csv:await (async()=>{const response=await fetch(apiBase+'/api/export?room='+room,{headers:{Authorization:'Bearer '+hostToken}});if(!response.ok)throw Error('Export failed');return response.text();})();download(csv,'live-fx-'+room+'.csv','text/csv');}catch(e){message(e.message);}};
     $('new-room').onclick=()=>{room='';state=null;history.replaceState(null,'',location.pathname);setup().catch(e=>message(e.message));};
     try{if(hostToken&&!room)await setup();else if(room&&(token||projector))await refresh();else $('connection').textContent='Ready to join';}catch(e){message(e.message);$('welcome').hidden=false;$('setup').hidden=true;$('instructor-signin').open=!!hostToken;}
+    window.addEventListener('online',()=>{resumedOperations.clear();void refresh();});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)void refresh();});
     // No overlapping polling requests; preserve student edits while updating server state.
     async function poll(){if(!busy&&room&&(token||projector)&&!document.hidden)await refresh();setTimeout(poll,scriptApi ? (state?.status==='finished' ? 30000 : (hostToken||projector ? 5000 : 20000))+Math.random()*5000 : 2000);}setTimeout(poll,scriptApi ? (state?.status==='finished' ? 30000 : (hostToken||projector ? 5000 : 20000))+Math.random()*5000 : 2000);
 });
