@@ -626,7 +626,7 @@
                 <div class="scenario-card">
                     <div class="scenario-label">Contractual Cash Flow</div>
                     <div class="scenario-val" style="color:var(--info);">€1,000,000</div>
-                    <div style="font-size:0.89rem; color:var(--text-muted);">Due in 90 Days (<i>T</i> = 0.25)</div>
+                    <div style="font-size:0.89rem; color:var(--text-muted);">Due in 90 Days (<i>T</i> = 90/360 = 0.25)</div>
                 </div>
                 <div class="scenario-card">
                     <div class="scenario-label">Spot Rate (<i>S</i><sub>0</sub>)</div>
@@ -698,7 +698,7 @@
                         <div style="font-size:0.83rem; color:var(--text-muted);">Euro Crash</div>
                     </div>
                     <div style="background:rgba(138, 176, 222,0.1); border:1px solid rgba(138, 176, 222,0.3); border-radius:8px; padding:0.6rem; cursor:pointer;" onclick="toggleStateHighlight()">
-                        <div style="font-size:0.85rem; color:var(--info); font-weight:700;">↔️ State 2: Expected (50%)</div>
+                        <div style="font-size:0.85rem; color:var(--info); font-weight:700;">↔️ State 2: Baseline (50%)</div>
                         <div style="font-size:1.18rem; font-family:'JetBrains Mono'; font-weight:700; color:var(--text-primary); margin:0.2rem 0;"><i>S<sub>T</sub></i> = 8.4000</div>
                         <div style="font-size:0.83rem; color:var(--text-muted);">Baseline Consensus</div>
                     </div>
@@ -721,7 +721,7 @@
                     <span class="card-badge badge-float">Floating</span>
                     <div style="font-family:'Outfit'; font-weight:700; font-size:1.18rem; margin-top:0.3rem;">1. Unhedged</div>
                     <div style="font-size:0.89rem; color:var(--text-muted); margin-top:0.2rem;">Full spot exposure <i>f</i>(<i>S<sub>T</sub></i>).</div>
-                    <div style="font-size:0.89rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.425M</strong></div>
+                    <div style="font-size:0.89rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong id="expectedUnhedgedCard">HKD 8,425,000</strong></div>
                     <div style="font-family:'JetBrains Mono'; font-size:0.89rem; font-weight:700; color:var(--warning); margin-top:0.2rem;">No floor &middot; worst modelled state HKD 7,800,000</div>
                 </div>
 
@@ -729,7 +729,7 @@
                     <span class="card-badge badge-locked">Hard Lock</span>
                     <div style="font-family:'Outfit'; font-weight:700; font-size:1.18rem; margin-top:0.3rem;">2. Forward Hedge</div>
                     <div style="font-size:0.89rem; color:var(--text-muted); margin-top:0.2rem;">Lock <i>F</i><sub>0</sub> = 8.4200.</div>
-                    <div style="font-size:0.89rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.420M</strong></div>
+                    <div style="font-size:0.89rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong id="expectedForwardCard">HKD 8,420,000</strong></div>
                     <div style="font-family:'JetBrains Mono'; font-size:0.89rem; font-weight:700; color:var(--info); margin-top:0.2rem;">Certain: HKD 8,420,000</div>
                 </div>
 
@@ -737,15 +737,18 @@
                     <span class="card-badge badge-option">Asymmetric Floor</span>
                     <div style="font-family:'Outfit'; font-weight:700; font-size:1.18rem; margin-top:0.3rem;">3. Put Option</div>
                     <div style="font-size:0.89rem; color:var(--text-muted); margin-top:0.2rem;">Strike 8.40 (Prem FV 0.1215).</div>
-                    <div style="font-size:0.89rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong>HKD 8.453M</strong></div>
+                    <div style="font-size:0.89rem; color:var(--text-secondary); margin-top:0.4rem;"><i>E</i>[Rev]: <strong id="expectedOptionCard">HKD 8,453,500</strong></div>
                     <div style="font-family:'JetBrains Mono'; font-size:0.89rem; font-weight:700; color:var(--success); margin-top:0.2rem;">Floor: HKD 8,278,500</div>
                 </div>
             </div>
 
             <p style="font-size:0.94rem; color:var(--text-muted); margin-top:0.75rem; line-height:1.5;">
-                A money-market hedge is deliberately left out. Borrowing euros today, converting at
-                <i>S</i><sub>0</sub> and repaying out of the receivable replicates the forward exactly whenever covered
-                interest parity holds, so it is the same contract wearing a different name, not a fourth choice.
+                All revenues are measured at day 90. Use simple annual interest and a 360-day year:
+                premium FV = 0.1200 &times; (1 + 5% &times; 90/360) = 0.1215 HKD per EUR
+                (HKD 120,000 paid today; HKD 121,500 at maturity).
+                The forward rate 8.4200 is the dealer quote. At illustrative HKD and EUR rates of 5% and 4%,
+                the frictionless money-market hedge implies 8.4000 &times; 1.0125 / 1.0100 = 8.420792 HKD per EUR.
+                These differ by about HKD 792 on the full receivable; the game uses the quoted forward.
             </p>
 
             <div style="margin-top:1.5rem; display:flex; gap:1rem;">
@@ -760,7 +763,7 @@
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1rem;">
                 <div>
                     <h2 style="font-family:'Outfit'; color:var(--cuhk-gold-light);">Stage 3: Market Realization & Contract Settlement</h2>
-                    <p style="font-size:1.06rem; color:var(--text-secondary);">90 days have elapsed. Nature draws the realized market state <i>S<sub>T</sub></i> from distribution <i>f</i>(<i>S<sub>T</sub></i>).</p>
+                    <p style="font-size:1.06rem; color:var(--text-secondary);">90 days have elapsed. Compare settlement in the crash and rally states, then explore an additional stress case at 8.10. The stress case has no assigned probability in the Stage 2 model.</p>
                 </div>
                 <span class="badge badge-locked">Settlement Phase</span>
             </div>
@@ -768,7 +771,7 @@
             <!-- Market Realization Scenario Selector -->
             <div style="background:rgba(11,14,20,0.6); border:1px solid var(--border-color); border-radius:10px; padding:1rem; margin-bottom:1.25rem;">
                 <label style="font-size:1rem; font-weight:600; color:var(--text-secondary); display:block; margin-bottom:0.75rem;">
-                    Simulate Market Realization (Explore all 3 States from <i>f</i>(<i>S<sub>T</sub></i>)):
+                    Explore all 3 settlement scenarios (2 model states plus 1 additional stress case):
                 </label>
                 <div class="mobile-stack" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:0.75rem;">
                     <div class="decision-card selected" id="shock-btn-ecb" onclick="selectShockScenario('ecb_cut')" role="button" tabindex="0" style="padding:0.75rem 0.5rem; text-align:center; position:relative;">
@@ -782,8 +785,8 @@
                         <span id="viewed-badge-rally" style="display:none; font-size:0.83rem; color:var(--success); font-weight:700; margin-top:0.3rem;">✓ Explored</span>
                     </div>
                     <div class="decision-card" id="shock-btn-cip" onclick="selectShockScenario('cip_basis')" role="button" tabindex="0" style="padding:0.75rem 0.5rem; text-align:center; position:relative;">
-                        <div style="font-family:'Outfit'; font-weight:700; font-size:1.06rem; color:var(--warning);">⚡ State 2: CIP Basis Shock</div>
-                        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.2rem;">Forward drops to 8.1000</div>
+                        <div style="font-family:'Outfit'; font-weight:700; font-size:1.06rem; color:var(--warning);">⚡ Additional Stress Case</div>
+                        <div style="font-size:0.85rem; color:var(--text-muted); margin-top:0.2rem;">Realized spot = 8.1000</div>
                         <span id="viewed-badge-cip" style="display:none; font-size:0.83rem; color:var(--success); font-weight:700; margin-top:0.3rem;">✓ Explored</span>
                     </div>
                 </div>
@@ -796,17 +799,17 @@
                     REALIZED MARKET STATE: ECB Emergency Rate Cut (Depreciation Shock)
                 </div>
                 <p style="font-size:1.12rem; color:var(--text-primary); margin-bottom:0.5rem;" id="shock-desc-text">
-                    Week 4 Lecture Case: The European Central Bank cut rates unexpectedly by 75 bps. Spot Euro depreciated to 7.8000 HKD.
+                    Week 4 Lecture Case: The European Central Bank cut rates unexpectedly by 75 bps. Spot Euro depreciated to 7.8000 HKD per EUR.
                 </p>
                 <div style="display:flex; align-items:center; gap:1.5rem; margin-top:1rem;">
                     <div>
                         <span style="font-size:0.89rem; color:var(--text-muted); display:block;">Ex-Ante Spot (<i>S</i><sub>0</sub>)</span>
-                        <span style="font-family:'JetBrains Mono'; font-size:1.42rem; font-weight:700;" id="shock-initial-spot">8.4000 HKD</span>
+                        <span style="font-family:'JetBrains Mono'; font-size:1.42rem; font-weight:700;" id="shock-initial-spot">8.4000 HKD per EUR</span>
                     </div>
                     <div style="font-size:1.77rem; color:var(--text-muted);" id="shock-arrow-icon">&rarr;</div>
                     <div>
                         <span style="font-size:0.89rem; color:var(--text-muted); display:block;" id="shock-rate-label">Realized Spot Rate (<i>S<sub>T</sub></i>)</span>
-                        <span style="font-family:'JetBrains Mono'; font-size:1.65rem; font-weight:700; color:var(--danger);" id="shock-rate-val">7.8000 HKD (&minus;7.14%)</span>
+                        <span style="font-family:'JetBrains Mono'; font-size:1.65rem; font-weight:700; color:var(--danger);" id="shock-rate-val">7.8000 HKD per EUR (&minus;7.14%)</span>
                     </div>
                 </div>
             </div>
@@ -858,7 +861,7 @@
             <!-- PROBABILITY DISTRIBUTION & BREAKEVEN ANALYSIS -->
             <div style="background:rgba(19, 24, 34, 0.95); border:1px solid var(--border-color); border-radius:12px; padding:1.25rem; margin:1.5rem 0;">
                 <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-size:1.06rem; gap:0.75rem; flex-wrap:wrap;">
-                    <span>Ex-Ante Probability of Euro Crash / ECB Cut (<i>S<sub>T</sub></i> = 7.80):</span>
+                    <span>Sensitivity check: probability of Euro Crash / ECB Cut (<i>S<sub>T</sub></i> = 7.80):</span>
                     <span id="cfoCrashProbText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--danger); font-size:1.36rem;">25%</span>
                 </div>
                 <input type="range" id="cfoCrashProbSlider" min="0" max="100" value="25" oninput="updateCfoProbability()" style="width:100%;">
@@ -866,11 +869,11 @@
                 <div class="mobile-stack" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-top:1rem;">
                     <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
                         <div style="font-size:0.89rem; color:var(--text-muted);">Forward Revenue (Locked)</div>
-                        <div style="font-family:'JetBrains Mono'; font-weight:700; color:var(--info);">HKD 8.420M</div>
+                        <div style="font-family:'JetBrains Mono'; font-weight:700; color:var(--info);">HKD 8,420,000</div>
                     </div>
                     <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
                         <div style="font-size:0.89rem; color:var(--text-muted);">Expected Unhedged Revenue</div>
-                        <div id="cfoExpectedUnhedgedText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--cuhk-gold-light);">HKD 8.425M</div>
+                        <div id="cfoExpectedUnhedgedText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--cuhk-gold-light);">HKD 8,425,000</div>
                     </div>
                     <div style="background:rgba(0,0,0,0.3); padding:0.8rem; border-radius:8px; border:1px solid var(--border-color); text-align:center;">
                         <div style="font-size:0.89rem; color:var(--text-muted);">Breakeven Crash Prob (<i>p</i>*)</div>
@@ -882,15 +885,15 @@
                     <strong>Breakeven Intuition:</strong> Raising the crash probability shifts weight from the two
                     stronger states onto <i>S<sub>T</sub></i> = 7.80 while keeping their 2:1 ratio. Once the crash
                     probability passes <strong id="cfoBreakevenNoteVal">25.60%</strong>, the locked forward beats staying unhedged in expectation
-                    as well as in certainty. Below it you are paying a small expected-revenue premium for a known number.
+                    as well as in certainty. Below it the forward gives up expected revenue for certainty. This slider is a separate sensitivity check; Stages 2 and 5 retain the original 25% / 50% / 25% probabilities.
                 </div>
             </div>
 
             <div class="misconception-box">
                 <strong style="color:var(--cuhk-gold-light); display:block; margin-bottom:0.3rem;">Core Misconception Debrief & Lessons:</strong>
                 <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:1rem; line-height:1.5;">
-                    <li><strong>Misconception 1 (Wrong Option Type)</strong>: If you bought a <em>Call Option</em> for a receivable, you paid an upfront premium for the right to buy Euros at 8.40 when you needed to sell Euros. You suffered the full spot drop to 7.80 PLUS the lost premium!</li>
-                    <li><strong>Forward vs Option Trade-Off</strong>: In the ECB-cut state the Forward lock yields <strong>HKD 8,420,000</strong> (fully protected at zero upfront cost), while the Put Option floor yields <strong>HKD 8,278,500</strong> (exercised at the 8.40 strike, less the 0.1215 premium FV). Protection through the option costs <strong>HKD 141,500</strong> more, which is the price of keeping the upside.</li>
+                    <li><strong>Misconception 1 (Wrong Option Type)</strong>: If you bought a <em>Call Option</em> for a receivable, you paid an upfront premium for the right to buy Euros at 8.40 when you needed to sell Euros. In the ECB-cut example at 7.80, the call expires unexercised and leaves the spot loss plus the premium cost.</li>
+                    <li><strong>Forward vs Option Trade-Off</strong>: In the ECB-cut state the Forward lock yields <strong>HKD 8,420,000</strong> (fully protected at zero upfront cost), while the Put Option floor yields <strong>HKD 8,278,500</strong> (exercised at the 8.40 strike, less the 0.1215 premium FV). The put delivers <strong>HKD 141,500 less</strong> in this state: HKD 121,500 of premium FV plus HKD 20,000 from the forward rate exceeding the strike.</li>
                     <li><strong>When is the Option Better?</strong> The Put Option outperforms the Forward only if the Euro rallies above <strong><i>S<sub>T</sub></i> &gt; <i>F</i><sub>0</sub> + <i>p</i><sub>fv</sub> = 8.4200 + 0.1215 = 8.5415 HKD per EUR</strong>.</li>
                 </ul>
             </div>
@@ -966,7 +969,7 @@
 
             <div class="mix-metric-grid">
                 <div class="mix-metric">
-                    <div class="mix-metric-label">Expected revenue <i>E</i>[Rev]</div>
+                    <div class="mix-metric-label">Expected revenue (25% / 50% / 25%)</div>
                     <div class="mix-metric-val" style="color:var(--cuhk-gold-light);" id="mixExpected">HKD 8,420,000</div>
                 </div>
                 <div class="mix-metric">
@@ -990,7 +993,7 @@
                     <div class="mix-metric-val" style="color:var(--success);" id="mixUpSlope">HKD 0</div>
                 </div>
                 <div class="mix-metric">
-                    <div class="mix-metric-label">Option premium paid (FV)</div>
+                    <div class="mix-metric-label">Option premium cost at maturity (FV)</div>
                     <div class="mix-metric-val" style="color:var(--text-secondary);" id="mixPremium">HKD 0</div>
                 </div>
             </div>
@@ -999,8 +1002,8 @@
                 <strong style="color:var(--cuhk-gold-light); display:block; margin-bottom:0.3rem;">Reading the curve</strong>
                 <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:1rem; line-height:1.5;">
                     <li>The forward sleeve is a flat line. It contributes the same HKD at every <i>S<sub>T</sub></i>, which is why adding forward flattens the whole curve.</li>
-                    <li>The open sleeve is a 45-degree line through the origin. It sets how steeply you fall when the euro falls.</li>
-                    <li>The put sleeve is flat below <i>K</i> = 8.40 and 45-degree above it. That is the kink: your mix has slope <span id="mixSlopeSentence">0% below the strike and 0% above it</span>.</li>
+                    <li>The open sleeve is linear through the origin: each 0.10 HKD per EUR move changes revenue by HKD 100,000 on a fully open €1,000,000 receivable.</li>
+                    <li>The put sleeve is flat below <i>K</i> = 8.40 and rises one-for-one with spot above it. As a percentage of full unhedged exposure, your mix has slope <span id="mixSlopeSentence">0% below the strike and 0% above it</span>.</li>
                     <li>Only the open and put sleeves earn anything from a euro rally, and only the forward and put sleeves protect you from a euro crash. Moving the sliders is how you price that trade-off against your own view of <i>f</i>(<i>S<sub>T</sub></i>).</li>
                 </ul>
             </div>
@@ -1069,6 +1072,7 @@
             rHKD: 0.0500,
             rEUR: 0.0400,
             days: 90,
+            dayCountBasis: 360,
             ST_shock: 7.8000,
             activeShockScenario: 'ecb_cut',
             hedgeMix: { forward: 100, option: 0, unhedged: 0 }
@@ -1077,13 +1081,10 @@
         let chartInstance = null;
         let mixChartInstance = null;
 
-        /* Quoted to 4 decimals, like every other rate on this page. The cards,
-           hints and debrief all print figures built on 0.1215; computing with
-           the unrounded 0.12147945 instead put HKD 8,278,521 in the result box
-           next to a card reading HKD 8,278,500. */
+        // Classroom convention: simple annual interest, ACT/360, 90 days = 0.25 years.
+        // Keep full precision in calculations; format only at the display boundary.
         function premiumFV() {
-            const raw = gameState.premium * (1 + gameState.rHKD * (gameState.days / 365));
-            return Math.round(raw * 10000) / 10000;
+            return gameState.premium * (1 + gameState.rHKD * gameState.days / gameState.dayCountBasis);
         }
 
         function revenueUnhedged(ST) { return ST * gameState.notional; }
@@ -1313,7 +1314,7 @@
             },
             'eur_rally': {
                 key: 'eur_rally',
-                headline: 'MARKET SHOCK 2: Global Risk-On Rally (Euro Appreciation)',
+                headline: 'STATE 3: Global Risk-On Rally (Euro Appreciation)',
                 desc: 'Week 3 UIP & Macro Case: Strong European economic indicators trigger a major Euro rally. The Euro surges against HKD.',
                 ST: 9.1000,
                 pct: '+8.33%',
@@ -1333,21 +1334,21 @@
             },
             'cip_basis': {
                 key: 'cip_basis',
-                headline: 'MARKET SHOCK 3: Interbank Swap Market Disruption (CIP Basis Shock)',
-                desc: 'Week 4 CIP & Funding Case: Bank balance-sheet constraints tighten, interbank CIP swap spreads widen, and the euro slips to 8.1000 spot while the dealer reprices a new 90-day forward to the same 8.1000.',
+                headline: 'ADDITIONAL STRESS CASE: Euro at 8.1000 at Maturity',
+                desc: 'At the original 90-day settlement date, market stress leaves spot at 8.1000 HKD per EUR. Compare cash received at this same date under each original hedge. This is an additional stress test outside the three-state probability model.',
                 ST: 8.1000,
                 pct: '−3.57%',
-                subtitle: 'CIP Swap Friction (8.10 HKD)',
+                subtitle: 'Additional Stress (8.10 HKD per EUR)',
                 tone: 'tone-warn',
-                rateLabel: 'Realized Spot &amp; Repriced Forward',
+                rateLabel: 'Realized Spot at Original Maturity',
                 color: 'var(--warning)',
                 hintHold: `
-                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (State 2: Interbank Swap Friction, spot and new forward both 8.1000 HKD per EUR):</strong>
-                    Interbank FX swap liquidity squeezes widen dealer spreads, and the forward premium collapses.
+                    <strong style="color:var(--cuhk-gold-light); font-size:1.12rem; display:block; margin-bottom:0.4rem;">💡 Contract Settlement Mechanics (Additional Stress: Spot at Maturity = 8.1000 HKD per EUR):</strong>
+                    All amounts below are measured at the original 90-day maturity.
                     <ul style="padding-left:1.2rem; color:var(--text-secondary); font-size:0.98rem; margin-top:0.3rem; line-height:1.5;">
                         <li><strong>Pre-Committed Forward</strong>: A contract struck at <i>t</i> = 0 still settles at the agreed <i>F</i><sub>0</sub> = 8.4200, delivering <strong>HKD 8,420,000</strong>. Its value is precisely that it is immune to the repricing.</li>
                         <li><strong>Put Option</strong>: Spot (8.1000) is below strike (8.4000), so the firm exercises at 8.4000 and nets <strong>HKD 8,278,500</strong> after premium.</li>
-                        <li><strong>Unhedged, or hedging only now</strong>: Converting at spot, or entering a fresh forward during the disruption, both lock the repriced 8.1000, delivering <strong>HKD 8,100,000</strong>. Waiting for a better moment is what the friction taxes.</li>
+                        <li><strong>Unhedged</strong>: Convert the received euros at the maturity spot rate of 8.1000, delivering <strong>HKD 8,100,000</strong>. A new 90-day forward would settle at a later date and would require a separate funding comparison.</li>
                     </ul>
                 `
             }
@@ -1397,7 +1398,7 @@
             if (rateLabelEl) rateLabelEl.innerHTML = scen.rateLabel;
             if (arrowEl) arrowEl.style.color = scen.color;
             if (rateValEl) {
-                rateValEl.textContent = `${scen.ST.toFixed(4)} HKD (${scen.pct})`;
+                rateValEl.textContent = `${scen.ST.toFixed(4)} HKD per EUR (${((scen.ST / gameState.S0 - 1) * 100).toFixed(2)}%)`;
                 rateValEl.style.color = scen.color;
             }
 
@@ -1425,12 +1426,12 @@
                     proceedBtn.disabled = true;
                     proceedBtn.style.opacity = '0.5';
                     proceedBtn.style.cursor = 'not-allowed';
-                    proceedBtn.innerHTML = `Explore All 3 Market Realization States to Proceed (${visitedCount}/3 States Explored) &rarr;`;
+                    proceedBtn.innerHTML = `Explore All 3 Settlement Scenarios to Proceed (${visitedCount}/3 Scenarios Explored) &rarr;`;
                 } else {
                     proceedBtn.disabled = false;
                     proceedBtn.style.opacity = '1';
                     proceedBtn.style.cursor = 'pointer';
-                    proceedBtn.innerHTML = `All 3 States Explored! Proceed to Stage 4: Execution Debrief &amp; Payoffs &rarr;`;
+                    proceedBtn.innerHTML = `All 3 Scenarios Explored! Proceed to Stage 4: Execution Debrief &amp; Payoffs &rarr;`;
                     gameState.maxUnlockedStage = Math.max(gameState.maxUnlockedStage, 4);
                 }
             }
@@ -1552,7 +1553,7 @@
                             fill: false
                         },
                         {
-                            label: '3. Put Option Net (Floor at 8.278 HKD)',
+                            label: `3. Put Option Net (Floor ${hkd(revenueOption(gameState.strike))})`,
                             data: optionPayoffs,
                             borderColor: isStateHighlightActive ? 'rgba(134, 191, 165, 0.35)' : '#86BFA5',
                             borderDash: isStateHighlightActive ? [4, 4] : [],
@@ -1581,7 +1582,7 @@
                                 title: function(tooltipItems) {
                                     const val = tooltipItems[0].label;
                                     if (val === '7.80') return '📉 State 1: ECB Rate Cut (S_T = 7.80)';
-                                    if (val === '8.40') return '↔️ State 2: Baseline Expected (S_T = 8.40)';
+                                    if (val === '8.40') return '↔️ State 2: Baseline (S_T = 8.40)';
                                     if (val === '9.10') return '📈 State 3: Euro Rally (S_T = 9.10)';
                                     return `Spot Rate S_T = ${val}`;
                                 }
@@ -1628,6 +1629,18 @@
            move inside that same distribution. Raising the crash probability
            rescales the other two states and keeps their 2:1 ratio.
            ------------------------------------------------------------------ */
+        function updateExpectedCards() {
+            const cards = {
+                expectedUnhedgedCard: { forward: 0, option: 0, unhedged: 100 },
+                expectedForwardCard: { forward: 100, option: 0, unhedged: 0 },
+                expectedOptionCard: { forward: 0, option: 100, unhedged: 0 }
+            };
+            Object.entries(cards).forEach(([id, mix]) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = hkd(mixMetrics(mix).expected);
+            });
+        }
+
         function conditionalNonCrashSpot() {
             const rest = STATES.slice(1);
             const weight = rest.reduce((sum, s) => sum + s.prob, 0);
@@ -1658,7 +1671,7 @@
 
             const expectedText = document.getElementById('cfoExpectedUnhedgedText');
             if (expectedText) {
-                expectedText.innerText = 'HKD ' + (expectedUnhedgedAt(prob) / 1000000).toFixed(3) + 'M';
+                expectedText.innerText = hkd(expectedUnhedgedAt(prob));
             }
 
             const breakeven = breakevenCrashProb();
@@ -1702,8 +1715,8 @@
         }
 
         function applyMix(forward, option) {
-            forward = clampPct(forward);
-            option = clampPct(option);
+            forward = roundPct(clampPct(forward));
+            option = roundPct(clampPct(option));
             if (forward + option > 100) option = 100 - forward;
 
             gameState.hedgeMix = {
@@ -1927,6 +1940,7 @@
                 selectedStrategy: gameState.selectedStrategy,
                 hedgeMix: { ...gameState.hedgeMix },
                 hedgeMixMetrics: mixMetrics(),
+                hedgeMixProbabilities: STATES.map(s => ({ state: s.key, probability: s.prob })),
                 executedPayoff: calculateExecutedPayoff(),
                 reflection: reflection
             };
@@ -2030,6 +2044,7 @@
 
         // Initialize default UI selections
         document.addEventListener('DOMContentLoaded', () => {
+            updateExpectedCards();
             selectStrategy('forward');
             selectShockScenario('ecb_cut');
             applyMix(gameState.hedgeMix.forward, gameState.hedgeMix.option);
