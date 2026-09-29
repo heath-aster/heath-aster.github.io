@@ -159,6 +159,8 @@
             font-weight: 500;
         }
 
+        input[type="date"] { width: 100%; box-sizing: border-box; padding: 0.75rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-surface); color: var(--text-primary); font: inherit; color-scheme: dark; }
+
         textarea {
             width: 100%;
             background: var(--bg-surface);
@@ -335,7 +337,7 @@
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                     <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                 </svg>
-                Anonymous by default &bull; No student login required
+                General feedback can be anonymous &bull; Corrections require your identity
             </div>
         </div>
 
@@ -345,13 +347,13 @@
             <section class="feedback-card">
                 <div class="card-header-row">
                     <div class="card-num">1</div>
-                    <div class="card-title">Identity & Section (Optional)</div>
+                    <div class="card-title">Identity & Section</div>
                 </div>
                 <div class="form-grid">
                     <div class="field-group">
                         <label class="field-label" for="section">
                             Course Section
-                            <span class="field-tag-optional">Optional</span>
+                            <span class="field-tag-optional" id="sectionTag">Optional</span>
                         </label>
                         <select id="section" name="section">
                             <option value="">Prefer not to say / All sections</option>
@@ -364,7 +366,7 @@
                     <div class="field-group">
                         <label class="field-label" for="studentName">
                             Your Name
-                            <span class="field-tag-optional">Optional</span>
+                            <span class="field-tag-optional" id="nameTag">Optional</span>
                         </label>
                         <input type="text" id="studentName" name="studentName" placeholder="Leave blank to remain anonymous" autocomplete="off">
                     </div>
@@ -385,6 +387,7 @@
                     </label>
                     <select id="topic" name="topic" required>
                         <option value="">Select a topic...</option>
+                        <option value="Participation record correction">Participation record correction</option>
                         <option value="Lecture Pace & Clarity">Lecture Pace & Clarity</option>
                         <option value="Problem Sets & Assignments">Problem Sets & Assignments</option>
                         <option value="Interactive Games & Simulations">Interactive Games & Simulations</option>
@@ -400,7 +403,22 @@
                     </div>
                 </div>
 
-                <div class="form-grid" style="margin-top: 1.25rem;">
+                <div id="participationFields" hidden style="margin-top: 1.25rem;">
+                    <p>I participated in class, but my participation was not recorded. Please provide the details below so the instructor can review the record.</p>
+                    <div class="form-grid">
+                        <div class="field-group">
+                            <label class="field-label" for="studentId">CUHK Student ID <span class="field-tag-required">Required</span></label>
+                            <input type="text" id="studentId" name="studentId" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" placeholder="10-digit student ID" disabled>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="classDate">Class Date <span class="field-tag-required">Required</span></label>
+                            <input type="date" id="classDate" name="classDate" disabled>
+                        </div>
+                    </div>
+                    <p>Submit one request per class date. Describe the question you asked, answer you gave, or activity you contributed to in the comments below. Include the approximate time or topic if you remember it. The instructor will review your request before changing the record.</p>
+                </div>
+
+                <div class="form-grid" id="courseRatings" style="margin-top: 1.25rem;">
                     <div class="field-group">
                         <label class="field-label" for="paceRating">
                             Current Course Pace
@@ -462,6 +480,7 @@
                     </svg>
                 </button>
             </div>
+            <button type="button" class="btn-reset" id="downloadRequest" hidden>Save a copy of this request</button>
         </form>
 
         <!-- Receipt Confirmation Section -->
@@ -493,6 +512,33 @@
         const receiptDetails = document.getElementById('receiptDetails');
         const resetBtn = document.getElementById('resetBtn');
 
+        const correctionTopic = 'Participation record correction';
+        let pendingPayload = null;
+        function updateTopicFields() {
+            const correction = topicSelect.value === correctionTopic;
+            document.getElementById('participationFields').hidden = !correction;
+            document.getElementById('courseRatings').style.display = correction ? 'none' : '';
+            ['studentName', 'section', 'studentId', 'classDate'].forEach(id => {
+                document.getElementById(id).required = correction;
+            });
+            ['studentId', 'classDate'].forEach(id => document.getElementById(id).disabled = !correction);
+            ['paceRating', 'clarityRating'].forEach(id => document.getElementById(id).disabled = correction);
+            ['sectionTag', 'nameTag'].forEach(id => {
+                const tag = document.getElementById(id);
+                tag.textContent = correction ? 'Required' : 'Optional';
+                tag.className = correction ? 'field-tag-required' : 'field-tag-optional';
+            });
+            document.getElementById('studentName').placeholder = correction ? 'Your full name' : 'Leave blank to remain anonymous';
+            document.getElementById('comments').placeholder = correction
+                ? 'Describe how you participated and which participation record needs review.'
+                : 'What is working well? What could be improved?';
+        }
+        topicSelect.addEventListener('change', updateTopicFields);
+        if (new URLSearchParams(window.location.search).get('topic') === 'participation') {
+            topicSelect.value = correctionTopic;
+            updateTopicFields();
+        }
+
         // Toggle 'Other' topic text field
         topicSelect.addEventListener('change', () => {
             if (topicSelect.value === 'Other') {
@@ -506,10 +552,21 @@
             }
         });
 
+        document.getElementById('downloadRequest').addEventListener('click', () => {
+            if (!pendingPayload) return;
+            const url = URL.createObjectURL(new Blob([JSON.stringify(pendingPayload, null, 2)], { type: 'application/json' }));
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'fina3020-feedback-' + pendingPayload.submissionId + '.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+
         // Form Submission
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            if (!form.reportValidity()) return;
             const topicVal = topicSelect.value;
             const commentsVal = document.getElementById('comments').value.trim();
 
@@ -536,17 +593,31 @@
                 ? crypto.randomUUID()
                 : 'sub-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10);
 
-            const payload = {
+            const candidate = {
                 submissionId: submissionId,
                 section: document.getElementById('section').value,
                 studentName: document.getElementById('studentName').value.trim(),
                 topic: topicVal,
                 topicOther: otherInput.value.trim(),
-                paceRating: document.getElementById('paceRating').value,
-                clarityRating: document.getElementById('clarityRating').value,
+                paceRating: topicVal === correctionTopic ? '' : document.getElementById('paceRating').value,
+                clarityRating: topicVal === correctionTopic ? '' : document.getElementById('clarityRating').value,
                 comments: commentsVal,
                 clientTimestamp: new Date().toISOString()
             };
+
+            if (topicVal === correctionTopic) {
+                candidate.studentId = document.getElementById('studentId').value.trim();
+                candidate.classDate = document.getElementById('classDate').value;
+                if (!candidate.studentName) {
+                    document.getElementById('studentName').focus();
+                    return;
+                }
+            }
+            if (candidate.studentId === '0000000000' && candidate.studentName.startsWith('TEST')) candidate.IsTest = true;
+            // Reuse the original ID for retries of the same content.
+            const content = value => JSON.stringify({ ...value, submissionId: '', clientTimestamp: '' });
+            if (!pendingPayload || content(pendingPayload) !== content(candidate)) pendingPayload = candidate;
+            const payload = pendingPayload;
 
             // Set loading state
             submitBtn.disabled = true;
@@ -558,6 +629,7 @@
                 const response = await fetch(FEEDBACK_ENDPOINT, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    signal: AbortSignal.timeout(30000),
                     body: JSON.stringify(payload)
                 });
 
@@ -567,7 +639,8 @@
 
                 const result = await response.json();
 
-                if (!result || result.ok !== true) {
+                if (!result || result.ok !== true || result.submissionId !== payload.submissionId || !result.receiptId ||
+                    (topicVal === correctionTopic && result.sheetName !== 'Participation Corrections')) {
                     throw new Error(result && result.error ? result.error : 'Server returned unsuccessful response.');
                 }
 
@@ -575,7 +648,11 @@
                 form.style.display = 'none';
                 receiptCard.style.display = 'block';
 
-                receiptDetails.innerHTML = `
+                document.querySelector('.receipt-title').textContent = topicVal === correctionTopic ? 'Correction Request Received' : 'Feedback Received';
+                document.querySelector('.receipt-sub').textContent = topicVal === correctionTopic
+                    ? 'Your request was recorded for instructor review. Keep this receipt.'
+                    : 'Your response was recorded in the course feedback ledger.';
+                receiptDetails.textContent = `
 Receipt ID:       ${result.receiptId || 'N/A'}
 Server Timestamp: ${result.serverTimestamp || new Date().toISOString()}
 Topic:            ${payload.topic}${payload.topicOther ? ' (' + payload.topicOther + ')' : ''}
@@ -585,6 +662,7 @@ Identity:         ${payload.studentName ? payload.studentName : 'Anonymous'}
 
             } catch (err) {
                 console.error('Submission failed:', err);
+                document.getElementById('downloadRequest').hidden = false;
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `
                     <span>Retry Submission</span>
@@ -601,6 +679,9 @@ Identity:         ${payload.studentName ? payload.studentName : 'Anonymous'}
         // Reset form to allow another submission
         resetBtn.addEventListener('click', () => {
             form.reset();
+            pendingPayload = null;
+            document.getElementById('downloadRequest').hidden = true;
+            updateTopicFields();
             otherWrapper.style.display = 'none';
             otherInput.removeAttribute('required');
             submitBtn.disabled = false;
