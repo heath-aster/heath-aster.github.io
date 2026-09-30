@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Foreign Project Committee Game | FINA3020 Week 5</title>
+    <!-- Chart.js -->
+    <script src="vendor/chart.umd-4.4.7.js"></script>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js?v=20260925-reliability"></script>
+    <style>
+        .app-container {
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .main-content {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 3rem 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .glass-panel {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+
+        .stage-stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            position: relative;
+            background: rgba(19, 24, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+        }
+
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .stepper-step.active {
+            color: var(--cuhk-gold-light);
+        }
+
+        .stepper-step.completed {
+            color: var(--success);
+        }
+
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .stepper-step.active .step-num {
+            background: var(--cuhk-gold);
+            color: #000;
+            border-color: var(--cuhk-gold-light);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed .step-num {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+        }
+
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .param-card {
+            background: rgba(19, 24, 34, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .param-title {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .param-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: var(--cuhk-gold);
+        }
+
+        .decision-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .decision-card {
+            background: rgba(19, 24, 34, 0.8);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            text-align: center;
+        }
+
+        .decision-card:hover {
+            border-color: var(--cuhk-gold);
+            transform: translateY(-2px);
+            background: rgba(30, 40, 58, 0.9);
+        }
+
+        .decision-card.selected {
+            border-color: var(--cuhk-gold);
+            background: rgba(218, 165, 32, 0.15);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .shock-alert {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+            margin: 1.5rem 0;
+        }
+
+        .formula-card {
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.75rem 0;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+        }
+
+        .formula-line {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.88rem;
+            margin: 0.35rem 0;
+            flex-wrap: wrap;
+        }
+
+        .financial-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            margin: 1rem 0;
+        }
+
+        .financial-table th, .financial-table td {
+            padding: 0.65rem 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: right;
+        }
+
+        .financial-table th:first-child, .financial-table td:first-child {
+            text-align: left;
+        }
+
+        .financial-table th {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .slider-group {
+            margin: 1rem 0;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 0.35rem;
+        }
+    
+        /* ------------------------------------------------------------------
+           Page-scoped palette and type for this game only.
+           No red or green: gains use light blue, losses use amber, so the
+           text stays readable on the dark background and for color-blind
+           students. css/design_system.css is shared and left untouched.
+           ------------------------------------------------------------------ */
+        :root {
+            --success: #9FD3FF;
+            --success-bg: rgba(159, 211, 255, 0.10);
+            --danger: #F5A65B;
+            --danger-bg: rgba(245, 166, 91, 0.10);
+            --warning: #F0DC8C;
+            --warning-bg: rgba(240, 220, 140, 0.10);
+            --k-cf: #74A9F5;
+            --k-fx: #C8A6F5;
+            --k-r: #6ED3D3;
+            --k-w: #F0DC8C;
+            --k-i: #F5B98A;
+        }
+        .k-cf { color: var(--k-cf); font-weight: 700; }
+        .k-fx { color: var(--k-fx); font-weight: 700; }
+        .k-r  { color: var(--k-r);  font-weight: 700; }
+        .k-w  { color: var(--k-w);  font-weight: 700; }
+        .k-i  { color: var(--k-i);  font-weight: 700; }
+        .pos  { color: var(--success); }
+        .neg  { color: var(--danger); }
+
+        body { font-size: 17px; }
+        .app-title { font-size: 1.6rem; }
+        .app-subtitle { font-size: 1rem; }
+        .cuhk-badge { font-size: 0.9rem; }
+        .btn { font-size: 1.05rem; }
+        .description, .main-content p, .main-content li { font-size: 1.05rem; line-height: 1.6; }
+        .section-title { font-size: 1.5rem; }
+        .stepper-step { font-size: 0.95rem; }
+        .step-num { width: 30px; height: 30px; font-size: 0.9rem; }
+        .stepper-step.completed { color: var(--success); }
+        .stepper-step.completed .step-num { background: var(--success); border-color: var(--success); }
+        .param-title { font-size: 0.85rem; }
+        .param-value { font-size: 1.5rem; }
+        .decision-card h4 { font-size: 1.15rem; margin-bottom: 0.4rem; }
+        .decision-card p { font-size: 1rem; line-height: 1.5; color: var(--text-secondary); }
+        .financial-table { font-size: 1rem; }
+        .financial-table th { font-size: 0.85rem; }
+        .formula-line { font-size: 1rem; }
+        .shock-alert { background: rgba(245, 166, 91, 0.12); border: 1px solid rgba(245, 166, 91, 0.5); }
+        .shock-alert h3 { color: var(--danger); font-size: 1.25rem; margin-bottom: 0.5rem; }
+
+        .input-field {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 1.05rem;
+            padding: 0.6rem 0.75rem;
+            background: rgba(11, 14, 20, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+        }
+        .input-field:focus { outline: none; border-color: var(--cuhk-gold); box-shadow: 0 0 10px rgba(218, 165, 32, 0.2); }
+        .field-label { display: block; margin-bottom: 0.4rem; font-size: 1rem; color: var(--text-secondary); }
+
+        .round-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 1rem; }
+        .round-pill {
+            font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1rem;
+            padding: 0.35rem 0.9rem; border-radius: 999px;
+            border: 1px solid var(--border-color); color: var(--text-muted);
+        }
+        .round-pill.active { background: var(--cuhk-gold); color: #000; border-color: var(--cuhk-gold-light); }
+        .round-pill.done { color: var(--success); border-color: var(--success); }
+        .round-title { font-family: 'Outfit', sans-serif; font-size: 1.15rem; color: var(--cuhk-gold-light); margin-left: 0.4rem; }
+
+        .task-row { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; margin: 1rem 0 0.5rem; }
+        .task-row > div { flex: 1 1 240px; }
+        .task-row .input-field { width: 100%; box-sizing: border-box; font-family: 'JetBrains Mono', monospace; }
+        .btn-row { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 0.75rem 0; }
+        .check-msg { font-size: 1.05rem; min-height: 1.5rem; margin: 0.4rem 0; font-weight: 600; }
+        .hint-box {
+            display: none; padding: 1rem 1.25rem; margin: 0.6rem 0; border-radius: 10px;
+            background: rgba(218, 165, 32, 0.12); border: 1px solid var(--cuhk-gold);
+            font-size: 1.05rem; line-height: 1.6;
+        }
+        .solution { display: none; }
+        .solution.open { display: block; }
+        .rate-note { color: var(--text-secondary); font-size: 0.95rem; margin: 0.4rem 0 1rem; }
+
+        .ref-panel { margin-top: 1rem; }
+        .ref-panel h2 { font-size: 1.4rem; }
+        .ref-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 1rem; }
+        .ref-card { background: rgba(19, 24, 34, 0.85); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem 1.25rem; }
+        .ref-card h4 { color: var(--cuhk-gold-light); font-family: 'Outfit', sans-serif; font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .eq { font-family: 'JetBrains Mono', monospace; font-size: 1.05rem; line-height: 2; }
+        .frac { display: inline-block; vertical-align: middle; text-align: center; }
+        .frac > span { display: block; padding: 0 0.25rem; }
+        .frac > span:first-child { border-bottom: 1px solid var(--text-secondary); }
+        .ref-note { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5; margin-top: 0.4rem; }
+
+        /* Big-screen mode: the button in the header (or the P key) toggles it. */
+        body.projector-mode { font-size: 22px !important; }
+        body.projector-mode .app-header { position: static !important; }
+        body.projector-mode .main-content { max-width: 1800px; }
+        body.projector-mode .header-inner { max-width: 1800px; }
+        body.projector-mode .app-title { font-size: 2.1rem !important; }
+        body.projector-mode .app-subtitle { font-size: 1.25rem !important; }
+        body.projector-mode .cuhk-badge { font-size: 1.1rem !important; }
+        body.projector-mode .btn { font-size: 1.3rem !important; padding: 0.9rem 1.5rem !important; }
+        body.projector-mode .section-title { font-size: 2.1rem !important; }
+        body.projector-mode .description,
+        body.projector-mode .main-content p,
+        body.projector-mode .main-content li { font-size: 1.5rem !important; line-height: 1.6 !important; }
+        body.projector-mode .stepper-step { font-size: 1.25rem !important; }
+        body.projector-mode .step-num { width: 40px; height: 40px; font-size: 1.15rem !important; }
+        body.projector-mode .param-title { font-size: 1.1rem !important; }
+        body.projector-mode .param-value { font-size: 2.2rem !important; }
+        body.projector-mode .decision-card h4 { font-size: 1.6rem !important; }
+        body.projector-mode .decision-card p { font-size: 1.35rem !important; }
+        body.projector-mode .financial-table th { font-size: 1.15rem !important; padding: 1rem 1.2rem !important; }
+        body.projector-mode .financial-table td { font-size: 1.5rem !important; padding: 1rem 1.2rem !important; }
+        body.projector-mode .formula-line { font-size: 1.45rem !important; }
+        body.projector-mode .shock-alert h3 { font-size: 1.8rem !important; }
+        body.projector-mode .input-field { font-size: 1.6rem !important; padding: 0.8rem 1rem !important; }
+        body.projector-mode .field-label { font-size: 1.3rem !important; }
+        body.projector-mode .round-pill { font-size: 1.3rem !important; }
+        body.projector-mode .round-title { font-size: 1.6rem !important; }
+        body.projector-mode .check-msg { font-size: 1.45rem !important; }
+        body.projector-mode .hint-box { font-size: 1.45rem !important; }
+        body.projector-mode .rate-note { font-size: 1.25rem !important; }
+        body.projector-mode .ref-panel h2 { font-size: 2rem !important; }
+        body.projector-mode .ref-card h4 { font-size: 1.5rem !important; }
+        body.projector-mode .eq { font-size: 1.5rem !important; }
+        body.projector-mode .ref-note { font-size: 1.3rem !important; }
+        body.projector-mode .slider-header { font-size: 1.4rem !important; }
+        body.projector-mode .chart-container { height: 460px; }
+        body.projector-mode .ref-grid { grid-template-columns: 1fr; }
+</style>
+<link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
+<script src="js/numeric_controls.js?v=20260909" defer></script>
+<link rel="stylesheet" href="css/mobile.css?v=20260909">
+</head>
+<body class="dark-theme">
+<nav class="course-navigation" aria-label="Course games">
+    <a href="./">← Game list</a>
+    <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
+</nav>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-inner">
+                <div class="brand-section">
+                    <span class="cuhk-badge">CUHK FINA3020 &middot; Week 5 Game</span>
+                    <div>
+                        <h1 class="app-title">Foreign Project Committee</h1>
+                        <p class="app-subtitle">International Capital Budgeting, Withholding Taxes &amp; Breakeven Policy Risk</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="btn-projector-toggle" onclick="FINA3020Utils.toggleProjectorMode()" title="Toggle big screen mode (press P)">📽️ Big Text</button>
+                    <button class="btn btn-gold" id="btn-student-id" onclick="FINA3020Utils.ensureStudentCredentials(true)">CUHK ID: Not Set</button>
+                    <button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export (.csv)</button>
+                </div>
+            </div>
+        </header>
+
+                <!-- Main Content -->
+        <main class="main-content">
+            <!-- Stepper -->
+            <div class="stage-stepper">
+                <div class="stepper-step active" id="step-1"><div class="step-num">1</div><span>1. Registration</span></div>
+                <div class="stepper-step" id="step-2"><div class="step-num">2</div><span>2. Baseline NPV &amp; Hedge</span></div>
+                <div class="stepper-step" id="step-3"><div class="step-num">3</div><span>3. Policy Shock</span></div>
+                <div class="stepper-step" id="step-4"><div class="step-num">4</div><span>4. Probability &amp; Breakeven</span></div>
+                <div class="stepper-step" id="step-5"><div class="step-num">5</div><span>5. Exit Reflection</span></div>
+            </div>
+
+            <!-- STAGE 1: Registration -->
+            <div id="stage-1-panel" class="glass-panel">
+                <h2 class="section-title">Stage 1: Investment Committee Setup</h2>
+                <p class="description">
+                    You are the CFO Investment Committee evaluating a 3-year CAPEX project in Emerging Market X.
+                    The project earns euro cash flows. You value it in US dollars from the parent's point of view.
+                    You play <strong>4 rounds</strong>. Each round has new numbers and repeats Stages 2 to 4.
+                    Exchange rates are quoted as USD per 1 EUR, so a lower spot rate means the USD has appreciated.
+                </p>
+
+                <div class="mobile-stack form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
+                    <div>
+                        <label class="field-label" for="input-student-id">CUHK Student ID(s):</label>
+                        <input type="text" id="input-student-id" class="input-field" placeholder="e.g. 1155123456" style="width:100%;">
+                    </div>
+                    <div>
+                        <label class="field-label" for="input-student-name">Full Name(s):</label>
+                        <input type="text" id="input-student-name" class="input-field" placeholder="e.g. Seon LOU; John CHAN" style="width:100%;">
+                    </div>
+                    <div>
+                        <label class="field-label" for="input-section">Section:</label>
+                        <select id="input-section" class="input-field" style="width:100%;">
+                            <option value="">-- Select Section --</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="formula-card">
+                    <div class="formula-line"><strong>Each round:</strong></div>
+                    <div class="formula-line">1. Compute the parent NPV, unhedged and with forwards. Pick an FX policy and Accept or Reject.</div>
+                    <div class="formula-line">2. A host policy shock freezes and taxes the Year 2 cash flow. Recompute the NPV.</div>
+                    <div class="formula-line">3. Find the breakeven probability of total loss. Hint buttons and the formula reference at the bottom are always available.</div>
+                </div>
+
+                <button class="btn btn-primary" onclick="goToStage(2)" style="width:100%;">Lock Setup &amp; Start Round 1 &rarr;</button>
+            </div>
+
+            <!-- STAGE 2: Baseline valuation and hedge -->
+            <div id="stage-2-panel" class="glass-panel" style="display:none;">
+                <div class="round-bar" data-round-bar></div>
+                <h2 class="section-title">Stage 2: Parent NPV and the FX Hedge</h2>
+                <p class="description" id="s2-story"></p>
+                <div class="table-container"><table class="financial-table" id="s2-inputs"></table></div>
+                <p class="rate-note" id="s2-note"></p>
+
+                <div class="task-row">
+                    <div>
+                        <label class="field-label" for="ans-un">Your unhedged NPV (USD M):</label>
+                        <input type="text" inputmode="decimal" id="ans-un" class="input-field" placeholder="e.g. 5.123">
+                    </div>
+                    <div>
+                        <label class="field-label" for="ans-hd">Your forward-hedged NPV (USD M):</label>
+                        <input type="text" inputmode="decimal" id="ans-hd" class="input-field" placeholder="e.g. 4.987">
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-gold" onclick="checkS2()">Check my answers</button>
+                    <button class="btn btn-secondary" onclick="showHint(2,1)">Hint 1: setup</button>
+                    <button class="btn btn-secondary" onclick="showHint(2,2)">Hint 2: Year 1 worked</button>
+                    <button class="btn btn-secondary" onclick="revealSolution(2)">Show solution</button>
+                </div>
+                <div class="check-msg" id="s2-msg"></div>
+                <div class="hint-box" id="s2-hint1"></div>
+                <div class="hint-box" id="s2-hint2"></div>
+                <div class="solution" id="s2-solution"></div>
+
+                <h3 class="round-title" style="margin:1.5rem 0 0;">Your FX policy</h3>
+                <div class="decision-cards">
+                    <div class="decision-card selected" id="choice-hedge-none" onclick="selectHedge('none')">
+                        <h4>FX Policy A: Unhedged</h4>
+                        <p>Convert at the future spot rate. Full exposure to EUR/USD.</p>
+                    </div>
+                    <div class="decision-card" id="choice-hedge-fwd" onclick="selectHedge('forward')">
+                        <h4>FX Policy B: Forward Hedge</h4>
+                        <p>Sell each year's euro cash flow forward at F<sub>t</sub>.</p>
+                    </div>
+                </div>
+                <h3 class="round-title" style="margin:0;">Your investment decision</h3>
+                <div class="decision-cards">
+                    <div class="decision-card selected" id="choice-baseline-accept" onclick="selectBaselineDecision('accept')">
+                        <h4>Accept Project</h4>
+                        <p>Positive NPV creates shareholder value.</p>
+                    </div>
+                    <div class="decision-card" id="choice-baseline-reject" onclick="selectBaselineDecision('reject')">
+                        <h4>Reject Project</h4>
+                        <p>Decline the capital expansion.</p>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="goToStage(3)" style="width:100%;">Lock Choices &amp; Trigger Host Policy Shock &rarr;</button>
+            </div>
+
+            <!-- STAGE 3: Policy shock -->
+            <div id="stage-3-panel" class="glass-panel" style="display:none;">
+                <div class="round-bar" data-round-bar></div>
+                <div class="shock-alert">
+                    <h3>HOST POLICY SHOCK: REMITTANCE RESTRICTIONS</h3>
+                    <p id="s3-story"></p>
+                </div>
+
+                <p class="description" id="s3-task"></p>
+                <div class="task-row">
+                    <div>
+                        <label class="field-label" for="ans-a">Case A NPV, no usable tax credit (USD M):</label>
+                        <input type="text" inputmode="decimal" id="ans-a" class="input-field" placeholder="e.g. 3.210">
+                    </div>
+                    <div>
+                        <label class="field-label" for="ans-b">Case B NPV, full usable tax credit (USD M):</label>
+                        <input type="text" inputmode="decimal" id="ans-b" class="input-field" placeholder="e.g. 4.560">
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-gold" onclick="checkS3()">Check my answers</button>
+                    <button class="btn btn-secondary" onclick="showHint(3,1)">Hint 1: what changes</button>
+                    <button class="btn btn-secondary" onclick="showHint(3,2)">Hint 2: worked numbers</button>
+                    <button class="btn btn-secondary" onclick="revealSolution(3)">Show solution</button>
+                </div>
+                <div class="check-msg" id="s3-msg"></div>
+                <div class="hint-box" id="s3-hint1"></div>
+                <div class="hint-box" id="s3-hint2"></div>
+                <div class="solution" id="s3-solution"></div>
+
+                <h3 class="round-title" style="margin:1.5rem 0 0;">Which tax case do you expect? (used in Stage 4)</h3>
+                <div class="mobile-stack decision-cards" style="grid-template-columns: 1fr 1fr;">
+                    <div class="decision-card selected" id="tax-regime-no-ftc" onclick="selectTaxRegime('no_ftc')">
+                        <h4>Case A: No Usable Foreign Tax Credit</h4>
+                        <p>The withholding tax is an unrecoverable cash loss.</p>
+                    </div>
+                    <div class="decision-card" id="tax-regime-ftc" onclick="selectTaxRegime('ftc')">
+                        <h4>Case B: Full Usable Foreign Tax Credit</h4>
+                        <p>Home tax authorities credit the withholding tax. Only the delay and interest matter.</p>
+                    </div>
+                </div>
+                <h3 class="round-title" style="margin:0;">Final decision if there is no tax credit (Case A)</h3>
+                <div class="decision-cards">
+                    <div class="decision-card selected" id="final-accept" onclick="selectFinal('accept')">
+                        <h4>Still Accept</h4>
+                        <p>Case A NPV remains worth taking.</p>
+                    </div>
+                    <div class="decision-card" id="final-reject" onclick="selectFinal('reject')">
+                        <h4>Reverse: Reject</h4>
+                        <p>The shock makes the project unattractive.</p>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="goToStage(4)" style="width:100%;">Proceed to Stage 4: Probability &amp; Breakeven &rarr;</button>
+            </div>
+
+            <!-- STAGE 4: Probability and breakeven -->
+            <div id="stage-4-panel" class="glass-panel" style="display:none;">
+                <div class="round-bar" data-round-bar></div>
+                <h2 class="section-title">Stage 4: Probability of the Shock &amp; Breakeven Risk</h2>
+                <p class="description">
+                    The shock may not happen. Let p be its probability. The ex-ante expected NPV is
+                    E[NPV] = (1 &minus; p) &times; NPV<sub>no shock</sub> + p &times; NPV<sub>shock</sub>.
+                    Your policy this round: <strong id="s4-policy"></strong>. Your tax case: <strong id="s4-regime"></strong>.
+                </p>
+
+                <div style="background:rgba(19, 24, 34, 0.9); border:1px solid var(--border-color); border-radius:12px; padding:1.5rem; margin-bottom:1.5rem;">
+                    <div class="slider-group">
+                        <div class="slider-header">
+                            <span>Probability of the policy shock (p):</span>
+                            <span id="probText" style="font-family:'JetBrains Mono'; font-weight:700; color:var(--cuhk-gold-light);">30%</span>
+                        </div>
+                        <input type="range" id="probSlider" min="0" max="100" value="30" oninput="updateProbabilityAnalysis()" style="width:100%;">
+                    </div>
+                    <div class="param-grid" style="margin-top:1rem; margin-bottom:0;">
+                        <div class="param-card"><div class="param-title">No-shock NPV (1 &minus; p)</div><div class="param-value" id="noShockNpvText">-</div></div>
+                        <div class="param-card"><div class="param-title">Shock NPV (p)</div><div class="param-value" id="shockNpvText">-</div></div>
+                        <div class="param-card"><div class="param-title">Expected NPV</div><div class="param-value" id="expectedNpvText">-</div></div>
+                    </div>
+                </div>
+
+                <div class="chart-container"><canvas id="breakevenChart"></canvas></div>
+
+                <p class="description" id="s4-task"></p>
+                <div class="task-row">
+                    <div>
+                        <label class="field-label" for="ans-p">Your breakeven probability p* (%):</label>
+                        <input type="text" inputmode="decimal" id="ans-p" class="input-field" placeholder="e.g. 45.2">
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn btn-gold" onclick="checkS4()">Check my answer</button>
+                    <button class="btn btn-secondary" onclick="showHint(4,1)">Hint</button>
+                    <button class="btn btn-secondary" onclick="revealSolution(4)">Show solution</button>
+                </div>
+                <div class="check-msg" id="s4-msg"></div>
+                <div class="hint-box" id="s4-hint1"></div>
+                <div class="solution" id="s4-solution"></div>
+
+                <button class="btn btn-primary" id="btn-next-round" onclick="nextRound()" style="width:100%; margin-top:1rem;"></button>
+            </div>
+
+            <!-- STAGE 5: Exit reflection -->
+            <div id="stage-5-panel" class="glass-panel" style="display:none;">
+                <h2 class="section-title">Stage 5: Analytical Exit Reflection</h2>
+                <p class="description">Submit your 1-2 sentence analytical response to earn participation credit for Week 5.</p>
+
+                <div class="table-container"><table class="financial-table" id="s5-summary"></table></div>
+
+                <div class="formula-card" style="margin-bottom:1.5rem;">
+                    <div style="font-size:1.1rem; font-weight:700; color:var(--cuhk-gold-light); margin-bottom:0.4rem;">Exit Reflection Prompt:</div>
+                    <div style="font-style:italic; font-size:1.1rem; color:var(--text-primary);">
+                        "How did usable foreign tax credits change the NPV impact of the withholding tax, and when did a forward hedge raise or lower your expected NPV?"
+                    </div>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <textarea id="reflection-text" class="input-field" rows="4" placeholder="Enter your 1-2 sentence analytical explanation..." style="width:100%; resize:vertical; font-family:'Inter', sans-serif; box-sizing:border-box;"></textarea>
+                </div>
+
+                <button class="btn btn-gold" id="btn-submit-game" onclick="submitGameResponse()" style="width:100%;">Submit Participation Response &rarr;</button>
+                <div id="submission-feedback" style="margin-top:1rem; font-size:1.05rem; text-align:center;"></div>
+            </div>
+
+            <!-- Formula reference, visible at every stage -->
+            <section class="glass-panel ref-panel" id="formula-reference">
+                <h2 class="section-title">Formula Reference</h2>
+                <p class="rate-note">
+                    Colors: <span class="k-cf">cash flow CF<sub>t</sub> (EUR)</span> &middot;
+                    <span class="k-fx">FX rate</span> &middot;
+                    <span class="k-r">discount rate r</span> &middot;
+                    <span class="k-w">withholding tax w</span> &middot;
+                    <span class="k-i">local interest i</span>.
+                    Rates are USD per 1 EUR. A lower spot rate means the USD has appreciated.
+                </p>
+                <div class="ref-grid">
+                    <div class="ref-card">
+                        <h4>1. Parent NPV (Stage 2)</h4>
+                        <div class="eq">
+                            PV<sub>t</sub> =
+                            <span class="frac"><span><span class="k-cf">CF<sub>t</sub></span> &times; <span class="k-fx">FX<sub>t</sub></span></span><span>(1 + <span class="k-r">r</span>)<sup>t</sup></span></span><br>
+                            NPV = &minus;I &times; S<sub>0</sub> + PV<sub>1</sub> + PV<sub>2</sub> + PV<sub>3</sub>
+                        </div>
+                        <div class="ref-note">
+                            <span class="k-fx">FX<sub>t</sub></span> = E[S<sub>t</sub>] if unhedged, or forward rate F<sub>t</sub> if hedged.
+                            Year 0 outlay = I &times; S<sub>0</sub>.
+                        </div>
+                    </div>
+                    <div class="ref-card">
+                        <h4>2. Hedge value</h4>
+                        <div class="eq">
+                            NPV<sub>hedged</sub> &minus; NPV<sub>unhedged</sub> =
+                            &Sigma; <span class="frac"><span><span class="k-cf">CF<sub>t</sub></span> &times; (F<sub>t</sub> &minus; E[S<sub>t</sub>])</span><span>(1 + <span class="k-r">r</span>)<sup>t</sup></span></span>
+                        </div>
+                        <div class="ref-note">The hedge adds value when the forward rate is above the expected spot rate, and costs value when it is below.</div>
+                    </div>
+                    <div class="ref-card">
+                        <h4>3. Policy shock (Stage 3)</h4>
+                        <div class="eq">
+                            EUR received in Year 3 = <span class="k-cf">CF<sub>2</sub></span> &times; (1 &minus; <span class="k-w">w</span>) &times; (1 + <span class="k-i">i</span>) &nbsp; [Case A]<br>
+                            EUR received in Year 3 = <span class="k-cf">CF<sub>2</sub></span> &times; (1 + <span class="k-i">i</span>) &nbsp; [Case B]<br>
+                            PV<sub>new</sub> =
+                            <span class="frac"><span>EUR received &times; <span class="k-fx">FX<sub>3</sub></span></span><span>(1 + <span class="k-r">r</span>)<sup>3</sup></span></span><br>
+                            NPV<sub>shock</sub> = NPV &minus; PV<sub>2</sub> + PV<sub>new</sub>
+                        </div>
+                        <div class="ref-note">If hedged, re-hedge the delayed euros at the Year 3 forward rate F<sub>3</sub>.</div>
+                    </div>
+                    <div class="ref-card">
+                        <h4>4. Expected NPV and breakeven (Stage 4)</h4>
+                        <div class="eq">
+                            E[NPV] = (1 &minus; p) &times; NPV + p &times; NPV<sub>shock</sub><br>
+                            p* =
+                            <span class="frac"><span>NPV</span><span>NPV &minus; NPV<sub>total loss</sub></span></span>
+                            , &nbsp; NPV<sub>total loss</sub> = &minus;I &times; S<sub>0</sub>
+                        </div>
+                        <div class="ref-note">p* is the highest probability of total loss at which the expected NPV stays at zero or above.</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer">
+            FINA3020: International Finance &middot; CUHK Business School &middot; Prof. Henry Zhang
+        </footer>
+    </div>
+
+    <script>
+        // Rates are USD per 1 EUR. A lower spot rate means the USD has appreciated.
+        const ROUNDS = [
+            { title: 'Baseline: the hedge costs a little',
+              story: 'The forward rates are slightly below the expected spot rates.',
+              S0: 1.10, I: 10, cf: [5.2, 6.4, 12.6], S: [1.12, 1.14, 1.16], F: [1.11, 1.12, 1.13], r: 0.10, w: 0.20, i: 0.03 },
+            { title: 'Forward above expected spot: the hedge adds value',
+              story: 'The euro is expected to weaken, so the forward rates are above the expected spot rates.',
+              S0: 1.05, I: 8, cf: [3.0, 4.5, 9.0], S: [1.04, 1.03, 1.02], F: [1.06, 1.07, 1.08], r: 0.09, w: 0.15, i: 0.02 },
+            { title: 'Marginal project: the shock can flip the decision',
+              story: 'The forward rates are below the expected spot rates and the project barely clears the hurdle.',
+              S0: 1.20, I: 12, cf: [3.0, 5.5, 8.5], S: [1.20, 1.19, 1.18], F: [1.18, 1.16, 1.14], r: 0.12, w: 0.30, i: 0.03 },
+            { title: 'Bigger project, heavier withholding',
+              story: 'A larger project with a weaker euro (S0 below 1) and a 30% withholding tax.',
+              S0: 0.90, I: 20, cf: [6.0, 9.0, 18.0], S: [0.91, 0.92, 0.93], F: [0.905, 0.915, 0.925], r: 0.12, w: 0.30, i: 0.04 }
+        ];
+        const TOL = 0.02;       // NPV answers, USD M
+        const TOL_P = 0.5;      // breakeven, percentage points
+
+        let breakevenChartInstance = null;
+        let gameState = {
+            round: 0,
+            baselineDecision: 'accept',
+            taxRegime: 'no_ftc',
+            hedgeChoice: 'none',
+            finalDecision: 'accept',
+            shockProb: 0.30
+        };
+        let roundLog = [];
+        let rec = null;
+        let currentStage = 1;
+
+        const $ = id => document.getElementById(id);
+        const sum = a => a.reduce((x, y) => x + y, 0);
+        const cur = () => ROUNDS[gameState.round];
+        const pct = x => (Math.round(x * 1000) / 10) + '%';
+        const num = (x, d = 3) => (x < 0 ? '−' : '') + Math.abs(x).toFixed(d);
+        const money = (x, d = 3) => (x < 0 ? '−$' : '+$') + Math.abs(x).toFixed(d) + 'M';
+        const moneyCell = x => `<span class="${x < 0 ? 'neg' : 'pos'}">${money(x)}</span>`;
+        const kcf = t => `<span class="k-cf">${t}</span>`;
+        const kfx = t => `<span class="k-fx">${t}</span>`;
+        const kr = t => `<span class="k-r">${t}</span>`;
+        const kw = t => `<span class="k-w">${t}</span>`;
+        const ki = t => `<span class="k-i">${t}</span>`;
+        const parseNum = s => parseFloat(String(s).replace(/[−–]/g, '-').replace(/[$,\sM%+]/g, ''));
+
+        function model(R) {
+            const d = t => Math.pow(1 + R.r, t);
+            const out0 = R.I * R.S0;
+            const pvs = fx => [0, 1, 2].map(t => R.cf[t] * fx[t] / d(t + 1));
+            const npvOf = fx => sum(pvs(fx)) - out0;
+            const shock = (fx, regime) => {
+                const eur = R.cf[1] * (regime === 'ftc' ? 1 : 1 - R.w) * (1 + R.i);
+                const usd = eur * fx[2];
+                const pv = usd / d(3);
+                const oldPv = pvs(fx)[1];
+                return { eur, usd, pv, oldPv, npv: npvOf(fx) - oldPv + pv };
+            };
+            const pol = fx => ({ fx, pvs: pvs(fx), npv: npvOf(fx), a: shock(fx, 'no_ftc'), b: shock(fx, 'ftc') });
+            return { d, out0, un: pol(R.S), hd: pol(R.F) };
+        }
+        const activePolicy = () => {
+            const R = cur(), m = model(R);
+            return gameState.hedgeChoice === 'forward' ? { P: m.hd, name: 'Forward hedge', fxName: 'F', m, R } : { P: m.un, name: 'Unhedged', fxName: 'E[S]', m, R };
+        };
+
+        // ---------- Round bar and stage switching ----------
+        function renderRoundBars() {
+            document.querySelectorAll('[data-round-bar]').forEach(bar => {
+                let h = '';
+                ROUNDS.forEach((R, k) => {
+                    const cls = k === gameState.round ? 'active' : (k < gameState.round ? 'done' : '');
+                    h += `<span class="round-pill ${cls}">Round ${k + 1}${k < gameState.round ? ' ✓' : ''}</span>`;
+                });
+                h += `<span class="round-title">${cur().title}</span>`;
+                bar.innerHTML = h;
+            });
+        }
+
+        function showStage(n) {
+            currentStage = n;
+            for (let i = 1; i <= 5; i++) {
+                const panel = $(`stage-${i}-panel`);
+                const step = $(`step-${i}`);
+                if (panel) panel.style.display = (i === n) ? 'block' : 'none';
+                if (step) {
+                    step.classList.toggle('active', i === n);
+                    step.classList.toggle('completed', i < n);
+                }
+            }
+            window.scrollTo({ top: 0 });
+        }
+
+        function goToStage(n) {
+            if (n === 2 && currentStage === 1) {
+                const id = $('input-student-id').value.trim();
+                const name = $('input-student-name').value.trim();
+                const section = $('input-section').value;
+                if (id && name && section) {
+                    if (!FINA3020Utils.setStudentCredentials(id, name, section)) {
+                        alert('Enter your full name, valid 10-digit CUHK ID, and section before continuing.');
+                        return;
+                    }
+                } else if (!FINA3020Utils.getStudentID()) {
+                    alert('Please enter your 10-digit CUHK Student ID, Name, and Section.');
+                    return;
+                }
+                startRound(0);
+                return;
+            }
+            if (n === 2) return;
+            if (n === 3) { renderStage3(); }
+            if (n === 4) { renderStage4(); }
+            showStage(n);
+            if (n === 4) { initBreakevenChart(); updateProbabilityAnalysis(); }
+        }
+
+        // ---------- Round setup ----------
+        function startRound(k) {
+            gameState.round = k;
+            gameState.baselineDecision = 'accept';
+            gameState.taxRegime = 'no_ftc';
+            gameState.hedgeChoice = 'none';
+            gameState.finalDecision = 'accept';
+            rec = { round: k + 1, hints: 0, revealed: [], ok: { s2: false, s3: false, s4: false } };
+            selectHedge('none'); selectBaselineDecision('accept'); selectTaxRegime('no_ftc'); selectFinal('accept');
+            ['ans-un', 'ans-hd', 'ans-a', 'ans-b', 'ans-p'].forEach(id => { $(id).value = ''; });
+            ['s2', 's3', 's4'].forEach(s => {
+                $(`${s}-msg`).innerHTML = '';
+                $(`${s}-solution`).classList.remove('open');
+                $(`${s}-solution`).innerHTML = '';
+                $(`${s}-hint1`).style.display = 'none';
+                if ($(`${s}-hint2`)) $(`${s}-hint2`).style.display = 'none';
+            });
+            $('probSlider').value = 30;
+            renderRoundBars();
+            renderStage2();
+            showStage(2);
+        }
+
+        function nextRound() {
+            roundLog.push(snapshotRound());
+            if (gameState.round < ROUNDS.length - 1) {
+                startRound(gameState.round + 1);
+            } else {
+                renderSummary();
+                showStage(5);
+            }
+        }
+
+        function snapshotRound() {
+            return {
+                round: rec.round,
+                fxPolicy: gameState.hedgeChoice,
+                decision: gameState.baselineDecision,
+                taxRegime: gameState.taxRegime,
+                finalDecisionNoFtc: gameState.finalDecision,
+                shockProbability: gameState.shockProb,
+                hintsUsed: rec.hints,
+                solutionsShown: rec.revealed.slice(),
+                answersCorrect: { stage2: rec.ok.s2, stage3: rec.ok.s3, stage4: rec.ok.s4 }
+            };
+        }
+
+        // ---------- Choices ----------
+        function selectBaselineDecision(choice) {
+            gameState.baselineDecision = choice;
+            $('choice-baseline-accept').classList.toggle('selected', choice === 'accept');
+            $('choice-baseline-reject').classList.toggle('selected', choice === 'reject');
+        }
+        function selectHedge(choice) {
+            gameState.hedgeChoice = choice;
+            $('choice-hedge-none').classList.toggle('selected', choice === 'none');
+            $('choice-hedge-fwd').classList.toggle('selected', choice === 'forward');
+        }
+        function selectTaxRegime(regime) {
+            gameState.taxRegime = regime;
+            $('tax-regime-no-ftc').classList.toggle('selected', regime === 'no_ftc');
+            $('tax-regime-ftc').classList.toggle('selected', regime === 'ftc');
+            if (currentStage === 4) { renderStage4(); updateProbabilityAnalysis(); }
+        }
+        function selectFinal(choice) {
+            gameState.finalDecision = choice;
+            $('final-accept').classList.toggle('selected', choice === 'accept');
+            $('final-reject').classList.toggle('selected', choice === 'reject');
+        }
+
+        // ---------- Stage 2 ----------
+        function renderStage2() {
+            const R = cur(), m = model(R);
+            $('s2-story').innerHTML = `Round ${gameState.round + 1}: ${R.story} Value the project in USD at the parent, first at expected spot rates, then with each year's euro cash flow sold forward. Parent required return ${kr(pct(R.r))}.`;
+            let t = `<thead><tr><th>Year (t)</th><th>Subsidiary FCF (&euro;M)</th><th>Expected spot E[S<sub>t</sub>]</th><th>Forward F<sub>t</sub></th></tr></thead><tbody>`;
+            t += `<tr><td>Year 0 (outlay)</td><td>${num(R.I, 2)}</td><td>S<sub>0</sub> = ${R.S0.toFixed(2)}</td><td>-</td></tr>`;
+            for (let k = 0; k < 3; k++) {
+                t += `<tr><td>Year ${k + 1}</td><td>${kcf(num(R.cf[k], 2))}</td><td>${kfx(R.S[k].toFixed(3).replace(/0$/, ''))}</td><td>${kfx(R.F[k].toFixed(3).replace(/0$/, ''))}</td></tr>`;
+            }
+            t += '</tbody>';
+            $('s2-inputs').innerHTML = t;
+            $('s2-note').innerHTML = `Year 0 outlay in USD = ${num(R.I, 2)} &times; ${R.S0.toFixed(2)} = ${num(m.out0)}. Rates are USD per 1 EUR.`;
+
+            const y1u = R.cf[0] * R.S[0] / (1 + R.r), y1h = R.cf[0] * R.F[0] / (1 + R.r);
+            $('s2-hint1').innerHTML = `<strong>Setup:</strong> NPV = &minus;I &times; S<sub>0</sub> + &Sigma; ${kcf('CF<sub>t</sub>')} &times; ${kfx('FX<sub>t</sub>')} / (1 + ${kr('r')})<sup>t</sup>. Unhedged, ${kfx('FX<sub>t</sub>')} = E[S<sub>t</sub>]. Hedged, ${kfx('FX<sub>t</sub>')} = F<sub>t</sub>. The Year 0 outlay is ${num(R.I, 2)} &times; ${R.S0.toFixed(2)} = ${num(m.out0)}.`;
+            $('s2-hint2').innerHTML = `<strong>Year 1:</strong> unhedged ${kcf(num(R.cf[0], 2))} &times; ${kfx(R.S[0].toString())} / ${kr((1 + R.r).toFixed(2))} = ${num(y1u)}. Hedged ${kcf(num(R.cf[0], 2))} &times; ${kfx(R.F[0].toString())} / ${kr((1 + R.r).toFixed(2))} = ${num(y1h)}. Repeat for Years 2 and 3, dividing by ${kr((1 + R.r).toFixed(2))}<sup>2</sup> and ${kr((1 + R.r).toFixed(2))}<sup>3</sup>. Then subtract ${num(m.out0)}.`;
+        }
+
+        function solutionS2() {
+            const R = cur(), m = model(R);
+            let t = `<div class="table-container"><table class="financial-table"><thead><tr><th>Year</th><th>EUR CF</th><th>E[S<sub>t</sub>]</th><th>PV unhedged</th><th>F<sub>t</sub></th><th>PV hedged</th></tr></thead><tbody>`;
+            t += `<tr><td>0</td><td>${num(-R.I, 2)}</td><td>${R.S0.toFixed(2)}</td><td>${moneyCell(-m.out0)}</td><td>${R.S0.toFixed(2)}</td><td>${moneyCell(-m.out0)}</td></tr>`;
+            for (let k = 0; k < 3; k++) {
+                t += `<tr><td>${k + 1}</td><td>${kcf(num(R.cf[k], 2))}</td><td>${kfx(R.S[k])}</td><td>${moneyCell(m.un.pvs[k])}</td><td>${kfx(R.F[k])}</td><td>${moneyCell(m.hd.pvs[k])}</td></tr>`;
+            }
+            t += `<tr style="border-top:2px solid var(--cuhk-gold); font-weight:700;"><td>NPV</td><td></td><td></td><td>${moneyCell(m.un.npv)}</td><td></td><td>${moneyCell(m.hd.npv)}</td></tr></tbody></table></div>`;
+            const diff = m.hd.npv - m.un.npv;
+            t += `<p class="description">Hedged minus unhedged = ${moneyCell(diff)}. ${diff >= 0 ? 'The forward rates are above the expected spot rates on average, so the hedge adds value.' : 'The forward rates are below the expected spot rates on average, so the hedge costs expected value in exchange for certainty.'}</p>`;
+            return t;
+        }
+
+        function checkS2() {
+            const m = model(cur());
+            const u = parseNum($('ans-un').value), h = parseNum($('ans-hd').value);
+            const okU = Math.abs(u - m.un.npv) <= TOL, okH = Math.abs(h - m.hd.npv) <= TOL;
+            reportCheck('s2', [['unhedged', okU, u], ['hedged', okH, h]], () => revealSolution(2, true));
+        }
+
+        // ---------- Stage 3 ----------
+        function renderStage3() {
+            const { P, name, R } = activePolicy();
+            const fxLabel = gameState.hedgeChoice === 'forward' ? `F<sub>3</sub> = ${R.F[2]}` : `E[S<sub>3</sub>] = ${R.S[2]}`;
+            $('s3-story').innerHTML = `At the end of Year 1 the host government imposes a ${kw(pct(R.w))} dividend-remittance withholding tax on the Year 2 cash flow and a 1-year repatriation freeze. The frozen cash flow (${kcf('&euro;' + num(R.cf[1], 2) + 'M')}) earns ${ki(pct(R.i))} local interest and is released in Year 3.`;
+            $('s3-task').innerHTML = `Your FX policy: <strong>${name}</strong>. Convert the Year 3 release at ${kfx(fxLabel)} ${gameState.hedgeChoice === 'forward' ? '(re-hedge the delayed euros)' : ''}. Recompute the whole-project NPV in each tax case.`;
+
+            const fmtR = (1 + R.r).toFixed(2);
+            $('s3-hint1').innerHTML = `<strong>What changes:</strong> only the Year 2 cash flow. It now arrives in Year 3 as ${kcf('CF<sub>2</sub>')} &times; (1 &minus; ${kw('w')}) &times; (1 + ${ki('i')}) euros in Case A, or ${kcf('CF<sub>2</sub>')} &times; (1 + ${ki('i')}) in Case B. Convert at ${kfx('FX<sub>3</sub>')}, discount three years, and replace the old Year 2 PV.`;
+            $('s3-hint2').innerHTML = `<strong>Case A:</strong> euros received = ${kcf(num(R.cf[1], 2))} &times; ${kw((1 - R.w).toFixed(2))} &times; ${ki((1 + R.i).toFixed(2))} = ${num(P.a.eur)}. USD = ${num(P.a.eur)} &times; ${kfx(P.fx[2])} = ${num(P.a.usd)}. New PV = ${num(P.a.usd)} / ${kr(fmtR)}<sup>3</sup> = ${num(P.a.pv)}. Old Year 2 PV = ${num(P.a.oldPv)}. New NPV = ${num(P.npv)} &minus; ${num(P.a.oldPv)} + ${num(P.a.pv)}.`;
+        }
+
+        function solutionS3() {
+            const { P, name, R } = activePolicy();
+            let t = `<div class="table-container"><table class="financial-table"><thead><tr><th>${name}</th><th>EUR in Year 3</th><th>FX<sub>3</sub></th><th>USD in Year 3</th><th>PV of this flow</th><th>Project NPV</th></tr></thead><tbody>`;
+            t += `<tr><td>Before shock (Year 2 flow)</td><td>${num(R.cf[1], 3)} (Year 2)</td><td>${kfx(P.fx[1])}</td><td>${num(R.cf[1] * P.fx[1])}</td><td>${num(P.a.oldPv)}</td><td>${moneyCell(P.npv)}</td></tr>`;
+            t += `<tr><td>Case A: no credit</td><td>${num(P.a.eur)}</td><td>${kfx(P.fx[2])}</td><td>${num(P.a.usd)}</td><td>${num(P.a.pv)}</td><td>${moneyCell(P.a.npv)}</td></tr>`;
+            t += `<tr><td>Case B: full credit</td><td>${num(P.b.eur)}</td><td>${kfx(P.fx[2])}</td><td>${num(P.b.usd)}</td><td>${num(P.b.pv)}</td><td>${moneyCell(P.b.npv)}</td></tr></tbody></table></div>`;
+            t += `<p class="description">Value lost on the Year 2 flow: Case A $${num(P.a.oldPv - P.a.pv)}M, Case B $${num(P.b.oldPv - P.b.pv)}M. ${P.a.npv < 0 ? '<strong>Case A turns the NPV negative, so the decision reverses to Reject.</strong>' : 'The project stays positive in both cases.'}</p>`;
+            return t;
+        }
+
+        function checkS3() {
+            const { P } = activePolicy();
+            const a = parseNum($('ans-a').value), b = parseNum($('ans-b').value);
+            reportCheck('s3', [['Case A', Math.abs(a - P.a.npv) <= TOL, a], ['Case B', Math.abs(b - P.b.npv) <= TOL, b]], () => revealSolution(3, true));
+        }
+
+        // ---------- Stage 4 ----------
+        function scenarioNpvs() {
+            const { P, R } = activePolicy();
+            const shock = gameState.taxRegime === 'ftc' ? P.b.npv : P.a.npv;
+            return { R, npv0: P.npv, shock, loss: -R.I * R.S0 };
+        }
+
+        function renderStage4() {
+            const { name } = activePolicy();
+            const s = scenarioNpvs();
+            $('s4-policy').innerText = name;
+            $('s4-regime').innerText = gameState.taxRegime === 'ftc' ? 'Case B (full credit)' : 'Case A (no credit)';
+            $('s4-task').innerHTML = `Suppose a total political loss destroys everything after Year 0, so NPV<sub>total loss</sub> = &minus;I &times; S<sub>0</sub> = ${moneyCell(s.loss)}. Find the breakeven probability p* at which the expected NPV is zero, using your no-shock NPV of ${moneyCell(s.npv0)}.`;
+            $('s4-hint1').innerHTML = `<strong>Hint:</strong> set (1 &minus; p*) &times; ${num(s.npv0)} + p* &times; (${num(s.loss)}) = 0. This gives p* = NPV / (NPV &minus; NPV<sub>total loss</sub>) = ${num(s.npv0)} / (${num(s.npv0)} + ${num(-s.loss)}). Enter it as a percentage.`;
+            $('btn-next-round').innerText = gameState.round < ROUNDS.length - 1
+                ? `Next: Round ${gameState.round + 2} with new numbers →`
+                : 'Finish: Proceed to Stage 5 Exit Reflection →';
+        }
+
+        function solutionS4() {
+            const s = scenarioNpvs();
+            const p = s.npv0 / (s.npv0 - s.loss);
+            return `<div class="formula-card"><div class="formula-line">p* = ${num(s.npv0)} / (${num(s.npv0)} &minus; (${num(s.loss)})) = ${num(s.npv0)} / ${num(s.npv0 - s.loss)} = <strong>${(p * 100).toFixed(2)}%</strong></div></div>
+                    <p class="description">The project has positive expected NPV as long as the probability of total loss is below ${(p * 100).toFixed(2)}%.</p>`;
+        }
+
+        function checkS4() {
+            const s = scenarioNpvs();
+            const pStar = s.npv0 / (s.npv0 - s.loss) * 100;
+            const v = parseNum($('ans-p').value);
+            reportCheck('s4', [['breakeven', Math.abs(v - pStar) <= TOL_P, v]], () => revealSolution(4, true));
+        }
+
+        function updateProbabilityAnalysis() {
+            if (!$('probSlider')) return;
+            const prob = parseFloat($('probSlider').value) / 100;
+            gameState.shockProb = prob;
+            $('probText').innerText = `${Math.round(prob * 100)}%`;
+            const s = scenarioNpvs();
+            const expected = (1 - prob) * s.npv0 + prob * s.shock;
+            $('noShockNpvText').innerText = money(s.npv0);
+            $('shockNpvText').innerText = money(s.shock);
+            $('expectedNpvText').innerText = money(expected);
+            $('noShockNpvText').className = 'param-value ' + (s.npv0 < 0 ? 'neg' : 'pos');
+            $('shockNpvText').className = 'param-value ' + (s.shock < 0 ? 'neg' : 'pos');
+            $('expectedNpvText').className = 'param-value ' + (expected < 0 ? 'neg' : 'pos');
+        }
+
+        function chartFonts() {
+            return document.body.classList.contains('projector-mode') ? { size: 20 } : { size: 14 };
+        }
+
+        function initBreakevenChart() {
+            if (breakevenChartInstance) { breakevenChartInstance.destroy(); breakevenChartInstance = null; }
+            const s = scenarioNpvs();
+            const probs = [0, 0.2, 0.4, 0.6, 0.8, 1.0];
+            const f = chartFonts();
+            const ctx = $('breakevenChart').getContext('2d');
+            breakevenChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: probs.map(p => `${Math.round(p * 100)}%`),
+                    datasets: [
+                        { label: 'Expected NPV with remittance freeze ($M)', data: probs.map(p => (1 - p) * s.npv0 + p * s.shock),
+                          borderColor: '#F0DC8C', backgroundColor: 'rgba(240, 220, 140, 0.1)', fill: false, tension: 0.1, borderWidth: 3 },
+                        { label: 'Expected NPV with total loss ($M)', data: probs.map(p => (1 - p) * s.npv0 + p * s.loss),
+                          borderColor: '#F5A65B', borderDash: [6, 6], fill: false, tension: 0.1, borderWidth: 3 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#F8FAFC', font: { family: 'Outfit', size: f.size } } },
+                        tooltip: { callbacks: { label: c => `${c.dataset.label}: $${c.raw.toFixed(3)}M` } }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Probability of the event (p)', color: '#CBD5E1', font: f },
+                             grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#CBD5E1', font: f } },
+                        y: { title: { display: true, text: 'Expected NPV (USD millions)', color: '#CBD5E1', font: f },
+                             grid: { color: 'rgba(255, 255, 255, 0.08)' }, ticks: { color: '#CBD5E1', font: f } }
+                    }
+                }
+            });
+        }
+
+        // ---------- Hints, checks, solutions ----------
+        function showHint(stage, n) {
+            const el = $(`s${stage}-hint${n}`);
+            if (!el) return;
+            if (el.style.display !== 'block') rec.hints += 1;
+            el.style.display = 'block';
+        }
+
+        function revealSolution(stage, auto) {
+            const el = $(`s${stage}-solution`);
+            el.innerHTML = stage === 2 ? solutionS2() : stage === 3 ? solutionS3() : solutionS4();
+            el.classList.add('open');
+            if (!auto && !rec.revealed.includes(stage)) rec.revealed.push(stage);
+        }
+
+        function reportCheck(s, parts, onAllOk) {
+            const msg = $(`${s}-msg`);
+            const bad = parts.filter(p => !p[1]);
+            if (parts.some(p => isNaN(p[2]))) {
+                msg.innerHTML = '<span class="neg">Enter a number in each box first.</span>';
+                return;
+            }
+            if (!bad.length) {
+                rec.ok[s] = true;
+                msg.innerHTML = '<span class="pos">✔ Correct. The solution table is shown below.</span>';
+                onAllOk();
+            } else {
+                msg.innerHTML = '<span class="neg">Not yet: check ' + bad.map(p => p[0]).join(' and ') +
+                    '. Try a hint, or recheck the exchange-rate direction (USD per EUR).</span>' +
+                    parts.filter(p => p[1]).map(p => ` <span class="pos">✔ ${p[0]} is correct.</span>`).join('');
+            }
+        }
+
+        // ---------- Stage 5 ----------
+        function renderSummary() {
+            const label = { none: 'Unhedged', forward: 'Forward hedge', accept: 'Accept', reject: 'Reject', no_ftc: 'A: no credit', ftc: 'B: full credit' };
+            let t = '<thead><tr><th>Round</th><th>FX policy</th><th>Decision</th><th>After shock (Case A)</th><th>Tax case</th><th>Hints used</th></tr></thead><tbody>';
+            roundLog.forEach(r => {
+                t += `<tr><td>${r.round}</td><td>${label[r.fxPolicy]}</td><td>${label[r.decision]}</td><td>${label[r.finalDecisionNoFtc]}</td><td>${label[r.taxRegime]}</td><td>${r.hintsUsed}</td></tr>`;
+            });
+            $('s5-summary').innerHTML = t + '</tbody>';
+        }
+
+        async function submitGameResponse() {
+            const reflection = $('reflection-text').value.trim();
+            if (!reflection) {
+                alert('Please enter your exit reflection before submitting.');
+                return;
+            }
+            const btn = $('btn-submit-game');
+            const feedback = $('submission-feedback');
+            btn.disabled = true;
+            btn.innerText = 'Submitting...';
+            try {
+                const response = FINA3020Utils.recordResponse({
+                    mode: 'Project_Committee',
+                    targetTab: 'Project_Committee',
+                    question: 'Accept or reject the foreign project and evaluate taxes, FX hedging and shock risk over four rounds.',
+                    responseText: $('reflection-text').value,
+                    activityName: 'Foreign Project Committee',
+                    week: 5,
+                    scenario: { ...gameState, rounds: roundLog },
+                    baselineDecision: gameState.baselineDecision,
+                    taxRegime: gameState.taxRegime,
+                    hedgeChoice: gameState.hedgeChoice,
+                    shockProbability: gameState.shockProb,
+                    rounds: roundLog,
+                    reflection: reflection
+                });
+                const confirmed = await response.deliveryPromise;
+                feedback.innerHTML = confirmed
+                    ? `<span class="pos" style="font-weight:700;">&#10004; Response successfully recorded and receipt verified! (ID: ${response.receiptId})</span>`
+                    : `<span class="k-w">Response saved locally in session. Submission queued.</span>`;
+            } catch (err) {
+                feedback.innerHTML = `<span class="neg" style="font-weight:700;">Error: ${err.message}</span>`;
+                btn.disabled = false;
+                btn.innerText = 'Submit Participation Response →';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const studentId = FINA3020Utils.getStudentID();
+            const fullName = FINA3020Utils.getFullName();
+            const section = FINA3020Utils.getSection();
+            if (studentId) {
+                $('input-student-id').value = studentId;
+                $('btn-student-id').innerText = `ID: ${studentId} | ${fullName}`;
+            }
+            if (fullName) $('input-student-name').value = fullName;
+            if (section) $('input-section').value = section;
+            renderRoundBars();
+            const relabel = () => {
+                const on = document.body.classList.contains('projector-mode');
+                $('btn-projector-toggle').innerHTML = on ? '\u{1F4FD}\uFE0F Big Text: ON' : '\u{1F4FD}\uFE0F Big Text';
+            };
+            relabel();
+            // Rebuild the chart with larger type when big-screen mode is toggled.
+            new MutationObserver(() => { relabel(); if (currentStage === 4) initBreakevenChart(); })
+                .observe(document.body, { attributes: true, attributeFilter: ['class'] });
+        });
+    </script>
+</body>
+</html>
