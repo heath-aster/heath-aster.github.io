@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Balance of Payments Ledger Relay | FINA3020 Week 6</title>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js?v=20260925-reliability"></script>
+    <style>
+        .app-container {
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .header-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .main-content {
+            max-width: 1100px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 3rem 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .glass-panel {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 2rem;
+        }
+
+        .stage-stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            position: relative;
+            background: rgba(19, 24, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+        }
+
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .stepper-step.reachable {
+            cursor: pointer;
+        }
+
+        .stepper-step.reachable:hover span:not(.step-num) {
+            text-decoration: underline;
+        }
+
+        .stepper-step:focus-visible {
+            outline: 2px solid var(--cuhk-gold-light);
+            outline-offset: 3px;
+            border-radius: 6px;
+        }
+
+        .stepper-step.active {
+            color: var(--cuhk-gold-light);
+        }
+
+        .stepper-step.completed {
+            color: var(--success);
+        }
+
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .stepper-step.active .step-num {
+            background: var(--cuhk-gold);
+            color: #000;
+            border-color: var(--cuhk-gold-light);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed .step-num {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+        }
+
+        .tx-card {
+            background: rgba(19, 24, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .tx-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .tx-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            color: var(--cuhk-gold-light);
+            font-size: 1rem;
+        }
+
+        .tx-amount {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tx-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .entry-select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.6rem 0.8rem;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .ledger-summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            margin: 1.5rem 0;
+        }
+
+        .ledger-summary-table th, .ledger-summary-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            text-align: right;
+        }
+
+        .ledger-summary-table th:first-child, .ledger-summary-table td:first-child {
+            text-align: left;
+        }
+
+        .ledger-summary-table th {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            background: rgba(0, 0, 0, 0.25);
+        }
+
+        .balance-badge {
+            display: inline-block;
+            padding: 0.35rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .balance-ok {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .balance-error {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .shock-panel {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.35);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+    </style>
+<link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
+<script src="js/numeric_controls.js?v=20260909" defer></script>
+<link rel="stylesheet" href="css/mobile.css?v=20260909">
+</head>
+<body class="dark-theme">
+<nav class="course-navigation" aria-label="Course games">
+    <a href="./">← Game list</a>
+    <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
+</nav>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-inner">
+                <div class="brand-section">
+                    <span class="cuhk-badge">CUHK FINA3020 &middot; Week 6 Game</span>
+                    <div>
+                        <h1 class="app-title">Balance of Payments Ledger Relay</h1>
+                        <p class="app-subtitle">Double-Entry Bookkeeping, Financial Account Offsets &amp; FX Peg Defense</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-gold" id="btn-student-id" onclick="FINA3020Utils.ensureStudentCredentials(true)">CUHK ID: Not Set</button>
+                    <button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export (.csv)</button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Stepper -->
+            <div class="stage-stepper" role="tablist" aria-label="Game stages">
+                <div class="stepper-step active reachable" id="step-1" role="button" tabindex="0" onclick="jumpToStage(1)" onkeydown="stepperKey(event, 1)">
+                    <div class="step-num">1</div>
+                    <span>1. Transactions</span>
+                </div>
+                <div class="stepper-step" id="step-2" role="button" tabindex="0" onclick="jumpToStage(2)" onkeydown="stepperKey(event, 2)">
+                    <div class="step-num">2</div>
+                    <span>2. Double-Entry Relay</span>
+                </div>
+                <div class="stepper-step" id="step-3" role="button" tabindex="0" onclick="jumpToStage(3)" onkeydown="stepperKey(event, 3)">
+                    <div class="step-num">3</div>
+                    <span>3. Peg Defense</span>
+                </div>
+                <div class="stepper-step" id="step-4" role="button" tabindex="0" onclick="jumpToStage(4)" onkeydown="stepperKey(event, 4)">
+                    <div class="step-num">4</div>
+                    <span>4. Exit Reflection</span>
+                </div>
+            </div>
+
+            <!-- STAGE 1: Registration & Scenario Setup -->
+            <div id="stage-1-panel" class="glass-panel">
+                <h2 class="section-title">Stage 1: Open-Economy Balance Sheet Ledger</h2>
+                <p class="description">
+                    Your team is maintaining the national Balance of Payments (BPM6) ledger for a small open economy.
+                    Every single transaction requires <strong>two offsetting entries</strong>: a real/economic leg and a financing leg.
+                </p>
+
+                <div class="mobile-stack form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
+                    <div>
+                        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary);">CUHK Student ID(s):</label>
+                        <input type="text" id="input-student-id" class="input-field" placeholder="e.g. 1155123456" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary);">Full Name(s):</label>
+                        <input type="text" id="input-student-name" class="input-field" placeholder="e.g. Seon LOU; John CHAN" style="width:100%;">
+                    </div>
+                    <div>
+                        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary);">Section:</label>
+                        <select id="input-section" class="input-field" style="width:100%;">
+                            <option value="">-- Select Section --</option>
+                            <option value="A">Section A</option>
+                            <option value="B">Section B</option>
+                            <option value="C">Section C</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div style="background:rgba(19, 24, 34, 0.9); border:1px solid var(--border-color); border-radius:12px; padding:1.25rem;">
+                    <h4 style="color:var(--cuhk-gold-light); margin-bottom:0.75rem; font-family:'Outfit';">Today's 4 Real &amp; Financial Transactions:</h4>
+                    <ol style="padding-left:1.25rem; font-size:0.9rem; color:var(--text-secondary); line-height:1.6;">
+                        <li><strong>Tx 1: Machinery Export:</strong> A domestic manufacturer exports $100M of heavy equipment. The foreign buyer pays via a bank transfer into the firm's foreign bank account.</li>
+                        <li><strong>Tx 2: Financed Consumer Import:</strong> A domestic retailer imports $60M of electronics, financed by a 1-year trade credit loan from an overseas bank.</li>
+                        <li><strong>Tx 3: Sovereign Bond Purchase:</strong> A domestic pension fund buys $30M of US Treasury bonds, transferring funds from its existing foreign bank deposit.</li>
+                        <li><strong>Tx 4: Foreign Dividend Inflow:</strong> A domestic corporate receives $10M in dividend income from its overseas affiliate, deposited into a foreign bank account.</li>
+                    </ol>
+                </div>
+
+                <button class="btn btn-primary" onclick="goToStage(2)" style="width:100%; margin-top:1.5rem;">Enter Double-Entry Relay &rarr;</button>
+            </div>
+
+            <!-- STAGE 2: Interactive Double-Entry Matrix -->
+            <div id="stage-2-panel" class="glass-panel" style="display:none;">
+                <h2 class="section-title">Stage 2: Double-Entry Bookkeeping Ledger Matrix</h2>
+                <p class="description">
+                    For each transaction, classify the <strong>Credit (+)</strong> and <strong>Debit (-)</strong> legs.
+                    Recall: <em>Credits</em> are exports, income receipts, or net increases in liabilities / decreases in assets. <em>Debits</em> are imports, income payments, or net acquisitions of foreign assets.
+                </p>
+
+                <!-- Tx 1 -->
+                <div class="tx-card">
+                    <div class="tx-header">
+                        <div class="tx-title">Transaction 1: Export $100M Machinery</div>
+                        <div class="tx-amount">$100M</div>
+                    </div>
+                    <div class="tx-grid">
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">CREDIT (+) LEG:</label>
+                            <select id="tx1-credit" class="entry-select" onchange="calculateLedger()">
+                                <option value="" selected>-- Select an entry --</option>
+                                <option value="ca_export">CA: Goods Export (+100)</option>
+                                <option value="fa_loan_liab">FA: Foreign Loan Liability (+100)</option>
+                                <option value="fa_deposit_dec">FA: Foreign Deposit Decrease (+100)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">DEBIT (-) LEG:</label>
+                            <select id="tx1-debit" class="entry-select" onchange="calculateLedger()">
+                                <option value="" selected>-- Select an entry --</option>
+                                <option value="fa_deposit_inc">FA: Foreign Deposit Asset Increase (-100)</option>
+                                <option value="ca_import">CA: Goods Import (-100)</option>
+                                <option value="fa_bond_buy">FA: Foreign Bond Purchase (-100)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tx 2 -->
+                <div class="tx-card">
+                    <div class="tx-header">
+                        <div class="tx-title">Transaction 2: Import $60M Electronics on Foreign Loan</div>
+                        <div class="tx-amount">$60M</div>
+                    </div>
+                    <div class="tx-grid">
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">CREDIT (+) LEG:</label>
+                            <select id="tx2-credit" class="entry-select" onchange="calculateLedger()">
+                                <option value="" selected>-- Select an entry --</option>
+                                <option value="fa_loan_liab">FA: Foreign Loan Incurrence (+60)</option>
+                                <option value="ca_export">CA: Goods Export (+60)</option>
+                                <option value="reserves_sell">FA: Central Bank Reserves (+60)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">DEBIT (-) LEG:</label>
+                            <select id="tx2-debit" class="entry-select" onchange="calculateLedger()">
+                                <option value="" selected>-- Select an entry --</option>
+                                <option value="ca_import">CA: Goods Import (-60)</option>
+                                <option value="fa_deposit_inc">FA: Foreign Deposit Asset (-60)</option>
+                                <option value="fa_bond_buy">FA: Foreign Securities (-60)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tx 3 -->
+                <div class="tx-card">
+                    <div class="tx-header">
+                        <div class="tx-title">Transaction 3: Buy $30M US Treasuries from Foreign Deposit</div>
+                        <div class="tx-amount">$30M</div>
+                    </div>
+                    <div class="tx-grid">
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">CREDIT (+) LEG:</label>
+                            <select id="tx3-credit" class="entry-select" onchange="calculateLedger()">
+                                <option value="" selected>-- Select an entry --</option>
+                                <option value="fa_deposit_dec">FA: Foreign Deposit Asset Drawdown (+30)</option>
+                                <option value="ca_export">CA: Goods Export (+30)</option>
+                                <option value="fa_loan_liab">FA: Foreign Debt (+30)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">DEBIT (-) LEG:</label>
+                            <select id="tx3-debit" class="entry-select" onchange="calculateLedger()">
+                                <option value="" selected>-- Select an entry --</option>
+                                <option value="fa_bond_buy">FA: Foreign Bond Asset Acquisition (-30)</option>
+                                <option value="ca_import">CA: Goods Import (-30)</option>
+                                <option value="fa_deposit_inc">FA: Foreign Deposit (-30)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tx 4 -->
+                <div class="tx-card">
+                    <div class="tx-header">
+                        <div class="tx-title">Transaction 4: Receive $10M Overseas Dividend</div>
+                        <div class="tx-amount">$10M</div>
+                    </div>
+                    <div class="tx-grid">
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">CREDIT (+) LEG:</label>
+                            <select id="tx4-credit" class="entry-select" onchange="calculateLedger()">
+                                <option value="" selected>-- Select an entry --</option>
+                                <option value="ca_primary_income">CA: Primary Income / Dividend (+10)</option>
+                                <option value="fa_loan_liab">FA: Foreign Loan (+10)</option>
+                                <option value="ca_export">CA: Goods Export (+10)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:0.25rem;">DEBIT (-) LEG:</label>
+                            <select id="tx4-debit" class="entry-select" onchange="calculateLedger()">
+                                <option value="" selected>-- Select an entry --</option>
+                                <option value="fa_deposit_inc">FA: Foreign Deposit Asset Increase (-10)</option>
+                                <option value="ca_import">CA: Import (-10)</option>
+                                <option value="fa_bond_buy">FA: Foreign Bond (-10)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Ledger Summary -->
+                <table class="ledger-summary-table">
+                    <thead>
+                        <tr>
+                            <th>BPM6 Account Category</th>
+                            <th>Total Credits (+)</th>
+                            <th>Total Debits (-)</th>
+                            <th>Net Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Current Account (CA)</td>
+                            <td id="ca-credit-sum">&ndash;</td>
+                            <td id="ca-debit-sum">&ndash;</td>
+                            <td id="ca-net-sum" style="color:var(--success); font-weight:700;">&ndash;</td>
+                        </tr>
+                        <tr>
+                            <td>Financial Account (FA) [Net Capital Outflow]</td>
+                            <td id="fa-credit-sum">&ndash;</td>
+                            <td id="fa-debit-sum">&ndash;</td>
+                            <td id="fa-net-sum" style="color:var(--cuhk-gold-light); font-weight:700;">&ndash;</td>
+                        </tr>
+                        <tr style="border-top:2px solid var(--cuhk-gold); font-weight:700;">
+                            <td>Total Balance of Payments Identity (CA - FA)</td>
+                            <td id="total-credits">&ndash;</td>
+                            <td id="total-debits">&ndash;</td>
+                            <td><span class="balance-badge" id="balance-status">Select all entries</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <button class="btn btn-secondary" onclick="jumpToStage(1)" style="width:100%; margin-bottom:0.75rem;">&larr; Back to Transactions</button>
+                <button class="btn btn-primary" onclick="goToStage(3)" style="width:100%;">Lock Baseline Ledger &amp; Trigger Capital Flight Shock &rarr;</button>
+            </div>
+
+            <!-- STAGE 3: Peg defense under capital flight -->
+            <div id="stage-3-panel" class="glass-panel" style="display:none;">
+                <div class="shock-panel">
+                    <h3 style="color:#ef4444; margin-bottom:0.5rem;">EXOGENOUS SHOCK: CAPITAL FLIGHT UNDER A FIXED PEG</h3>
+                    <p style="font-size:0.95rem; color:var(--text-primary); line-height:1.5;">
+                        Foreign investors sell <strong>$40M</strong> of domestic equity and want to convert the proceeds into USD.
+                        Domestic banks supply <strong>$20M</strong> of USD by drawing down their foreign deposits.
+                    </p>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.4rem;">
+                        The central bank holds the exchange rate at its peg, so it supplies the remaining USD from official reserves.
+                        Record each leg in the ledger.
+                    </p>
+                </div>
+
+                <div class="tx-card">
+                    <div class="tx-header">
+                        <div class="tx-title">Leg 1: Foreign investors sell $40M of domestic equity</div>
+                        <div class="tx-amount">$40M</div>
+                    </div>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5; margin-bottom:0.75rem;">Which entry records the sale?</p>
+                    <select id="peg-equity" class="entry-select" onchange="clearPegFeedback()">
+                            <option value="" selected>-- Select an entry --</option>
+                            <option value="fa_equity_dec">FA: Decrease in Foreign-Held Equity Liabilities (Debit, -40)</option>
+                            <option value="fa_equity_inc">FA: Increase in Foreign-Held Equity Liabilities (Credit, +40)</option>
+                            <option value="ca_income_pay">CA: Primary Income Payment (Debit, -40)</option>
+                            <option value="fa_deposit_inc">FA: Increase in Foreign Deposit Assets (Debit, -40)</option>
+                    </select>
+                </div>
+                <div class="tx-card">
+                    <div class="tx-header">
+                        <div class="tx-title">Leg 2: Domestic banks draw down $20M of foreign deposits</div>
+                        <div class="tx-amount">$20M</div>
+                    </div>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5; margin-bottom:0.75rem;">Which entry records the banks' USD supply?</p>
+                    <select id="peg-private" class="entry-select" onchange="clearPegFeedback()">
+                            <option value="" selected>-- Select an entry --</option>
+                            <option value="fa_deposit_dec">FA: Decrease in Foreign Deposit Assets (Credit, +20)</option>
+                            <option value="fa_deposit_inc">FA: Increase in Foreign Deposit Assets (Debit, -20)</option>
+                            <option value="ca_export">CA: Goods Export (Credit, +20)</option>
+                            <option value="fa_loan_liab">FA: Increase in Foreign Loan Liabilities (Credit, +20)</option>
+                    </select>
+                </div>
+                <div class="tx-card">
+                    <div class="tx-header">
+                        <div class="tx-title">Leg 3: The remaining USD gap</div>
+                        <div class="tx-amount">? $M</div>
+                    </div>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5; margin-bottom:0.75rem;">
+                        How many $M of USD must the central bank supply to hold the peg?
+                    </p>
+                    <input type="number" id="peg-gap" class="input-field" min="0" step="1" placeholder="Enter $M" oninput="clearPegFeedback()" style="width:100%;">
+                </div>
+                <div class="tx-card">
+                    <div class="tx-header">
+                        <div class="tx-title">Leg 4: The central bank sells reserves</div>
+                        <div class="tx-amount">Gap from Leg 3</div>
+                    </div>
+                    <p style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5; margin-bottom:0.75rem;">Which entry records the central bank's sale?</p>
+                    <select id="peg-reserve" class="entry-select" onchange="clearPegFeedback()">
+                            <option value="" selected>-- Select an entry --</option>
+                            <option value="reserves_dec">FA: Decrease in Reserve Assets (Credit, +gap)</option>
+                            <option value="reserves_inc">FA: Increase in Reserve Assets (Debit, -gap)</option>
+                            <option value="ca_export">CA: Goods Export (Credit, +gap)</option>
+                            <option value="errors_omissions">Errors and Omissions (Credit, +gap)</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-gold" onclick="checkPegDefense()" style="width:100%;">Check my entries</button>
+                <div id="peg-feedback" style="margin-top:1rem;"></div>
+
+                <button class="btn btn-secondary" onclick="jumpToStage(2)" style="width:100%; margin-top:1rem;">&larr; Back to the Ledger</button>
+                <button class="btn btn-primary" onclick="goToStage(4)" style="width:100%; margin-top:0.75rem;">Proceed to Stage 4: Exit Reflection &rarr;</button>
+            </div>
+
+            <!-- STAGE 4: Exit Reflection -->
+            <div id="stage-4-panel" class="glass-panel" style="display:none;">
+                <h2 class="section-title">Stage 4: Analytical Exit Reflection</h2>
+                <p class="description">
+                    Submit your 1-sentence analytical response to earn participation credit for Week 6.
+                </p>
+
+                <div class="tx-card" style="margin-bottom:1.5rem;">
+                    <div style="font-size:0.95rem; font-weight:700; color:var(--cuhk-gold-light); margin-bottom:0.4rem;">Exit Reflection Prompt:</div>
+                    <div style="font-style:italic; color:var(--text-primary);">
+                        "Which second-leg financing entry did your team initially omit, and how did central bank reserve sales balance the ledger under the peg?"
+                    </div>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <textarea id="reflection-text" class="input-field" rows="4" placeholder="Enter your 1-2 sentence analytical explanation..." style="width:100%; resize:vertical; font-family:'Inter', sans-serif;"></textarea>
+                </div>
+
+                <button class="btn btn-secondary" onclick="jumpToStage(3)" style="width:100%; margin-bottom:0.75rem;">&larr; Back to Peg Defense</button>
+                <button class="btn btn-gold" id="btn-submit-game" onclick="submitGameResponse()" style="width:100%;">Submit Participation Response &rarr;</button>
+                <div id="submission-feedback" style="margin-top:1rem; font-size:0.9rem; text-align:center;"></div>
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            FINA3020: International Finance &middot; CUHK Business School &middot; Prof. Henry Zhang
+        </footer>
+    </div>
+
+    <script>
+        let currentStage = 1;
+        let maxStage = 1;
+        const LAST_STAGE = 4;
+
+        function refreshIdentityButton() {
+            const id = FINA3020Utils.getStudentID();
+            document.getElementById('btn-student-id').innerText =
+                id ? `ID: ${id} | ${FINA3020Utils.getFullName()}` : 'CUHK ID: Not Set';
+        }
+
+        function saveStage1Identity() {
+            const id = document.getElementById('input-student-id').value.trim();
+            const name = document.getElementById('input-student-name').value.trim();
+            const section = document.getElementById('input-section').value;
+            if (!id || !name || !section) return false;
+            const cleanId = id.replace(/\s+/g, '');
+            const storedId = FINA3020Utils.getStudentID();
+            if (storedId && cleanId !== storedId && /^\d{10}$/.test(cleanId)) {
+                if (FINA3020Utils.getPendingCount()) {
+                    alert('Responses are still unconfirmed. Retry or export them before changing students.');
+                    return false;
+                }
+                FINA3020Utils.clearSensitiveData();
+            }
+            if (!FINA3020Utils.setStudentCredentials(id, name, section)) return false;
+            refreshIdentityButton();
+            return true;
+        }
+
+        function validateCredentials() {
+            const filled = ['input-student-id', 'input-student-name', 'input-section']
+                .every(id => document.getElementById(id).value.trim());
+            if (filled) {
+                if (saveStage1Identity()) return true;
+                alert('Enter your full name, valid 10-digit CUHK ID, and section before continuing.');
+                return false;
+            }
+            if (!FINA3020Utils.getStudentID()) {
+                alert('Please enter your 10-digit CUHK Student ID, Name, and Section.');
+                return false;
+            }
+            return true;
+        }
+
+        function showStage(stageNum) {
+            currentStage = stageNum;
+            for (let i = 1; i <= LAST_STAGE; i++) {
+                const panel = document.getElementById(`stage-${i}-panel`);
+                const step = document.getElementById(`step-${i}`);
+                if (panel) panel.style.display = (i === stageNum) ? 'block' : 'none';
+                if (step) {
+                    step.classList.toggle('active', i === stageNum);
+                    step.classList.toggle('completed', i < maxStage && i !== stageNum);
+                    step.classList.toggle('reachable', i <= maxStage);
+                }
+            }
+            window.scrollTo(0, 0);
+        }
+
+        function goToStage(stageNum) {
+            if (stageNum >= 2 && !validateCredentials()) return;
+            if (stageNum >= 3 && !allLedgerEntriesChosen()) {
+                alert('Please choose a credit leg and a debit leg for all four transactions before continuing.');
+                return;
+            }
+            if (stageNum >= 4 && !allPegEntriesAnswered()) {
+                alert('Please answer all four legs of the peg defense before continuing.');
+                return;
+            }
+            maxStage = Math.max(maxStage, stageNum);
+            showStage(stageNum);
+        }
+
+        // Clicking an earlier stage always works. Clicking a later stage works once it has been unlocked.
+        function jumpToStage(stageNum) {
+            if (stageNum === currentStage) return;
+            if (stageNum < currentStage) showStage(stageNum);
+            else if (stageNum <= maxStage) goToStage(stageNum);
+        }
+
+        function stepperKey(event, stageNum) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                jumpToStage(stageNum);
+            }
+        }
+
+        const TX_AMOUNTS = {1: 100, 2: 60, 3: 30, 4: 10};
+        const LEDGER_SELECT_IDS = [1, 2, 3, 4].flatMap(t => [`tx${t}-credit`, `tx${t}-debit`]);
+
+        function shuffleLedgerOptions() {
+            LEDGER_SELECT_IDS.concat(['peg-equity', 'peg-private', 'peg-reserve']).forEach(id => {
+                const select = document.getElementById(id);
+                const options = Array.from(select.options).filter(o => o.value !== '');
+                for (let i = options.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [options[i], options[j]] = [options[j], options[i]];
+                }
+                options.forEach(o => select.appendChild(o));
+                select.selectedIndex = 0;
+            });
+        }
+
+        function allLedgerEntriesChosen() {
+            return LEDGER_SELECT_IDS.every(id => document.getElementById(id).value !== '');
+        }
+
+        function calculateLedger() {
+            let caCredit = 0, caDebit = 0, faCredit = 0, faDebit = 0, chosen = 0;
+            [1, 2, 3, 4].forEach(t => {
+                const amount = TX_AMOUNTS[t];
+                const credit = document.getElementById(`tx${t}-credit`).value;
+                const debit = document.getElementById(`tx${t}-debit`).value;
+                if (credit) {
+                    chosen++;
+                    if (credit.startsWith('ca_')) caCredit += amount; else faCredit += amount;
+                }
+                if (debit) {
+                    chosen++;
+                    if (debit.startsWith('ca_')) caDebit += amount; else faDebit += amount;
+                }
+            });
+
+            const money = (sign, v) => chosen ? `${sign}$${v}M` : '\u2013';
+            const signed = v => chosen ? `${v >= 0 ? '+' : '-'}$${Math.abs(v)}M` : '\u2013';
+            const caNet = caCredit - caDebit;
+            const faNetOutflow = faDebit - faCredit;
+
+            document.getElementById('ca-credit-sum').innerText = money('+', caCredit);
+            document.getElementById('ca-debit-sum').innerText = money('-', caDebit);
+            document.getElementById('ca-net-sum').innerText = signed(caNet);
+            document.getElementById('fa-credit-sum').innerText = money('+', faCredit);
+            document.getElementById('fa-debit-sum').innerText = money('-', faDebit);
+            document.getElementById('fa-net-sum').innerText = signed(faNetOutflow);
+            document.getElementById('total-credits').innerText = money('+', caCredit + faCredit);
+            document.getElementById('total-debits').innerText = money('-', caDebit + faDebit);
+
+            const badge = document.getElementById('balance-status');
+            if (!allLedgerEntriesChosen()) {
+                badge.className = 'balance-badge';
+                badge.innerHTML = 'Select all entries';
+            } else if (caNet === faNetOutflow) {
+                badge.className = 'balance-badge balance-ok';
+                badge.innerHTML = '&#10004; Balanced ($0.00)';
+            } else {
+                badge.className = 'balance-badge balance-error';
+                badge.innerHTML = `&#10008; CA &minus; FA = ${caNet - faNetOutflow > 0 ? '+' : '-'}$${Math.abs(caNet - faNetOutflow)}M`;
+            }
+        }
+
+        const PEG_ANSWERS = {
+            'peg-equity': {
+                correct: 'fa_equity_dec',
+                why: 'Foreign investors selling equity reduces the country\'s foreign liabilities. A fall in liabilities is a debit in the Financial Account.'
+            },
+            'peg-private': {
+                correct: 'fa_deposit_dec',
+                why: 'Banks drawing down foreign deposits reduces the country\'s foreign assets. A fall in assets is a credit.'
+            },
+            'peg-reserve': {
+                correct: 'reserves_dec',
+                why: 'Selling reserves reduces the central bank\'s foreign assets. A fall in assets is a credit, and it finances the remaining gap.'
+            }
+        };
+        const PEG_GAP = 20;
+
+        function allPegEntriesAnswered() {
+            return ['peg-equity', 'peg-private', 'peg-reserve'].every(id => document.getElementById(id).value !== '') &&
+                document.getElementById('peg-gap').value.trim() !== '';
+        }
+
+        function clearPegFeedback() {
+            document.getElementById('peg-feedback').innerHTML = '';
+        }
+
+        function checkPegDefense() {
+            if (!allPegEntriesAnswered()) {
+                alert('Please answer all four legs before checking.');
+                return;
+            }
+            const gap = Number(document.getElementById('peg-gap').value);
+            const results = Object.entries(PEG_ANSWERS).map(([id, item]) => ({ id, ok: document.getElementById(id).value === item.correct, why: item.why }));
+            results.splice(2, 0, {
+                id: 'peg-gap',
+                ok: gap === PEG_GAP,
+                why: 'The investors want $40M of USD and the banks supply $20M. The central bank covers the remaining $40M - $20M = $20M.'
+            });
+            const labels = { 'peg-equity': 'Leg 1', 'peg-private': 'Leg 2', 'peg-gap': 'Leg 3', 'peg-reserve': 'Leg 4' };
+            const rows = results.map(r => `<div style="margin-bottom:0.6rem; font-size:0.9rem; line-height:1.5; color:${r.ok ? 'var(--success)' : 'var(--danger)'};">
+                <strong>${r.ok ? '&#10004;' : '&#10008;'} ${labels[r.id]}:</strong>
+                <span style="color:var(--text-secondary);">${r.ok ? r.why : 'Not quite. Re-read the leg and try again.'}</span></div>`).join('');
+            const allOk = results.every(r => r.ok);
+            const summary = allOk
+                ? '<div class="tx-card" style="margin-top:0.75rem;"><strong style="color:var(--cuhk-gold-light);">The ledger balances.</strong> <span style="color:var(--text-secondary);">Debits are $40M (equity sale). Credits are $20M (deposit drawdown) plus $20M (reserve sale). All three entries sit in the Financial Account, so CA &minus; FA = 0 holds.</span></div>'
+                : '';
+            document.getElementById('peg-feedback').innerHTML = rows + summary;
+        }
+
+        async function submitGameResponse() {
+            const reflection = document.getElementById('reflection-text').value.trim();
+            if (!reflection) {
+                alert('Please enter your exit reflection before submitting.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-submit-game');
+            const feedback = document.getElementById('submission-feedback');
+            btn.disabled = true;
+            btn.innerText = 'Submitting...';
+
+            try {
+                const response = FINA3020Utils.recordResponse({
+                    mode: 'BOP_Ledger',
+                    targetTab: 'BOP_Ledger',
+                    question: 'Classify the credit and debit legs of all four transactions and record the central bank peg defense.',
+                    responseText: document.getElementById('reflection-text').value,
+                    activityName: 'BOP Ledger Relay',
+                    week: 6,
+                    ledgerEntries: [1, 2, 3, 4].map(transaction => ({ transaction,
+                        credit: document.getElementById(`tx${transaction}-credit`).value,
+                        creditText: document.getElementById(`tx${transaction}-credit`).selectedOptions[0].textContent,
+                        debit: document.getElementById(`tx${transaction}-debit`).value,
+                        debitText: document.getElementById(`tx${transaction}-debit`).selectedOptions[0].textContent
+                    })),
+                    pegDefense: {
+                        equity: document.getElementById('peg-equity').value,
+                        privateSupply: document.getElementById('peg-private').value,
+                        reserveGap: document.getElementById('peg-gap').value === '' ? null : Number(document.getElementById('peg-gap').value),
+                        reserveEntry: document.getElementById('peg-reserve').value
+                    },
+                    reflection: reflection
+                });
+
+                const confirmed = await response.deliveryPromise;
+                feedback.innerHTML = confirmed
+                    ? `<span style="color:var(--success); font-weight:700;">&#10004; Response successfully recorded and receipt verified! (ID: ${response.receiptId})</span>`
+                    : `<span style="color:var(--warning); font-weight:700;">Response saved locally in session. Submission queued.</span>`;
+            } catch (err) {
+                feedback.innerHTML = `<span style="color:var(--danger); font-weight:700;">Error: ${err.message}</span>`;
+                btn.disabled = false;
+                btn.innerText = 'Submit Participation Response &rarr;';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            shuffleLedgerOptions();
+            calculateLedger();
+            const studentId = FINA3020Utils.getStudentID();
+            const fullName = FINA3020Utils.getFullName();
+            const section = FINA3020Utils.getSection();
+            if (studentId) document.getElementById('input-student-id').value = studentId;
+            refreshIdentityButton();
+            ['input-student-id', 'input-student-name', 'input-section'].forEach(id =>
+                document.getElementById(id).addEventListener('change', saveStage1Identity));
+            if (fullName) document.getElementById('input-student-name').value = fullName;
+            if (section) document.getElementById('input-section').value = section;
+        });
+    </script>
+</body>
+</html>
