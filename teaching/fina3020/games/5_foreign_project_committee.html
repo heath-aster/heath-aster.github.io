@@ -368,12 +368,17 @@
         body.projector-mode .slider-header { font-size: 1.4rem !important; }
         body.projector-mode .chart-container { height: 460px; }
         body.projector-mode .ref-grid { grid-template-columns: 1fr; }
+
+        /* Quick mode: unhedged NPV only, then the exit reflection. */
+        body.quick-mode .full-only { display: none !important; }
+        body:not(.quick-mode) .quick-only { display: none !important; }
+        body.quick-mode [data-round-bar] { display: none !important; }
 </style>
 <link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
 <script src="js/numeric_controls.js?v=20260909" defer></script>
 <link rel="stylesheet" href="css/mobile.css?v=20260909">
 </head>
-<body class="dark-theme">
+<body class="dark-theme quick-mode">
 <nav class="course-navigation" aria-label="Course games">
     <a href="./">← Game list</a>
     <details><summary>Return to this game later</summary><p>Open this page in Safari or Chrome, then bookmark it or find it in your browser history. If your QR scanner opened an in-app window, use its menu to open in your browser. The game link stays the same. Keep this tab open until submissions are confirmed.</p></details>
@@ -402,10 +407,10 @@
             <!-- Stepper -->
             <div class="stage-stepper">
                 <div class="stepper-step active" id="step-1"><div class="step-num">1</div><span>1. Registration</span></div>
-                <div class="stepper-step" id="step-2"><div class="step-num">2</div><span>2. Baseline NPV &amp; Hedge</span></div>
-                <div class="stepper-step" id="step-3"><div class="step-num">3</div><span>3. Policy Shock</span></div>
-                <div class="stepper-step" id="step-4"><div class="step-num">4</div><span>4. Probability &amp; Breakeven</span></div>
-                <div class="stepper-step" id="step-5"><div class="step-num">5</div><span>5. Exit Reflection</span></div>
+                <div class="stepper-step" id="step-2"><div class="step-num">2</div><span><span class="quick-only">2. Unhedged NPV</span><span class="full-only">2. Baseline NPV &amp; Hedge</span></span></div>
+                <div class="stepper-step full-only" id="step-3"><div class="step-num">3</div><span>3. Policy Shock</span></div>
+                <div class="stepper-step full-only" id="step-4"><div class="step-num">4</div><span>4. Probability &amp; Breakeven</span></div>
+                <div class="stepper-step" id="step-5"><div class="step-num"><span class="quick-only">3</span><span class="full-only">5</span></div><span><span class="quick-only">3. Exit Reflection</span><span class="full-only">5. Exit Reflection</span></span></div>
             </div>
 
             <!-- STAGE 1: Registration -->
@@ -414,7 +419,9 @@
                 <p class="description">
                     You are the CFO Investment Committee evaluating a 3-year CAPEX project in Emerging Market X.
                     The project earns euro cash flows. You value it in US dollars from the parent's point of view.
-                    You play <strong>4 rounds</strong>. Each round has new numbers and repeats Stages 2 to 4.
+                    Start by computing the unhedged parent NPV. Then either skip to the exit reflection, or continue
+                    with the forward hedge, a policy shock, and a breakeven probability over <strong>4 rounds</strong>.
+                    Your instructor will say which.
                     Exchange rates are quoted as USD per 1 EUR, so a lower spot rate means the USD has appreciated.
                 </p>
 
@@ -439,7 +446,8 @@
                 </div>
 
                 <div class="formula-card">
-                    <div class="formula-line"><strong>Each round:</strong></div>
+                    <div class="formula-line"><strong>Quick version:</strong> compute the unhedged NPV, choose Accept or Reject, then submit the exit reflection.</div>
+                    <div class="formula-line"><strong>Full version, each round:</strong></div>
                     <div class="formula-line">1. Compute the parent NPV, unhedged and with forwards. Pick an FX policy and Accept or Reject.</div>
                     <div class="formula-line">2. A host policy shock freezes and taxes the Year 2 cash flow. Recompute the NPV.</div>
                     <div class="formula-line">3. Find the breakeven probability of total loss. Hint buttons and the formula reference at the bottom are always available.</div>
@@ -451,7 +459,7 @@
             <!-- STAGE 2: Baseline valuation and hedge -->
             <div id="stage-2-panel" class="glass-panel" style="display:none;">
                 <div class="round-bar" data-round-bar></div>
-                <h2 class="section-title">Stage 2: Parent NPV and the FX Hedge</h2>
+                <h2 class="section-title" id="s2-title">Stage 2: Parent NPV and the FX Hedge</h2>
                 <p class="description" id="s2-story"></p>
                 <div class="table-container"><table class="financial-table" id="s2-inputs"></table></div>
                 <p class="rate-note" id="s2-note"></p>
@@ -461,7 +469,7 @@
                         <label class="field-label" for="ans-un">Your unhedged NPV (USD M):</label>
                         <input type="text" inputmode="decimal" id="ans-un" class="input-field" placeholder="e.g. 5.123">
                     </div>
-                    <div>
+                    <div class="full-only">
                         <label class="field-label" for="ans-hd">Your forward-hedged NPV (USD M):</label>
                         <input type="text" inputmode="decimal" id="ans-hd" class="input-field" placeholder="e.g. 4.987">
                     </div>
@@ -477,8 +485,8 @@
                 <div class="hint-box" id="s2-hint2"></div>
                 <div class="solution" id="s2-solution"></div>
 
-                <h3 class="round-title" style="margin:1.5rem 0 0;">Your FX policy</h3>
-                <div class="decision-cards">
+                <h3 class="round-title full-only" style="margin:1.5rem 0 0;">Your FX policy</h3>
+                <div class="decision-cards full-only">
                     <div class="decision-card selected" id="choice-hedge-none" onclick="selectHedge('none')">
                         <h4>FX Policy A: Unhedged</h4>
                         <p>Convert at the future spot rate. Full exposure to EUR/USD.</p>
@@ -488,7 +496,7 @@
                         <p>Sell each year's euro cash flow forward at F<sub>t</sub>.</p>
                     </div>
                 </div>
-                <h3 class="round-title" style="margin:0;">Your investment decision</h3>
+                <h3 class="round-title" style="margin:1.5rem 0 0;">Your investment decision</h3>
                 <div class="decision-cards">
                     <div class="decision-card selected" id="choice-baseline-accept" onclick="selectBaselineDecision('accept')">
                         <h4>Accept Project</h4>
@@ -499,7 +507,11 @@
                         <p>Decline the capital expansion.</p>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="goToStage(3)" style="width:100%;">Lock Choices &amp; Trigger Host Policy Shock &rarr;</button>
+                <div class="quick-only">
+                    <button class="btn btn-gold" onclick="skipToReflection()" style="width:100%; margin-bottom:0.75rem;">Skip to Exit Reflection &rarr;</button>
+                    <button class="btn btn-secondary" onclick="enterFullMode()" style="width:100%;">Continue the full game: add the forward hedge &rarr;</button>
+                </div>
+                <button class="btn btn-primary full-only" onclick="goToStage(3)" style="width:100%;">Lock Choices &amp; Trigger Host Policy Shock &rarr;</button>
             </div>
 
             <!-- STAGE 3: Policy shock -->
@@ -601,20 +613,19 @@
                 <div class="solution" id="s4-solution"></div>
 
                 <button class="btn btn-primary" id="btn-next-round" onclick="nextRound()" style="width:100%; margin-top:1rem;"></button>
+                <button class="btn btn-secondary" id="btn-finish-early" onclick="skipToReflection()" style="width:100%; margin-top:0.75rem;">Out of time? Finish now: go to Exit Reflection &rarr;</button>
             </div>
 
             <!-- STAGE 5: Exit reflection -->
             <div id="stage-5-panel" class="glass-panel" style="display:none;">
-                <h2 class="section-title">Stage 5: Analytical Exit Reflection</h2>
+                <h2 class="section-title"><span class="quick-only">Stage 3</span><span class="full-only">Stage 5</span>: Analytical Exit Reflection</h2>
                 <p class="description">Submit your 1-2 sentence analytical response to earn participation credit for Week 5.</p>
 
                 <div class="table-container"><table class="financial-table" id="s5-summary"></table></div>
 
                 <div class="formula-card" style="margin-bottom:1.5rem;">
                     <div style="font-size:1.1rem; font-weight:700; color:var(--cuhk-gold-light); margin-bottom:0.4rem;">Exit Reflection Prompt:</div>
-                    <div style="font-style:italic; font-size:1.1rem; color:var(--text-primary);">
-                        "How did usable foreign tax credits change the NPV impact of the withholding tax, and when did a forward hedge raise or lower your expected NPV?"
-                    </div>
+                    <div id="reflection-prompt" style="font-style:italic; font-size:1.1rem; color:var(--text-primary);"></div>
                 </div>
 
                 <div style="margin-bottom:1.5rem;">
@@ -645,11 +656,11 @@
                             NPV = &minus;I &times; S<sub>0</sub> + PV<sub>1</sub> + PV<sub>2</sub> + PV<sub>3</sub>
                         </div>
                         <div class="ref-note">
-                            <span class="k-fx">FX<sub>t</sub></span> = E[S<sub>t</sub>] if unhedged, or forward rate F<sub>t</sub> if hedged.
+                            <span class="k-fx">FX<sub>t</sub></span> = E[S<sub>t</sub>] if unhedged<span class="full-only">, or forward rate F<sub>t</sub> if hedged</span>.
                             Year 0 outlay = I &times; S<sub>0</sub>.
                         </div>
                     </div>
-                    <div class="ref-card">
+                    <div class="ref-card full-only">
                         <h4>2. Hedge value</h4>
                         <div class="eq">
                             NPV<sub>hedged</sub> &minus; NPV<sub>unhedged</sub> =
@@ -657,7 +668,7 @@
                         </div>
                         <div class="ref-note">The hedge adds value when the forward rate is above the expected spot rate, and costs value when it is below.</div>
                     </div>
-                    <div class="ref-card">
+                    <div class="ref-card full-only">
                         <h4>3. Policy shock (Stage 3)</h4>
                         <div class="eq">
                             EUR received in Year 3 = <span class="k-cf">CF<sub>2</sub></span> &times; (1 &minus; <span class="k-w">w</span>) &times; (1 + <span class="k-i">i</span>) &nbsp; [Case A]<br>
@@ -668,7 +679,7 @@
                         </div>
                         <div class="ref-note">If hedged, re-hedge the delayed euros at the Year 3 forward rate F<sub>3</sub>.</div>
                     </div>
-                    <div class="ref-card">
+                    <div class="ref-card full-only">
                         <h4>4. Expected NPV and breakeven (Stage 4)</h4>
                         <div class="eq">
                             E[NPV] = (1 &minus; p) &times; NPV + p &times; NPV<sub>shock</sub><br>
@@ -718,6 +729,11 @@
         let roundLog = [];
         let rec = null;
         let currentStage = 1;
+        // Quick mode: unhedged NPV only, then the exit reflection. Full mode adds the hedge, shock, and breakeven.
+        let fullMode = false;
+        const PROMPT_QUICK = 'Report your unhedged NPV and your Accept / Reject decision. In 1-2 sentences, explain how the expected exchange-rate path (USD per EUR) affected the parent\'s NPV.';
+        const PROMPT_FULL = 'How did usable foreign tax credits change the NPV impact of the withholding tax, and when did a forward hedge raise or lower your expected NPV?';
+        const currentPrompt = () => fullMode ? PROMPT_FULL : PROMPT_QUICK;
 
         const $ = id => document.getElementById(id);
         const sum = a => a.reduce((x, y) => x + y, 0);
@@ -838,13 +854,16 @@
         }
 
         function snapshotRound() {
+            const quick = !fullMode;
             return {
                 round: rec.round,
+                mode: quick ? 'quick' : 'full',
+                unhedgedNpvAnswer: $('ans-un').value.trim(),
                 fxPolicy: gameState.hedgeChoice,
                 decision: gameState.baselineDecision,
-                taxRegime: gameState.taxRegime,
-                finalDecisionNoFtc: gameState.finalDecision,
-                shockProbability: gameState.shockProb,
+                taxRegime: quick ? null : gameState.taxRegime,
+                finalDecisionNoFtc: quick ? null : gameState.finalDecision,
+                shockProbability: quick ? null : gameState.shockProb,
                 hintsUsed: rec.hints,
                 solutionsShown: rec.revealed.slice(),
                 answersCorrect: { stage2: rec.ok.s2, stage3: rec.ok.s3, stage4: rec.ok.s4 }
@@ -877,23 +896,35 @@
         // ---------- Stage 2 ----------
         function renderStage2() {
             const R = cur(), m = model(R);
-            $('s2-story').innerHTML = `Round ${gameState.round + 1}: ${R.story} Value the project in USD at the parent, first at expected spot rates, then with each year's euro cash flow sold forward. Parent required return ${kr(pct(R.r))}.`;
-            let t = `<thead><tr><th>Year (t)</th><th>Subsidiary FCF (&euro;M)</th><th>Expected spot E[S<sub>t</sub>]</th><th>Forward F<sub>t</sub></th></tr></thead><tbody>`;
-            t += `<tr><td>Year 0 (outlay)</td><td>${num(R.I, 2)}</td><td>S<sub>0</sub> = ${R.S0.toFixed(2)}</td><td>-</td></tr>`;
+            $('s2-title').innerText = fullMode ? 'Stage 2: Parent NPV and the FX Hedge' : 'Stage 2: Parent NPV (Unhedged)';
+            $('s2-story').innerHTML = fullMode
+                ? `Round ${gameState.round + 1}: ${R.story} Value the project in USD at the parent, first at expected spot rates, then with each year's euro cash flow sold forward. Parent required return ${kr(pct(R.r))}.`
+                : `Value the project in USD at the parent. Convert each year's euro cash flow at the expected spot rate, then discount at the parent required return ${kr(pct(R.r))}.`;
+            let t = `<thead><tr><th>Year (t)</th><th>Subsidiary FCF (&euro;M)</th><th>Expected spot E[S<sub>t</sub>]</th>${fullMode ? '<th>Forward F<sub>t</sub></th>' : ''}</tr></thead><tbody>`;
+            t += `<tr><td>Year 0 (outlay)</td><td>${num(R.I, 2)}</td><td>S<sub>0</sub> = ${R.S0.toFixed(2)}</td>${fullMode ? '<td>-</td>' : ''}</tr>`;
             for (let k = 0; k < 3; k++) {
-                t += `<tr><td>Year ${k + 1}</td><td>${kcf(num(R.cf[k], 2))}</td><td>${kfx(R.S[k].toFixed(3).replace(/0$/, ''))}</td><td>${kfx(R.F[k].toFixed(3).replace(/0$/, ''))}</td></tr>`;
+                t += `<tr><td>Year ${k + 1}</td><td>${kcf(num(R.cf[k], 2))}</td><td>${kfx(R.S[k].toFixed(3).replace(/0$/, ''))}</td>${fullMode ? `<td>${kfx(R.F[k].toFixed(3).replace(/0$/, ''))}</td>` : ''}</tr>`;
             }
             t += '</tbody>';
             $('s2-inputs').innerHTML = t;
             $('s2-note').innerHTML = `Year 0 outlay in USD = ${num(R.I, 2)} &times; ${R.S0.toFixed(2)} = ${num(m.out0)}. Rates are USD per 1 EUR.`;
 
             const y1u = R.cf[0] * R.S[0] / (1 + R.r), y1h = R.cf[0] * R.F[0] / (1 + R.r);
-            $('s2-hint1').innerHTML = `<strong>Setup:</strong> NPV = &minus;I &times; S<sub>0</sub> + &Sigma; ${kcf('CF<sub>t</sub>')} &times; ${kfx('FX<sub>t</sub>')} / (1 + ${kr('r')})<sup>t</sup>. Unhedged, ${kfx('FX<sub>t</sub>')} = E[S<sub>t</sub>]. Hedged, ${kfx('FX<sub>t</sub>')} = F<sub>t</sub>. The Year 0 outlay is ${num(R.I, 2)} &times; ${R.S0.toFixed(2)} = ${num(m.out0)}.`;
-            $('s2-hint2').innerHTML = `<strong>Year 1:</strong> unhedged ${kcf(num(R.cf[0], 2))} &times; ${kfx(R.S[0].toString())} / ${kr((1 + R.r).toFixed(2))} = ${num(y1u)}. Hedged ${kcf(num(R.cf[0], 2))} &times; ${kfx(R.F[0].toString())} / ${kr((1 + R.r).toFixed(2))} = ${num(y1h)}. Repeat for Years 2 and 3, dividing by ${kr((1 + R.r).toFixed(2))}<sup>2</sup> and ${kr((1 + R.r).toFixed(2))}<sup>3</sup>. Then subtract ${num(m.out0)}.`;
+            $('s2-hint1').innerHTML = `<strong>Setup:</strong> NPV = &minus;I &times; S<sub>0</sub> + &Sigma; ${kcf('CF<sub>t</sub>')} &times; ${kfx('FX<sub>t</sub>')} / (1 + ${kr('r')})<sup>t</sup>. Unhedged, ${kfx('FX<sub>t</sub>')} = E[S<sub>t</sub>].${fullMode ? ` Hedged, ${kfx('FX<sub>t</sub>')} = F<sub>t</sub>.` : ''} The Year 0 outlay is ${num(R.I, 2)} &times; ${R.S0.toFixed(2)} = ${num(m.out0)}.`;
+            $('s2-hint2').innerHTML = `<strong>Year 1:</strong> unhedged ${kcf(num(R.cf[0], 2))} &times; ${kfx(R.S[0].toString())} / ${kr((1 + R.r).toFixed(2))} = ${num(y1u)}.${fullMode ? ` Hedged ${kcf(num(R.cf[0], 2))} &times; ${kfx(R.F[0].toString())} / ${kr((1 + R.r).toFixed(2))} = ${num(y1h)}.` : ''} Repeat for Years 2 and 3, dividing by ${kr((1 + R.r).toFixed(2))}<sup>2</sup> and ${kr((1 + R.r).toFixed(2))}<sup>3</sup>. Then subtract ${num(m.out0)}.`;
         }
 
         function solutionS2() {
             const R = cur(), m = model(R);
+            if (!fullMode) {
+                let q = `<div class="table-container"><table class="financial-table"><thead><tr><th>Year</th><th>EUR CF</th><th>E[S<sub>t</sub>]</th><th>USD CF</th><th>PV unhedged</th></tr></thead><tbody>`;
+                q += `<tr><td>0</td><td>${num(-R.I, 2)}</td><td>${R.S0.toFixed(2)}</td><td>${num(-m.out0)}</td><td>${moneyCell(-m.out0)}</td></tr>`;
+                for (let k = 0; k < 3; k++) {
+                    q += `<tr><td>${k + 1}</td><td>${kcf(num(R.cf[k], 2))}</td><td>${kfx(R.S[k])}</td><td>${num(R.cf[k] * R.S[k])}</td><td>${moneyCell(m.un.pvs[k])}</td></tr>`;
+                }
+                q += `<tr style="border-top:2px solid var(--cuhk-gold); font-weight:700;"><td>NPV</td><td></td><td></td><td></td><td>${moneyCell(m.un.npv)}</td></tr></tbody></table></div>`;
+                return q;
+            }
             let t = `<div class="table-container"><table class="financial-table"><thead><tr><th>Year</th><th>EUR CF</th><th>E[S<sub>t</sub>]</th><th>PV unhedged</th><th>F<sub>t</sub></th><th>PV hedged</th></tr></thead><tbody>`;
             t += `<tr><td>0</td><td>${num(-R.I, 2)}</td><td>${R.S0.toFixed(2)}</td><td>${moneyCell(-m.out0)}</td><td>${R.S0.toFixed(2)}</td><td>${moneyCell(-m.out0)}</td></tr>`;
             for (let k = 0; k < 3; k++) {
@@ -909,7 +940,8 @@
             const m = model(cur());
             const u = parseNum($('ans-un').value), h = parseNum($('ans-hd').value);
             const okU = Math.abs(u - m.un.npv) <= TOL, okH = Math.abs(h - m.hd.npv) <= TOL;
-            reportCheck('s2', [['unhedged', okU, u], ['hedged', okH, h]], () => revealSolution(2, true));
+            const parts = fullMode ? [['unhedged', okU, u], ['hedged', okH, h]] : [['unhedged', okU, u]];
+            reportCheck('s2', parts, () => revealSolution(2, true));
         }
 
         // ---------- Stage 3 ----------
@@ -954,6 +986,7 @@
             $('s4-regime').innerText = gameState.taxRegime === 'ftc' ? 'Case B (full credit)' : 'Case A (no credit)';
             $('s4-task').innerHTML = `Suppose a total political loss destroys everything after Year 0, so NPV<sub>total loss</sub> = &minus;I &times; S<sub>0</sub> = ${moneyCell(s.loss)}. Find the breakeven probability p* at which the expected NPV is zero, using your no-shock NPV of ${moneyCell(s.npv0)}.`;
             $('s4-hint1').innerHTML = `<strong>Hint:</strong> set (1 &minus; p*) &times; ${num(s.npv0)} + p* &times; (${num(s.loss)}) = 0. This gives p* = NPV / (NPV &minus; NPV<sub>total loss</sub>) = ${num(s.npv0)} / (${num(s.npv0)} + ${num(-s.loss)}). Enter it as a percentage.`;
+            $('btn-finish-early').style.display = gameState.round < ROUNDS.length - 1 ? '' : 'none';
             $('btn-next-round').innerText = gameState.round < ROUNDS.length - 1
                 ? `Next: Round ${gameState.round + 2} with new numbers →`
                 : 'Finish: Proceed to Stage 5 Exit Reflection →';
@@ -1059,14 +1092,40 @@
             }
         }
 
+        // ---------- Mode switches ----------
+        function enterFullMode() {
+            fullMode = true;
+            document.body.classList.remove('quick-mode');
+            renderStage2();
+            if ($('s2-solution').classList.contains('open')) $('s2-solution').innerHTML = solutionS2();
+        }
+
+        function skipToReflection() {
+            roundLog.push(snapshotRound());
+            renderSummary();
+            showStage(5);
+            // Stages 3 and 4 were skipped, so leave them unmarked in the stepper.
+            if (!fullMode) [3, 4].forEach(i => $(`step-${i}`).classList.remove('completed'));
+        }
+
         // ---------- Stage 5 ----------
         function renderSummary() {
             const label = { none: 'Unhedged', forward: 'Forward hedge', accept: 'Accept', reject: 'Reject', no_ftc: 'A: no credit', ftc: 'B: full credit' };
+            if (roundLog.every(r => r.mode === 'quick')) {
+                let q = '<thead><tr><th>Round</th><th>Your unhedged NPV (USD M)</th><th>Decision</th><th>Hints used</th></tr></thead><tbody>';
+                roundLog.forEach(r => {
+                    q += `<tr><td>${r.round}</td><td>${isNaN(parseNum(r.unhedgedNpvAnswer)) ? '-' : num(parseNum(r.unhedgedNpvAnswer))}</td><td>${label[r.decision]}</td><td>${r.hintsUsed}</td></tr>`;
+                });
+                $('s5-summary').innerHTML = q + '</tbody>';
+                $('reflection-prompt').innerText = '"' + currentPrompt() + '"';
+                return;
+            }
             let t = '<thead><tr><th>Round</th><th>FX policy</th><th>Decision</th><th>After shock (Case A)</th><th>Tax case</th><th>Hints used</th></tr></thead><tbody>';
             roundLog.forEach(r => {
-                t += `<tr><td>${r.round}</td><td>${label[r.fxPolicy]}</td><td>${label[r.decision]}</td><td>${label[r.finalDecisionNoFtc]}</td><td>${label[r.taxRegime]}</td><td>${r.hintsUsed}</td></tr>`;
+                t += `<tr><td>${r.round}</td><td>${label[r.fxPolicy]}</td><td>${label[r.decision]}</td><td>${label[r.finalDecisionNoFtc] || '-'}</td><td>${label[r.taxRegime] || '-'}</td><td>${r.hintsUsed}</td></tr>`;
             });
             $('s5-summary').innerHTML = t + '</tbody>';
+            $('reflection-prompt').innerText = '"' + currentPrompt() + '"';
         }
 
         async function submitGameResponse() {
@@ -1083,7 +1142,11 @@
                 const response = FINA3020Utils.recordResponse({
                     mode: 'Project_Committee',
                     targetTab: 'Project_Committee',
-                    question: 'Accept or reject the foreign project and evaluate taxes, FX hedging and shock risk over four rounds.',
+                    question: fullMode
+                        ? 'Accept or reject the foreign project and evaluate taxes, FX hedging and shock risk over four rounds.'
+                        : 'Compute the unhedged parent NPV and accept or reject the foreign project.',
+                    gameMode: fullMode ? 'full' : 'quick',
+                    reflectionPrompt: currentPrompt(),
                     responseText: $('reflection-text').value,
                     activityName: 'Foreign Project Committee',
                     week: 5,
