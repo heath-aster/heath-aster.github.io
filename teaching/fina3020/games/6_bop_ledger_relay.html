@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="css/design_system.css">
     <script src="js/common_utils.js?v=20260925-reliability"></script>
     <style>
+        #btn-retry-game[hidden] { display: none !important; }
         .app-container {
             width: 100%;
             min-height: 100vh;
@@ -277,7 +278,7 @@
                 <h2 class="section-title">Stage 1: Open-Economy Balance Sheet Ledger</h2>
                 <p class="description">
                     Your team is maintaining the national Balance of Payments (BPM6) ledger for a small open economy.
-                    Every single transaction requires <strong>two offsetting entries</strong>: a real/economic leg and a financing leg.
+                    Every single transaction requires <strong>two offsetting entries</strong>: an economic or financial leg and its offsetting financing leg.
                 </p>
 
                 <div class="mobile-stack form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
@@ -433,6 +434,8 @@
                     </div>
                 </div>
 
+                <p class="description">The totals check accounting balance. Check each classification against the transaction: equal credits and debits can also arise from incorrect choices.</p>
+
                 <!-- Live Ledger Summary -->
                 <table class="ledger-summary-table">
                     <thead>
@@ -563,6 +566,7 @@
 
                 <button class="btn btn-secondary" onclick="jumpToStage(3)" style="width:100%; margin-bottom:0.75rem;">&larr; Back to Peg Defense</button>
                 <button class="btn btn-gold" id="btn-submit-game" onclick="submitGameResponse()" style="width:100%;">Submit Participation Response &rarr;</button>
+                <button class="btn btn-secondary" id="btn-retry-game" onclick="retryGameResponse()" hidden style="width:100%; margin-top:0.75rem;">Retry saved response</button>
                 <div id="submission-feedback" style="margin-top:1rem; font-size:0.9rem; text-align:center;"></div>
             </div>
         </main>
@@ -576,6 +580,58 @@
         let currentStage = 1;
         let maxStage = 1;
         const LAST_STAGE = 4;
+        const DRAFT_KEY = 'fina3020_bop_draft_v1';
+        let submissionId = null;
+        let submissionBusy = false;
+
+        function draftFields() {
+            return ['input-student-id', 'input-student-name', 'input-section',
+                ...LEDGER_SELECT_IDS, 'peg-equity', 'peg-private', 'peg-gap', 'peg-reserve', 'reflection-text'];
+        }
+
+        function saveDraft() {
+            FINA3020Storage.setItem(DRAFT_KEY, JSON.stringify({
+                owner: FINA3020Utils.getStudentID(), currentStage, maxStage, submissionId,
+                fields: Object.fromEntries(draftFields().map(id => [id, document.getElementById(id).value]))
+            }));
+        }
+
+        function restoreDraft() {
+            try {
+                const draft = JSON.parse(FINA3020Storage.getItem(DRAFT_KEY) || 'null');
+                if (!draft || draft.owner !== FINA3020Utils.getStudentID()) return;
+                draftFields().forEach(id => {
+                    if (typeof draft.fields?.[id] === 'string') document.getElementById(id).value = draft.fields[id];
+                });
+                maxStage = Number.isInteger(draft.maxStage) ? Math.max(1, Math.min(4, draft.maxStage)) : 1;
+                currentStage = Number.isInteger(draft.currentStage) ? Math.max(1, Math.min(maxStage, draft.currentStage)) : 1;
+                submissionId = typeof draft.submissionId === 'string' ? draft.submissionId : null;
+            } catch (_) { /* A damaged draft can be restarted. */ }
+        }
+
+        function updateSubmissionStatus() {
+            const record = FINA3020Utils._readHistory().find(r => r.submissionId === submissionId);
+            document.getElementById('btn-submit-game').disabled = submissionBusy || !!submissionId;
+            document.getElementById('btn-submit-game').innerText = submissionBusy ? 'Submitting...' : 'Submit Participation Response →';
+            const retry = document.getElementById('btn-retry-game');
+            retry.hidden = !submissionId || !!record?.delivered;
+            retry.disabled = submissionBusy;
+            if (submissionId) {
+                draftFields().forEach(id => document.getElementById(id).disabled = true);
+                document.getElementById('btn-student-id').disabled = true;
+                document.getElementById('submission-feedback').textContent = record?.delivered
+                    ? `Response successfully recorded and receipt verified! (ID: ${record.receiptId})`
+                    : 'Response saved in this tab and queued. Keep this tab open, retry after reconnecting, or export a copy.';
+            }
+        }
+
+        async function retryGameResponse() {
+            if (submissionBusy || !submissionId) return;
+            submissionBusy = true;
+            updateSubmissionStatus();
+            try { await FINA3020Utils.flushPending(); }
+            finally { submissionBusy = false; updateSubmissionStatus(); }
+        }
 
         function refreshIdentityButton() {
             const id = FINA3020Utils.getStudentID();
@@ -610,11 +666,8 @@
                 alert('Enter your full name, valid 10-digit CUHK ID, and section before continuing.');
                 return false;
             }
-            if (!FINA3020Utils.getStudentID()) {
-                alert('Please enter your 10-digit CUHK Student ID, Name, and Section.');
-                return false;
-            }
-            return true;
+            alert('Please enter your 10-digit CUHK Student ID, Name, and Section.');
+            return false;
         }
 
         function showStage(stageNum) {
@@ -629,6 +682,7 @@
                     step.classList.toggle('reachable', i <= maxStage);
                 }
             }
+            saveDraft();
             window.scrollTo(0, 0);
         }
 
@@ -772,16 +826,17 @@
         }
 
         async function submitGameResponse() {
+            if (submissionBusy || submissionId) return;
+            if (!validateCredentials() || !allLedgerEntriesChosen() || !allPegEntriesAnswered()) return;
             const reflection = document.getElementById('reflection-text').value.trim();
             if (!reflection) {
                 alert('Please enter your exit reflection before submitting.');
                 return;
             }
 
-            const btn = document.getElementById('btn-submit-game');
             const feedback = document.getElementById('submission-feedback');
-            btn.disabled = true;
-            btn.innerText = 'Submitting...';
+            submissionBusy = true;
+            updateSubmissionStatus();
 
             try {
                 const response = FINA3020Utils.recordResponse({
@@ -806,20 +861,20 @@
                     reflection: reflection
                 });
 
-                const confirmed = await response.deliveryPromise;
-                feedback.innerHTML = confirmed
-                    ? `<span style="color:var(--success); font-weight:700;">&#10004; Response successfully recorded and receipt verified! (ID: ${response.receiptId})</span>`
-                    : `<span style="color:var(--warning); font-weight:700;">Response saved locally in session. Submission queued.</span>`;
+                submissionId = response.submissionId;
+                saveDraft();
+                updateSubmissionStatus();
+                await response.deliveryPromise;
             } catch (err) {
-                feedback.innerHTML = `<span style="color:var(--danger); font-weight:700;">Error: ${err.message}</span>`;
-                btn.disabled = false;
-                btn.innerText = 'Submit Participation Response &rarr;';
+                feedback.textContent = `Unable to submit: ${err.message}`;
+            } finally {
+                submissionBusy = false;
+                updateSubmissionStatus();
             }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             shuffleLedgerOptions();
-            calculateLedger();
             const studentId = FINA3020Utils.getStudentID();
             const fullName = FINA3020Utils.getFullName();
             const section = FINA3020Utils.getSection();
@@ -829,6 +884,13 @@
                 document.getElementById(id).addEventListener('change', saveStage1Identity));
             if (fullName) document.getElementById('input-student-name').value = fullName;
             if (section) document.getElementById('input-section').value = section;
+            restoreDraft();
+            calculateLedger();
+            showStage(currentStage);
+            updateSubmissionStatus();
+            document.addEventListener('input', saveDraft);
+            document.addEventListener('change', saveDraft);
+            FINA3020Utils.onDeliveryChange(updateSubmissionStatus);
         });
     </script>
 </body>
