@@ -283,12 +283,12 @@
 
                 <div class="mobile-stack form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
                     <div>
-                        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary);">CUHK Student ID(s):</label>
+                        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary);">CUHK Student ID:</label>
                         <input type="text" id="input-student-id" class="input-field" placeholder="e.g. 1155123456" style="width:100%;">
                     </div>
                     <div>
-                        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary);">Full Name(s):</label>
-                        <input type="text" id="input-student-name" class="input-field" placeholder="e.g. Seon LOU; John CHAN" style="width:100%;">
+                        <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary);">Full Name:</label>
+                        <input type="text" id="input-student-name" class="input-field" placeholder="e.g. Seon LOU" style="width:100%;">
                     </div>
                     <div>
                         <label style="display:block; margin-bottom:0.4rem; font-size:0.85rem; color:var(--text-secondary);">Section:</label>
@@ -434,7 +434,7 @@
                     </div>
                 </div>
 
-                <p class="description">The totals check accounting balance. Check each classification against the transaction: equal credits and debits can also arise from incorrect choices.</p>
+                <p class="description">Each transaction posts the same amount as a credit and as a debit, so total credits always equal total debits. This holds for any choices, right or wrong. Use <strong>Check my entries</strong> to test each classification. Each student submits under their own CUHK ID.</p>
 
                 <!-- Live Ledger Summary -->
                 <table class="ledger-summary-table">
@@ -468,6 +468,8 @@
                     </tbody>
                 </table>
 
+                <button class="btn btn-gold" onclick="checkLedger()" style="width:100%; margin-bottom:0.75rem;">Check my entries</button>
+                <div id="ledger-feedback" style="margin-bottom:1rem;"></div>
                 <button class="btn btn-secondary" onclick="jumpToStage(1)" style="width:100%; margin-bottom:0.75rem;">&larr; Back to Transactions</button>
                 <button class="btn btn-primary" onclick="goToStage(3)" style="width:100%;">Lock Baseline Ledger &amp; Trigger Capital Flight Shock &rarr;</button>
             </div>
@@ -768,13 +770,42 @@
             if (!allLedgerEntriesChosen()) {
                 badge.className = 'balance-badge';
                 badge.innerHTML = 'Select all entries';
-            } else if (caNet === faNetOutflow) {
-                badge.className = 'balance-badge balance-ok';
-                badge.innerHTML = '&#10004; Balanced ($0.00)';
             } else {
-                badge.className = 'balance-badge balance-error';
-                badge.innerHTML = `&#10008; CA &minus; FA = ${caNet - faNetOutflow > 0 ? '+' : '-'}$${Math.abs(caNet - faNetOutflow)}M`;
+                badge.className = 'balance-badge balance-ok';
+                badge.innerHTML = '&#10004; Credits = Debits';
             }
+            document.getElementById('ledger-feedback').innerHTML = '';
+        }
+
+        const LEDGER_ANSWERS = {
+            1: { credit: 'ca_export', debit: 'fa_deposit_inc',
+                 why: 'The export is a CA credit. The buyer pays into the firm\'s foreign bank account, so a foreign asset rises: an FA debit.' },
+            2: { credit: 'fa_loan_liab', debit: 'ca_import',
+                 why: 'The loan is the payment. Liabilities to the overseas bank rise: an FA credit. The electronics are a CA import: a debit.' },
+            3: { credit: 'fa_deposit_dec', debit: 'fa_bond_buy',
+                 why: 'One foreign asset replaces another. The deposit falls (FA credit) and bond holdings rise (FA debit). The CA does not change.' },
+            4: { credit: 'ca_primary_income', debit: 'fa_deposit_inc',
+                 why: 'A dividend is primary income, a CA credit. It is paid into a foreign deposit, so a foreign asset rises: an FA debit.' }
+        };
+
+        function checkLedger() {
+            if (!allLedgerEntriesChosen()) {
+                alert('Please choose a credit leg and a debit leg for all four transactions before checking.');
+                return;
+            }
+            const results = [1, 2, 3, 4].map(t => ({
+                t,
+                ok: document.getElementById(`tx${t}-credit`).value === LEDGER_ANSWERS[t].credit &&
+                    document.getElementById(`tx${t}-debit`).value === LEDGER_ANSWERS[t].debit,
+                why: LEDGER_ANSWERS[t].why
+            }));
+            const rows = results.map(r => `<div style="margin-bottom:0.6rem; font-size:0.9rem; line-height:1.5; color:${r.ok ? 'var(--success)' : 'var(--danger)'};">
+                <strong>${r.ok ? '&#10004;' : '&#10008;'} Transaction ${r.t}:</strong>
+                <span style="color:var(--text-secondary);">${r.ok ? r.why : 'Not quite. Ask what the resident received or gave, and how it was paid. Then try again.'}</span></div>`).join('');
+            const summary = results.every(r => r.ok)
+                ? '<div class="tx-card" style="margin-top:0.75rem;"><strong style="color:var(--cuhk-gold-light);">All four transactions are correct.</strong> <span style="color:var(--text-secondary);">CA = 100 &minus; 60 + 10 = +50. The BPM6 FA balance is 140 &minus; 90 = +50, so CA &minus; FA = 0.</span></div>'
+                : '';
+            document.getElementById('ledger-feedback').innerHTML = rows + summary;
         }
 
         const PEG_ANSWERS = {
