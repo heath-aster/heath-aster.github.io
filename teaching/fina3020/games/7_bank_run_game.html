@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Bank Runs: Beliefs and Fundamentals | FINA3020 CUHK</title>
+    <!-- Custom Design System & Shared Utils -->
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js?v=20261004-bank-run"></script>
+    <style>
+        .app-container {
+            width: 100%;
+            min-height: 100vh;
+        }
+
+        .header-inner {
+            max-width: 1050px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .main-content {
+            max-width: 1050px;
+            margin: 2rem auto;
+            padding: 0 1.5rem 3rem 1.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition-smooth);
+            margin-bottom: 2rem;
+        }
+
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .stage-stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            position: relative;
+            background: rgba(19, 24, 34, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            overflow-x: auto;
+        }
+
+        .stepper-step {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            transition: var(--transition-smooth);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .stepper-step.active {
+            color: var(--cuhk-gold-light);
+        }
+
+        .stepper-step.completed {
+            color: var(--success);
+        }
+
+        .step-num {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .stepper-step.active .step-num {
+            background: var(--cuhk-gold);
+            color: #000;
+            border-color: var(--cuhk-gold-light);
+            box-shadow: var(--shadow-gold);
+        }
+
+        .stepper-step.completed .step-num {
+            background: var(--success);
+            color: #000;
+            border-color: var(--success);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: var(--transition-fast);
+        }
+
+        .input-field:focus {
+            border-color: var(--cuhk-gold);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--cuhk-gold-glow);
+        }
+
+        .bs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .bs-card {
+            background: rgba(19, 24, 34, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.25rem;
+        }
+
+        .bs-card.assets {
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .bs-card.liabilities {
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+
+        .bs-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bs-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            font-size: 0.9rem;
+        }
+
+        .bs-row.total {
+            border-bottom: none;
+            border-top: 2px solid var(--border-color);
+            font-weight: 700;
+            margin-top: 0.5rem;
+            padding-top: 0.75rem;
+        }
+
+        .choice-btn-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .btn-choice {
+            background: rgba(30, 41, 59, 0.7);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .btn-choice:hover {
+            transform: translateY(-2px);
+            border-color: var(--cuhk-gold);
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        .btn-choice.selected {
+            border-color: var(--cuhk-gold);
+            background: rgba(224, 168, 0, 0.15);
+            box-shadow: 0 0 15px rgba(224, 168, 0, 0.3);
+        }
+
+        .choice-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .choice-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .signal-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin: 1.5rem 0;
+            text-align: center;
+        }
+
+        .signal-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--cuhk-gold-light);
+        }
+
+        .shock-alert {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .shock-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+
+        .reflection-textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            resize: vertical;
+            min-height: 90px;
+            margin-top: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin: 1.5rem 0;
+            background: rgba(19, 24, 34, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .waiting-box {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow-gold);
+        }
+
+        .timer-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--cuhk-gold-light);
+            text-shadow: 0 0 20px rgba(218, 165, 32, 0.4);
+            margin: 1rem 0;
+        }
+
+        .pulse-dot {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--cuhk-gold);
+            animation: pulse 1.5s infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(218, 165, 32, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(218, 165, 32, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(218, 165, 32, 0); }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(11, 14, 20, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+        }
+
+        .modal-content {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-gold);
+            border-radius: 16px;
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+    </style>
+<link rel="stylesheet" href="css/mobile.css?v=20260909">
+<style>
+    [hidden] { display: none !important; }
+    .stage-stepper { align-items: stretch; padding: .75rem; gap: .5rem; }
+    .stepper-step { border: 0; background: transparent; padding: .5rem; font: inherit; font-size: .9rem; cursor: pointer; }
+    .stepper-step:disabled { cursor: default; opacity: .45; }
+    button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid var(--cuhk-gold-light); outline-offset: 4px; }
+    .btn-choice { color: var(--text-primary); font: inherit; text-align: left; }
+    .btn-choice:disabled { cursor: default; transform: none; }
+    .case-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 1rem; margin: 1.25rem 0; }
+    .case { border: 1px solid var(--border-color); border-radius: 12px; padding: 1.25rem; background: rgba(19,24,34,.7); }
+    .case h3 { font-size: 1.05rem; margin-bottom: .6rem; }
+    .case p, .explanation p, .reference p { line-height: 1.65; margin: .5rem 0; }
+    .actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: 1.25rem 0; }
+    .choice-row { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; }
+    .choice-row .btn-choice { padding: .75rem 1rem; flex: 1; text-align: center; }
+    .explanation { border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1.5rem; color: var(--text-secondary); }
+    .explanation strong, .reference h3 { color: var(--cuhk-gold-light); }
+    .result { padding: 1rem; background: rgba(224,168,0,.08); border-left: 3px solid var(--cuhk-gold); line-height: 1.7; margin-top: 1rem; }
+    .signal-val { font-size: 2.4rem; }
+    .quiet { color: var(--text-secondary); font-size: .9rem; line-height: 1.6; }
+    .compact-table { width: 100%; border-collapse: collapse; min-width: 480px; margin: 1rem 0; }
+    .compact-table th, .compact-table td { padding: .85rem; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+    .compact-table th { color: var(--cuhk-gold-light); }
+    .table-scroll { overflow-x: auto; }
+    .reference { font-size: .95rem; }
+    .reference details { margin: 1rem 0; }
+    .reference summary { cursor: pointer; color: var(--cuhk-gold-light); }
+    .reference a { text-decoration: underline; }
+    #game-message { color: var(--cuhk-gold-light); margin: 1rem 0; }
+    #draft-status { margin: .5rem 0 1rem; }
+    .form-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+    .input-field { box-sizing: border-box; }
+    @media (max-width: 600px) { .card { padding: 1.15rem; } .main-content { padding: 0 .75rem 2rem; } .stage-stepper { justify-content: flex-start; } }
+</style>
+</head>
+<body class="dark-theme">
+<nav class="course-navigation" aria-label="Course games">
+    <a href="./">← Game list</a>
+    <details><summary>Return to this game later</summary><p>Bookmark this page in Safari or Chrome. Your work survives a refresh in this tab when browser storage is available. Keep the tab open until your reflection has a receipt, or export a copy.</p></details>
+</nav>
+<div class="app-container">
+<header class="app-header"><div class="header-inner">
+    <div class="brand-section"><span class="cuhk-badge">CUHK FINA3020</span><div>
+        <h1 class="app-title">Week 7: Bank Runs</h1>
+        <p class="app-subtitle">Beliefs, fundamentals, and bank failure</p>
+    </div></div>
+    <div class="header-actions"><button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export my responses</button></div>
+</div></header>
+<main class="main-content">
+    <nav class="stage-stepper" aria-label="Game stages">
+        <button class="stepper-step active" id="step-1" onclick="jumpToStage(1)"><span class="step-num">1</span>Setup</button>
+        <button class="stepper-step" id="step-2" onclick="jumpToStage(2)" disabled><span class="step-num">2</span>Diamond–Dybvig</button>
+        <button class="stepper-step" id="step-3" onclick="jumpToStage(3)" disabled><span class="step-num">3</span>Goldstein–Pauzner</button>
+        <button class="stepper-step" id="step-4" onclick="jumpToStage(4)" disabled><span class="step-num">4</span>Runs and failures</button>
+        <button class="stepper-step" id="step-5" onclick="jumpToStage(5)" disabled><span class="step-num">5</span>Reflection</button>
+    </nav>
+    <p class="quiet" id="draft-status" role="status"></p>
+    <p id="game-message" role="alert"></p>
+
+    <section id="stage-1-panel" class="card">
+        <h2 class="card-title">Setup: you can wait, but will you?</h2>
+        <p class="section-desc">You deposited $1. You can wait until the bank’s loans mature, or join the early withdrawal queue. Compare what happens when beliefs change and when loans lose value.</p>
+        <div class="form-grid">
+            <div class="form-group"><label for="cuhk-id">Your 10-digit CUHK ID</label><input id="cuhk-id" class="input-field" inputmode="numeric" maxlength="10" autocomplete="off" placeholder="1155123456"></div>
+            <div class="form-group"><label for="student-name">Your full name</label><input id="student-name" class="input-field" maxlength="160" autocomplete="name" placeholder="Given name SURNAME"></div>
+            <div class="form-group"><label for="student-section">Section</label><select id="student-section" class="input-field"><option value="">Choose section</option><option>A</option><option>B</option><option>C</option></select></div>
+        </div>
+        <div class="case-grid">
+            <div class="case"><h3>The bank</h3><p>100 depositors put in $1 each. The bank invests the $100 in long-term loans.</p><p>Selling $1 of loans early raises <strong>$0.90</strong>. In the first exercise, holding it to maturity returns <strong>$1.50</strong>.</p></div>
+            <div class="case"><h3>The deposit contract</h3><p>30 depositors need cash now. The other 70, including you, can wait.</p><p>The bank promises <strong>$1 now</strong> or <strong>$1.40 at maturity</strong>. Payments depend on the assets available.</p></div>
+        </div>
+        <p class="quiet">About 10 minutes. Other depositors are simulated. Decisions and results appear immediately; only your final reflection needs an internet connection. You can revisit any unlocked tab.</p>
+        <div class="actions"><button class="btn btn-gold" onclick="goToStage(2)">Start the comparison →</button></div>
+        <div class="explanation"><strong>Why banks are vulnerable</strong><p>Depositors can ask for cash before loans mature. Early withdrawals force the bank to sell loans and give up future income. This exercise uses a simplified contract to show that mechanism.</p></div>
+    </section>
+
+    <section id="stage-2-panel" class="card" hidden>
+        <h2 class="card-title">Diamond–Dybvig: same assets, different expectations</h2>
+        <p class="section-desc">The loans pay $1.50 at maturity in both cases. Choose what to do when you expect the other patient depositors to wait, then when you expect them to run.</p>
+        <div class="case-grid" id="dd-cases"></div>
+        <div class="actions"><button class="btn btn-gold" id="reveal-dd" onclick="revealDD()">Compare the outcomes</button></div>
+        <div id="dd-results" hidden></div>
+        <div class="actions"><button class="btn btn-secondary" onclick="jumpToStage(1)">← Setup</button><button class="btn btn-gold" id="dd-next" onclick="goToStage(3)" disabled>Next: private signals →</button></div>
+        <div class="explanation"><strong>The idea</strong><p>Waiting is attractive when others wait. Running is attractive when others run. Diamond–Dybvig shows how both outcomes can be equilibria with the same fundamentals.</p><p>A withdrawing depositor joins a random queue. If the bank runs out of assets, some receive nothing. The game reports the average payment across queue positions.</p></div>
+    </section>
+
+    <section id="stage-3-panel" class="card" hidden>
+        <h2 class="card-title">Goldstein–Pauzner: what does your signal tell you?</h2>
+        <p class="section-desc">Now loan quality varies. You see a signal, x = θ + noise, about the bank’s true strength θ. A higher number means stronger loans. Your signal also gives you a clue about what other depositors may have seen.</p>
+        <p class="quiet">Three fixed practice cases with simulated depositors. Signals have errors of up to 10 points. Other patient depositors withdraw below 70 and wait at 70 or above. We assume this rule for the exercise; the paper derives its equilibrium cutoff.</p>
+        <div class="case-grid" id="gp-cases"></div>
+        <div class="actions"><button class="btn btn-gold" id="reveal-gp" onclick="revealGP()">Reveal loan quality and outcomes</button></div>
+        <div id="gp-results" hidden></div>
+        <div class="actions"><button class="btn btn-secondary" onclick="jumpToStage(2)">← Diamond–Dybvig</button><button class="btn btn-gold" id="gp-next" onclick="goToStage(4)" disabled>Next: runs and bank failures →</button></div>
+        <div class="explanation"><strong>What changes?</strong><p>Both models have a coordination problem. Goldstein–Pauzner adds noisy private information about fundamentals. Under their assumptions, this selects a unique equilibrium with a signal cutoff: withdraw below it and wait above it.</p><p>A low signal suggests weaker loans and more withdrawals by others. Runs can still force costly liquidation at a bank that could repay if patient depositors waited.</p></div>
+    </section>
+
+    <section id="stage-4-panel" class="card" hidden>
+        <h2 class="card-title">A run and a bank failure are different events</h2>
+        <p class="section-desc">Click each case. Separate the quality of the loans from the pressure to pay depositors now.</p>
+        <div class="actions" id="evidence-buttons"></div>
+        <div id="evidence-result" class="result" aria-live="polite"></div>
+        <p class="quiet" id="evidence-progress"></p>
+        <div class="case" style="margin-top:1.5rem;"><h3>What does Verner’s research find?</h3>
+            <p>Correia, Luck, and Verner find that bank failures are strongly linked to weak fundamentals. Their historical evidence also shows runs on strong banks, which often survive through support from other banks, signals of strength, or temporary suspension.</p>
+            <p>Baron, Verner, and Xiong find severe banking distress even without panics. Asset losses and runs deserve separate attention.</p>
+            <p class="quiet">This evidence helps judge which mechanisms matter in practice. It does not by itself establish the specific equilibrium-selection mechanism in Goldstein–Pauzner.</p>
+        </div>
+        <div class="actions"><button class="btn btn-secondary" onclick="jumpToStage(3)">← Private signals</button><button class="btn btn-gold" id="evidence-next" onclick="goToStage(5)" disabled>Write your reflection →</button></div>
+        <div class="explanation"><strong>The distinction</strong><p><strong>Liquidity:</strong> can the bank pay now? <strong>Solvency:</strong> are its assets worth enough to cover what it owes? A loan can bridge a cash shortage. It also has to be repaid, so it does not replace lost capital.</p></div>
+    </section>
+
+    <section id="stage-5-panel" class="card" hidden>
+        <h2 class="card-title">Your reflection</h2>
+        <div id="choice-summary" class="table-scroll"></div>
+        <label for="exit-reflection">In 2–3 sentences, explain how Diamond–Dybvig and Goldstein–Pauzner differ. How does Verner’s evidence change the way you interpret a bank run?</label>
+        <textarea id="exit-reflection" class="reflection-textarea" maxlength="5000" placeholder="Use one result from the game to support your explanation." style="margin-top:1rem;"></textarea>
+        <div class="actions"><button class="btn btn-secondary" onclick="jumpToStage(4)">← Runs and failures</button><button class="btn btn-gold" id="btn-submit-game" onclick="submitFinalResponse()">Submit participation</button><button class="btn btn-secondary" id="retry-submission" onclick="retrySubmission()" hidden>Retry saved response</button></div>
+        <p id="submission-feedback" role="status" aria-live="polite"></p>
+        <div class="explanation"><strong>Before you finish</strong><p>Review your choices using the tabs above. Submission saves your choices and full reflection together. Keep this tab open until you see a receipt. If the connection fails, retry or export your response.</p></div>
+    </section>
+
+    <section class="card reference" aria-label="Explanation and sources">
+        <h2 class="card-title">Keep these ideas in mind</h2>
+        <div class="case-grid">
+            <div><h3>Diamond–Dybvig</h3><p>The same bank can have a waiting equilibrium and a run equilibrium. Expectations about others’ withdrawals matter.</p></div>
+            <div><h3>Goldstein–Pauzner</h3><p>Private signals link beliefs to fundamentals. Under the model’s assumptions, a unique equilibrium determines the withdrawal cutoff and run risk.</p></div>
+            <div><h3>Verner and coauthors</h3><p>Weak fundamentals help explain failures. A run can amplify distress; observing a run alone does not reveal what caused the bank’s problems.</p></div>
+        </div>
+        <details><summary>How the payments are calculated</summary>
+            <p>The bank starts with $100 in loans and no cash. Let n be the number of early withdrawals. It sells n ÷ 0.90 of loans, up to its total of $100. Early claimants receive up to $1 each in random order.</p>
+            <p>The average early payment is min(1, 90 ÷ n). Remaining loans pay R at maturity. Each waiting depositor receives min(1.40, remaining loans × R ÷ number waiting). Surplus belongs to the bank’s owners.</p>
+            <p>In the first exercise, R = 1.50. In the signal exercise, R = 0.90 + 0.006 × θ. The 69 simulated patient peers have evenly spaced signal errors between −10 and +10. Another 30 depositors always need cash early. Your choice determines the final withdrawal count.</p>
+            <p>The signal cutoff of 70 is a teaching assumption, not an estimated or solved Goldstein–Pauzner cutoff. A signal cutoff and a bank’s cash limit measure different things. These finite examples illustrate incentives; the original papers derive equilibrium under fuller assumptions.</p>
+            <p>The support case uses an idealized loan at zero interest, secured by the full maturity value of the assets. The bank repays the lender before paying waiting depositors. Actual lenders may lend less against the same assets.</p>
+        </details>
+        <details><summary>Research behind the game</summary>
+            <p><a href="https://doi.org/10.1086/261155" target="_blank" rel="noopener noreferrer">Diamond and Dybvig (1983), Bank Runs, Deposit Insurance, and Liquidity</a>.</p>
+            <p><a href="https://doi.org/10.1111/j.1540-6261.2005.00762.x" target="_blank" rel="noopener noreferrer">Goldstein and Pauzner (2005), Demand–Deposit Contracts and the Probability of Bank Runs</a>.</p>
+            <p><a href="https://arxiv.org/abs/2506.06082" target="_blank" rel="noopener noreferrer">Correia, Luck, and Verner, Failing Banks</a>; <a href="https://arxiv.org/abs/2601.20285v3" target="_blank" rel="noopener noreferrer">Bank Runs With and Without Bank Failure (July 2026)</a>.</p>
+            <p><a href="https://www.nber.org/papers/w26908" target="_blank" rel="noopener noreferrer">Baron, Verner, and Xiong, Banking Crises without Panics</a>.</p>
+        </details>
+    </section>
+</main>
+</div>
+<script>
+'use strict';
+const VERSION = '2026-10-04-bank-run-v2';
+const DRAFT_KEY = 'fina3020_bankrun_v2';
+const $ = id => document.getElementById(id);
+const GP_CASES = [
+    {id:'strong', name:'Bank A', theta:95, signal:99},
+    {id:'middle', name:'Bank B', theta:65, signal:69},
+    {id:'weak', name:'Bank C', theta:10, signal:6}
+];
+const EVIDENCE = [
+    {name:'Sound loans · no run', theta:100, n:30, support:false, text:'Only the 30 people who need cash withdraw. The bank sells one-third of its loans for $30. The rest pay $100 at maturity, covering the $98 promised to the 70 people who wait.'},
+    {name:'Sound loans · run', theta:100, n:100, support:false, text:'Everyone demands cash. Selling all loans raises $90, so 90 depositors receive $1 and 10 receive nothing. The same loans could have supported the waiting outcome. Early liquidation causes the loss.'},
+    {name:'Weak loans · no run', theta:0, n:30, support:false, text:'Only the 30 people who need cash withdraw. Even so, the remaining loans pay just $60 at maturity, below the $70 principal owed to those who wait. Asset losses cause a shortfall without a run.'},
+    {name:'Sound loans · run with support', theta:100, n:100, support:true, text:'An emergency lender advances $100 against loans worth $150 at maturity. All depositors receive $1 now. When the loans mature, the bank repays the lender. Support prevents forced sales in this example.'}
+];
+let state = {version:VERSION, stage:1, maxStage:1, identity:{id:'',name:'',section:''}, dd:{calm:null,run:null}, gp:{strong:null,middle:null,weak:null}, ddRevealed:false, gpRevealed:false, evidence:0, evidenceSeen:[], reflection:'', submissionId:null};
+let submitting = false;
+function money(x) { return '$' + x.toFixed(2); }
+function say(message) { $('game-message').textContent = message; }
+// All displayed payments and saved results use this budget-feasible balance sheet.
+function bankOutcome(theta, early, support=false) {
+    if (!Number.isFinite(theta) || theta<0 || theta>100 || !Number.isInteger(early) || early<0 || early>100) throw Error('Invalid bank scenario');
+    const R = .90 + .006 * theta, waiting = 100-early;
+    let sold, loan, earlyPaid, maturity;
+    if (support) {
+        loan = Math.min(early, 100*R);
+        sold = 0;
+        earlyPaid = loan;
+        maturity = Math.max(0,100*R-loan);
+    } else {
+        loan = 0;
+        sold = Math.min(100,early/.9);
+        earlyPaid = Math.min(early,90);
+        maturity = Math.max(0,(100-sold)*R);
+    }
+    const latePay = waiting ? Math.min(1.4,maturity/waiting) : 0;
+    const earlyPay = early ? earlyPaid/early : 0;
+    return {theta,R,early,waiting,sold,loan,earlyPaid,maturity,earlyPay,latePay,
+        latePaid:latePay*waiting, surplus:Math.max(0,maturity-latePay*waiting),
+        promisesMet: earlyPaid >= early-1e-8 && (!waiting || latePay>=1.4-1e-8),
+        principalCovered:earlyPaid>=early-1e-8 && (!waiting || latePay>=1-1e-8),
+        patientRun:early>30};
+}
+function peerWithdrawals(theta) {
+    return Array.from({length:69},(_,i)=>theta-10+(i+.5)*20/69).filter(x=>x<70).length;
+}
+function decisionOutcome(theta, otherEarly, choice) {
+    const result=bankOutcome(theta,otherEarly+(choice==='withdraw'?1:0));
+    return {...result, choice, payoff:choice==='withdraw'?result.earlyPay:result.latePay};
+}
+function choiceButtons(group,id) {
+    return '<div class="choice-row">'+['hold','withdraw'].map(choice=>
+        `<button class="btn-choice" id="${group}-${id}-${choice}" aria-pressed="false" onclick="choose('${group}','${id}','${choice}')">${choice==='hold'?'Wait':'Withdraw'}</button>`).join('')+'</div>';
+}
+function buildCases() {
+    $('dd-cases').innerHTML=[['calm','Others wait','The 30 early consumers withdraw. All 69 other patient depositors wait.'],['run','Others run','The 30 early consumers and all 69 other patient depositors withdraw.']].map(([id,title,text])=>
+        `<article class="case"><h3>${title}</h3><p>${text}</p>${choiceButtons('dd',id)}</article>`).join('');
+    $('gp-cases').innerHTML=GP_CASES.map(c=>`<article class="case"><h3>${c.name}</h3><p>Your signal</p><div class="signal-val">${c.signal}</div><p class="quiet">Possible true strength: ${Math.max(0,c.signal-10)}–${Math.min(100,c.signal+10)} out of 100.</p>${choiceButtons('gp',c.id)}</article>`).join('');
+    $('evidence-buttons').innerHTML=EVIDENCE.map((c,i)=>`<button class="btn btn-secondary" id="evidence-${i}" onclick="selectEvidence(${i})" aria-pressed="false">${c.name}</button>`).join('');
+}
+function complete(group) { return Object.values(state[group]).every(c=>c==='hold'||c==='withdraw'); }
+function choose(group,id,choice) {
+    if(state.submissionId || !['dd','gp'].includes(group) || !(id in state[group]) || !['hold','withdraw'].includes(choice)) return;
+    state[group][id]=choice;
+    saveDraft(); render(); say('');
+}
+function revealDD() {
+    if(!complete('dd')) { say('Choose Wait or Withdraw in both cases first.'); return; }
+    state.ddRevealed=true; saveDraft(); render(); say('');
+}
+function revealGP() {
+    if(!complete('gp')) { say('Choose Wait or Withdraw for each bank first.'); return; }
+    state.gpRevealed=true; saveDraft(); render(); say('');
+}
+function validateIdentity() {
+    const id=$('cuhk-id').value.trim(), name=$('student-name').value.trim(), section=$('student-section').value;
+    if(!FINA3020Utils.setStudentCredentials(id,name,section)) { say('Enter your name, one 10-digit CUHK ID, and section.'); return false; }
+    state.identity={id:FINA3020Utils.getStudentID(),name,section}; return true;
+}
+function canEnter(n) {
+    if(n>=2 && !validateIdentity()) return false;
+    if(n>=3 && (!state.ddRevealed || !complete('dd'))) { say('Compare both Diamond–Dybvig cases first.'); return false; }
+    if(n>=4 && (!state.gpRevealed || !complete('gp'))) { say('Reveal the three signal cases first.'); return false; }
+    if(n>=5 && state.evidenceSeen.length<4) { say('Open all four runs-and-failures cases first.'); return false; }
+    return true;
+}
+function goToStage(n) {
+    if(!Number.isInteger(n) || n<1 || n>5 || !canEnter(n)) return;
+    state.stage=n; state.maxStage=Math.max(n,state.maxStage);
+    if(n===4 && !state.evidenceSeen.includes(state.evidence)) state.evidenceSeen.push(state.evidence);
+    say(''); saveDraft(); render(); window.scrollTo?.({top:0,behavior:'smooth'});
+}
+function jumpToStage(n) {
+    if(n<1 || n>state.maxStage) return;
+    if(n>state.stage && !canEnter(n)) return;
+    state.stage=n; say(''); saveDraft(); render(); window.scrollTo?.({top:0,behavior:'smooth'});
+}
+function selectEvidence(i) {
+    if(!EVIDENCE[i]) return;
+    state.evidence=i;
+    if(!state.evidenceSeen.includes(i)) state.evidenceSeen.push(i);
+    saveDraft(); render();
+}
+function table(headers,rows) { return '<div class="table-scroll"><table class="compact-table"><thead><tr>'+headers.map(h=>'<th scope="col">'+h+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(v=>'<td>'+v+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'; }
+function renderDD() {
+    const rows=[['calm','Others wait',30],['run','Others run',99]].map(([id,name,n])=>{
+        const hold=decisionOutcome(100,n,'hold'), withdraw=decisionOutcome(100,n,'withdraw');
+        return [name,money(hold.payoff),money(withdraw.payoff),(state.dd[id]==='hold'?'Wait':'Withdraw')+' → '+money(state.dd[id]==='hold'?hold.payoff:withdraw.payoff)];
+    });
+    $('dd-results').innerHTML=table(['Case','If you wait','If you withdraw (average)','Your choice'],rows)+'<p class="result">The loans are unchanged. When others wait, you receive $1.40 by waiting. When others run, waiting leaves you with $0; joining the queue pays $0.90 on average.</p>';
+}
+function renderGP() {
+    $('gp-results').innerHTML='<div class="case-grid">'+GP_CASES.map(c=>{
+        const peers=peerWithdrawals(c.theta), r=decisionOutcome(c.theta,30+peers,state.gp[c.id]);
+        const wait=decisionOutcome(c.theta,30+peers,'hold'), normal=bankOutcome(c.theta,30);
+        return '<article class="case"><h3>'+c.name+' · true strength '+c.theta+'</h3><p>Each $1 of loans pays '+money(r.R)+' at maturity.</p><p><strong>'+r.early+' of 100 withdraw early.</strong></p><p>Your choice: '+label(state.gp[c.id])+' → <strong>'+money(r.payoff)+'</strong>'+(state.gp[c.id]==='withdraw'?' on average':'')+'</p><p>If you wait:<br>'+money(normal.latePay)+' with only normal cash needs.<br>'+money(wait.payoff)+' with these simulated peers.</p><p class="quiet">'+(r.promisesMet?'All promised payments are met.':r.principalCovered?'The bank repays principal, but less interest than promised.':'Some depositors lose part of their principal.')+'</p></article>';
+    }).join('')+'</div><p class="result">A signal estimates loan quality. It also helps you predict others’ withdrawals. Bank B shows how withdrawals amplify asset losses: waiting pays $1.23 with normal cash needs, but only $0.64 when the simulated peers run.</p>';
+}
+function renderEvidence() {
+    const c=EVIDENCE[state.evidence], r=bankOutcome(c.theta,c.n,c.support);
+    $('evidence-result').innerHTML='<h3>'+c.name+'</h3><p>'+c.text+'</p>'+table(['Patient depositors run?','Promised payments met?','Early payment (average)','Payment to each depositor who waits'],[[r.patientRun?'Yes':'No',r.promisesMet?'Yes':'No',money(r.earlyPay),r.waiting?money(r.latePay):'Everyone withdraws early']]);
+    $('evidence-progress').textContent=state.evidenceSeen.length+' of 4 cases explored.';
+    EVIDENCE.forEach((c,i)=>{ $('evidence-'+i).setAttribute('aria-pressed',String(state.evidence===i)); $('evidence-'+i).classList.toggle('btn-gold',state.evidence===i); });
+}
+function render() {
+    for(let i=1;i<=5;i++) {
+        $('stage-'+i+'-panel').hidden=i!==state.stage;
+        const b=$('step-'+i); b.disabled=i>state.maxStage;
+        b.className='stepper-step'+(i===state.stage?' active':i<=state.maxStage?' completed':'');
+        if(i===state.stage) b.setAttribute('aria-current','step'); else b.removeAttribute('aria-current');
+    }
+    for(const group of ['dd','gp']) for(const id of Object.keys(state[group])) for(const c of ['hold','withdraw']) {
+        const b=$(group+'-'+id+'-'+c); b.disabled=!!state.submissionId;
+        b.classList.toggle('selected',state[group][id]===c); b.setAttribute('aria-pressed',String(state[group][id]===c));
+    }
+    $('dd-results').hidden=!state.ddRevealed; $('gp-results').hidden=!state.gpRevealed;
+    $('dd-next').disabled=!state.ddRevealed; $('gp-next').disabled=!state.gpRevealed;
+    $('evidence-next').disabled=state.evidenceSeen.length<4;
+    if(state.ddRevealed) renderDD(); if(state.gpRevealed) renderGP(); renderEvidence();
+    if(state.stage===5) $('choice-summary').innerHTML=table(['Exercise','Your choices'],[['Diamond–Dybvig','Others wait: '+label(state.dd.calm)+'; others run: '+label(state.dd.run)],['Private signals',GP_CASES.map(c=>c.name+': '+label(state.gp[c.id])).join('; ')]]);
+    for(const id of ['cuhk-id','student-name','student-section','exit-reflection']) $(id).disabled=!!state.submissionId;
+    $('reveal-dd').disabled=!!state.submissionId; $('reveal-gp').disabled=!!state.submissionId;
+    renderReceipt();
+}
+function label(c) { return c==='hold'?'Wait':c==='withdraw'?'Withdraw':'—'; }
+function saveDraft() {
+    state.reflection=$('exit-reflection').value;
+    state.identity={id:$('cuhk-id').value,name:$('student-name').value,section:$('student-section').value};
+    FINA3020Storage.setItem(DRAFT_KEY,JSON.stringify(state));
+    $('draft-status').textContent=FINA3020Storage.available?'Progress is saved in this tab. Click an unlocked tab to go back.':'Browser storage is unavailable. Keep this tab open and export your response before leaving.';
+}
+function restoreDraft() {
+    try {
+        const saved=JSON.parse(FINA3020Storage.getItem(DRAFT_KEY)||'null');
+        if(saved && saved.version===VERSION) {
+            if(saved.identity && typeof saved.identity==='object') state.identity={id:String(saved.identity.id||''),name:String(saved.identity.name||''),section:String(saved.identity.section||'')};
+            for(const group of ['dd','gp']) for(const id of Object.keys(state[group])) if(['hold','withdraw'].includes(saved[group]?.[id])) state[group][id]=saved[group][id];
+            state.ddRevealed=saved.ddRevealed===true && complete('dd'); state.gpRevealed=saved.gpRevealed===true && complete('gp') && state.ddRevealed;
+            state.evidenceSeen=Array.isArray(saved.evidenceSeen)?[...new Set(saved.evidenceSeen.filter(i=>Number.isInteger(i)&&i>=0&&i<4))]:[];
+            state.evidence=Number.isInteger(saved.evidence)&&saved.evidence>=0&&saved.evidence<4?saved.evidence:0;
+            state.reflection=typeof saved.reflection==='string'?saved.reflection:'';
+            const permitted=state.gpRevealed?(state.evidenceSeen.length===4?5:4):state.ddRevealed?3:2;
+            state.maxStage=Math.max(1,Math.min(Number.isInteger(saved.maxStage)?saved.maxStage:1,permitted));
+            state.stage=Math.max(1,Math.min(Number.isInteger(saved.stage)?saved.stage:1,state.maxStage));
+            state.submissionId=typeof saved.submissionId==='string'?saved.submissionId:null;
+        }
+    } catch (_) { say('The saved draft could not be read. You can start again.'); }
+    // Recover a receipt even if navigation interrupted the save just after recording.
+    const records=FINA3020Utils._readHistory().filter(r=>r.targetTab==='Bank_Run' && r.activityVersion===VERSION && r.studentId===state.identity.id);
+    if(!state.submissionId && records.length) {
+        const record=records[records.length-1]; state.submissionId=record.submissionId;
+        state.reflection=record.responseText; state.dd={...record.ddChoices}; state.gp={...record.gpChoices};
+        state.ddRevealed=true; state.gpRevealed=true; state.evidenceSeen=[0,1,2,3]; state.stage=state.maxStage=5;
+    }
+    $('cuhk-id').value=state.identity.id||FINA3020Utils.getStudentID();
+    $('student-name').value=state.identity.name||FINA3020Utils.getFullName();
+    $('student-section').value=state.identity.section||FINA3020Utils.getSection();
+    $('exit-reflection').value=state.reflection;
+}
+function renderReceipt() {
+    const entry=state.submissionId?FINA3020Utils._readHistory().find(r=>r.submissionId===state.submissionId):null;
+    $('btn-submit-game').disabled=submitting||!!state.submissionId;
+    $('retry-submission').hidden=!state.submissionId||!!entry?.delivered;
+    $('retry-submission').disabled=submitting;
+    if(entry?.delivered) $('submission-feedback').textContent='Saved. Receipt: '+entry.receiptId+'. You can now close this tab.';
+    else if(state.submissionId) $('submission-feedback').textContent=submitting?'Sending your saved response. You can still review the game.':'Your response is saved in this tab and queued. Keep the tab open, retry after reconnecting, or export a copy.';
+}
+async function submitFinalResponse() {
+    if(submitting||state.submissionId) return;
+    if(!canEnter(5)) return;
+    const raw=$('exit-reflection').value;
+    if(!raw.trim()) { say('Write your reflection before submitting.'); return; }
+    submitting=true; say(''); renderReceipt();
+    try {
+        const response=FINA3020Utils.recordResponse({
+            mode:'Bank_Run_Game', targetTab:'Bank_Run', activityName:'Bank Run Game', activityVersion:VERSION, week:7, recordType:'final',
+            question:'How do Diamond–Dybvig and Goldstein–Pauzner differ, and how does Verner’s evidence affect your interpretation of a bank run?',
+            responseText:raw, reflection:raw,
+            ddChoices:{...state.dd}, gpChoices:{...state.gp}, evidenceSeen:[...state.evidenceSeen],
+            ddResults:[decisionOutcome(100,30,state.dd.calm),decisionOutcome(100,99,state.dd.run)],
+            gpResults:GP_CASES.map(c=>({...c,...decisionOutcome(c.theta,30+peerWithdrawals(c.theta),state.gp[c.id])})),
+            simulation:{depositors:100,earlyConsumers:30,liquidationValue:.9,promisedEarly:1,promisedLate:1.4,peerSignalCutoff:70,noiseHalfWidth:10,liveClassData:false}
+        });
+        state.submissionId=response.submissionId; saveDraft(); render();
+        await response.deliveryPromise;
+    } catch(err) { $('submission-feedback').textContent='Unable to submit: '+err.message; }
+    finally { submitting=false; renderReceipt(); }
+}
+async function retrySubmission() {
+    if(submitting||!state.submissionId) return;
+    submitting=true; renderReceipt();
+    try { await FINA3020Utils.flushPending(); }
+    finally { submitting=false; renderReceipt(); }
+}
+document.addEventListener('DOMContentLoaded',()=>{
+    buildCases(); restoreDraft(); render(); saveDraft();
+    for(const id of ['cuhk-id','student-name','student-section','exit-reflection']) $(id).addEventListener('input',saveDraft);
+    FINA3020Utils.onDeliveryChange(()=>renderReceipt());
+});
+</script>
+</body>
+</html>
