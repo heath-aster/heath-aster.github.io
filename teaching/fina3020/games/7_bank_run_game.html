@@ -531,7 +531,8 @@ const EVIDENCE = [
 let state = {version:VERSION, stage:1, maxStage:1, identity:{id:'',name:'',section:''}, dd:{calm:null,run:null}, gp:{strong:null,middle:null,weak:null}, ddRevealed:false, gpRevealed:false, evidence:0, evidenceSeen:[], reflection:'', submissionId:null};
 let submitting = false;
 function money(x) { return '$' + x.toFixed(2); }
-function say(message) { $('game-message').textContent = message; }
+// Scroll the warning into view; it sits above the panels and is off-screen near the buttons.
+function say(message) { $('game-message').textContent = message; if(message) $('game-message').scrollIntoView?.({behavior:'smooth',block:'center'}); }
 // All displayed payments and saved results use this budget-feasible balance sheet.
 function bankOutcome(theta, early, support=false) {
     if (!Number.isFinite(theta) || theta<0 || theta>100 || !Number.isInteger(early) || early<0 || early>100) throw Error('Invalid bank scenario');
