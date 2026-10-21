@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <meta name="referrer" content="no-referrer">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src https://script.google.com https://script.googleusercontent.com; object-src 'none'; base-uri 'none'; form-action 'self'; frame-src 'none'; worker-src 'none'">
+    <title>Week 8: Project and Funding Committee | FINA3020 CUHK</title>
+    <link rel="stylesheet" href="css/design_system.css">
+    <script src="js/common_utils.js?v=20261004-games"></script>
+    <style>
+        .app-container { width: 100%; min-height: 100vh; }
+        .header-inner { max-width: 1050px; margin: 0 auto; width: 100%; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .main-content { max-width: 1050px; margin: 2rem auto; padding: 0 1.5rem 3rem 1.5rem; width: 100%; box-sizing: border-box; }
+        .glass-panel { background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 16px; padding: 2rem; box-shadow: var(--shadow-md); margin-bottom: 2rem; }
+        .stage-stepper { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 2rem; background: rgba(19, 24, 34, 0.85); border: 1px solid var(--border-color); border-radius: 12px; padding: 1rem 1.25rem; overflow-x: auto; }
+        .stepper-step { display: flex; align-items: center; gap: 0.5rem; font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); transition: var(--transition-smooth); white-space: nowrap; flex-shrink: 0; }
+        .stepper-step.active { color: var(--cuhk-gold-light); }
+        .stepper-step.completed { color: var(--success); }
+        .step-num { width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; }
+        .stepper-step.active .step-num { background: var(--cuhk-gold); color: #000; border-color: var(--cuhk-gold-light); box-shadow: var(--shadow-gold); }
+        .stepper-step.completed .step-num { background: var(--success); color: #000; border-color: var(--success); }
+        .choice-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1rem 0; }
+        .choice-card { background: rgba(19, 24, 34, 0.9); border: 2px solid var(--border-color); border-radius: 12px; padding: 1.1rem 1.25rem; cursor: pointer; transition: var(--transition-smooth); text-align: left; color: var(--text-primary); display: flex; flex-direction: column; gap: 0.35rem; }
+        .choice-card:hover { border-color: var(--cuhk-gold); transform: translateY(-2px); }
+        .choice-card.selected { border-color: var(--cuhk-gold); background: rgba(218, 165, 32, 0.08); box-shadow: var(--shadow-gold); }
+        .answer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin: 1rem 0; }
+        .check-result { margin: 0.5rem 0 1rem; font-size: 0.95rem; }
+        .check-result.ok { color: var(--success); }
+        .check-result.no { color: #fca5a5; }
+        .solution { display: none; margin: 0.5rem 0 1rem; }
+        .solution.shown { display: block; }
+        .shock-alert { background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+        .shock-title { font-family: 'Outfit', sans-serif; font-weight: 700; color: #ef4444; font-size: 1.1rem; margin-bottom: 0.4rem; }
+        h3.sub { font-family: 'Outfit', sans-serif; font-size: 1.05rem; margin: 1.5rem 0 0.25rem; }
+        td.num, th.num { text-align: right; font-family: 'JetBrains Mono', monospace; }
+    </style>
+<link rel="stylesheet" href="css/numeric_controls.css?v=20260909">
+<script src="js/numeric_controls.js?v=20260909" defer></script>
+<link rel="stylesheet" href="css/mobile.css?v=20260909">
+<link rel="stylesheet" href="css/game_session.css?v=20261004">
+<script src="js/game_session.js?v=20261004"></script>
+</head>
+<body class="dark-theme"><nav class="course-navigation" aria-label="Course games"><a href="./">← Game list</a><details><summary>Return to this game later</summary><p>Bookmark this page in Safari or Chrome. Keep this tab open until your submission is confirmed.</p></details></nav>
+<div class="app-container"><header class="app-header"><div class="header-inner"><div><span class="cuhk-badge">CUHK FINA3020 · WEEK 8</span><h1 class="app-title">Project and Funding Committee</h1><p class="app-subtitle">Value a euro project for a US parent, test a policy shock, then choose how to fund it.</p></div><button class="btn btn-secondary" onclick="FINA3020Utils.exportResponsesCSV()">Export responses (.csv)</button></div></header>
+<main class="main-content">
+<nav class="stage-stepper" aria-label="Game stages">
+ <button type="button" class="stepper-step" id="step-1" onclick="gameSession.jump(1)"><span class="step-num">1</span><span>Project</span></button>
+ <button type="button" class="stepper-step" id="step-2" onclick="gameSession.jump(2)" disabled><span class="step-num">2</span><span>Policy shock</span></button>
+ <button type="button" class="stepper-step" id="step-3" onclick="gameSession.jump(3)" disabled><span class="step-num">3</span><span>Funding</span></button>
+ <button type="button" class="stepper-step" id="step-4" onclick="gameSession.jump(4)" disabled><span class="step-num">4</span><span>Dealer quotes</span></button>
+ <button type="button" class="stepper-step" id="step-5" onclick="gameSession.jump(5)" disabled><span class="step-num">5</span><span>Reflection</span></button>
+</nav>
+<p id="draft-status"></p><p id="game-message" role="alert" aria-live="polite"></p>
+
+<section id="stage-1-panel" class="glass-panel" aria-labelledby="stage-1-title" style="display:block">
+ <h2 id="stage-1-title" class="section-title">1. Value the project and choose an FX policy</h2>
+ <div class="form-grid">
+  <label for="student-id-input">CUHK student ID<input class="input-field" id="student-id-input" inputmode="numeric" maxlength="10" placeholder="10 digits" autocomplete="off"></label>
+  <label for="student-name-input">Full name<input class="input-field" id="student-name-input" placeholder="Given name SURNAME" autocomplete="name"></label>
+  <label for="student-section-input">Section<select class="input-field" id="student-section-input"><option value="">Select section</option><option value="A">A</option><option value="B">B</option><option value="C">C</option></select></label>
+ </div>
+ <p class="description">A US parent considers a three-year project in the euro area. All subsidiary cash can be remitted, with no extra parent tax. The parent's required return on USD cash flows is 10%. Rates are USD per 1 EUR.</p>
+ <div class="game-table-scroll"><table>
+  <thead><tr><th scope="col">Year</th><th scope="col" class="num">EUR cash flow (M)</th><th scope="col" class="num">Expected spot E<sub>0</sub>[S<sub>t</sub>]</th><th scope="col" class="num">Forward F<sub>0,t</sub></th></tr></thead>
+  <tbody><tr><td>0</td><td class="num">−10.0</td><td class="num">1.10 (spot today)</td><td class="num">—</td></tr>
+  <tr><td>1</td><td class="num">5.2</td><td class="num">1.12</td><td class="num">1.11</td></tr>
+  <tr><td>2</td><td class="num">6.4</td><td class="num">1.14</td><td class="num">1.12</td></tr>
+  <tr><td>3</td><td class="num">12.6</td><td class="num">1.16</td><td class="num">1.13</td></tr></tbody></table></div>
+ <div class="answer-grid">
+  <label for="npv-unhedged-input">Unhedged NPV, USD millions<input class="input-field" id="npv-unhedged-input" inputmode="decimal" placeholder="e.g. 12.345" autocomplete="off"></label>
+  <label for="npv-hedged-input">NPV if each year's EUR cash flow is sold forward, USD millions<input class="input-field" id="npv-hedged-input" inputmode="decimal" placeholder="e.g. 12.345" autocomplete="off"></label>
+ </div>
+ <div class="game-actions"><button type="button" class="btn btn-secondary" data-game-choice onclick="checkStage(1)">Check my answers</button><button type="button" class="btn btn-secondary" data-game-choice onclick="showSolution(1)">Show solution</button></div>
+ <p id="check-1" class="check-result" aria-live="polite"></p>
+ <div id="solution-1" class="solution game-result"></div>
+ <h3 class="sub">Your FX policy</h3>
+ <div class="choice-card-grid">
+  <button type="button" class="choice-card" data-game-choice id="fx-unhedged" aria-pressed="false" onclick="choose('fxPolicy','unhedged')"><strong>Stay unhedged</strong><span>Convert each year's cash at the spot rate on that date.</span></button>
+  <button type="button" class="choice-card" data-game-choice id="fx-hedged" aria-pressed="false" onclick="choose('fxPolicy','hedged')"><strong>Sell forward</strong><span>Fix the USD value of each expected EUR cash flow today.</span></button>
+ </div>
+ <h3 class="sub">Your decision</h3>
+ <div class="choice-card-grid">
+  <button type="button" class="choice-card" data-game-choice id="base-accept" aria-pressed="false" onclick="choose('baseDecision','accept')"><strong>Accept</strong><span>Invest EUR 10M today.</span></button>
+  <button type="button" class="choice-card" data-game-choice id="base-reject" aria-pressed="false" onclick="choose('baseDecision','reject')"><strong>Reject</strong><span>Do not invest.</span></button>
+ </div>
+ <div class="game-actions"><button class="btn btn-primary" onclick="gameSession.navigate(2)">Continue →</button></div>
+ <aside class="game-explanation"><h3>What this means</h3><p>PV<sub>t</sub> = EUR cash flow × FX<sub>t</sub> / 1.10<sup>t</sup>. Use E<sub>0</sub>[S<sub>t</sub>] when unhedged and F<sub>0,t</sub> when hedged. The Year 0 outlay is EUR 10M × 1.10 = USD 11M. Here each forward rate is below the expected spot rate, so hedging lowers expected NPV and removes FX risk on the expected amounts.</p></aside>
+</section>
+
+<section id="stage-2-panel" class="glass-panel" aria-labelledby="stage-2-title" style="display:none">
+ <h2 id="stage-2-title" class="section-title">2. A host-country policy shock</h2>
+ <div class="shock-alert"><div class="shock-title">New remittance rules, announced before any forward is signed</div>
+ <p>The Year 2 cash flow of EUR 6.4M faces a 20% withholding tax and a one-year freeze. The frozen cash earns 3% locally and reaches the parent in Year 3. Years 1 and 3 are unchanged.</p></div>
+ <p class="description" id="shock-policy-note"></p>
+ <ul class="description">
+  <li><strong>Case A, no usable credit:</strong> the withholding tax is a cash loss. EUR in Year 3 = 6.4 × 0.80 × 1.03.</li>
+  <li><strong>Case B, full usable credit:</strong> the parent uses the full credit against home tax it would otherwise pay in that year, so the withholding costs the group nothing. EUR in Year 3 = 6.4 × 1.03.</li>
+ </ul>
+ <div class="answer-grid">
+  <label for="npv-case-a-input">Case A NPV, USD millions<input class="input-field" id="npv-case-a-input" inputmode="decimal" placeholder="e.g. 12.345" autocomplete="off"></label>
+  <label for="npv-case-b-input">Case B NPV, USD millions<input class="input-field" id="npv-case-b-input" inputmode="decimal" placeholder="e.g. 12.345" autocomplete="off"></label>
+ </div>
+ <div class="game-actions"><button type="button" class="btn btn-secondary" data-game-choice onclick="checkStage(2)">Check my answers</button><button type="button" class="btn btn-secondary" data-game-choice onclick="showSolution(2)">Show solution</button></div>
+ <p id="check-2" class="check-result" aria-live="polite"></p>
+ <div id="solution-2" class="solution game-result"></div>
+ <h3 class="sub">Your decision if no credit is usable (Case A)</h3>
+ <div class="choice-card-grid">
+  <button type="button" class="choice-card" data-game-choice id="shock-accept" aria-pressed="false" onclick="choose('shockDecision','accept')"><strong>Still accept</strong><span>The project keeps a positive NPV.</span></button>
+  <button type="button" class="choice-card" data-game-choice id="shock-reject" aria-pressed="false" onclick="choose('shockDecision','reject')"><strong>Reject</strong><span>The shock removes the value.</span></button>
+ </div>
+ <div class="game-actions"><button class="btn btn-secondary" onclick="gameSession.jump(1)">← Back</button><button class="btn btn-primary" onclick="gameSession.navigate(3)">Continue →</button></div>
+ <aside class="game-explanation"><h3>What this means</h3><p>Only cash that reaches the parent counts. Replace the old Year 2 PV with the new Year 3 PV: convert at the Year 3 rate and discount three years. The credit removes the tax loss. The one-year delay still costs value when local cash earns less than the parent's 10% required return.</p></aside>
+</section>
+
+<section id="stage-3-panel" class="glass-panel" aria-labelledby="stage-3-title" style="display:none">
+ <h2 id="stage-3-title" class="section-title">3. Fund the EUR 10M investment</h2>
+ <p class="description">Treasury compares two one-year offers for the EUR 10M. Both are paid at maturity. Refinancing after one year is a separate decision.</p>
+ <div class="game-table-scroll"><table>
+  <thead><tr><th scope="col">Route</th><th scope="col">Terms</th></tr></thead>
+  <tbody><tr><td>Local EUR loan to the subsidiary</td><td>3.75%. Repay EUR 10.375M.</td></tr>
+  <tr><td>Parent USD loan + FX swap</td><td>Parent borrows USD at 5.00%. Spot 1.10 and one-year forward 1.122 USD per 1 EUR (indicative mid rates). Swap fee EUR 0.05M at maturity.</td></tr></tbody></table></div>
+ <p class="description">For the swap route: borrow USD 11M and sell it for EUR 10M today. Agree today to buy the USD repayment forward with EUR. What is the all-in EUR borrowing cost?</p>
+ <div class="answer-grid">
+  <label for="swap-cost-input">All-in EUR cost of the swap route, % per year<input class="input-field" id="swap-cost-input" inputmode="decimal" placeholder="e.g. 3.21" autocomplete="off"></label>
+ </div>
+ <div class="game-actions"><button type="button" class="btn btn-secondary" data-game-choice onclick="checkStage(3)">Check my answer</button><button type="button" class="btn btn-secondary" data-game-choice onclick="showSolution(3)">Show solution</button></div>
+ <p id="check-3" class="check-result" aria-live="polite"></p>
+ <div id="solution-3" class="solution game-result"></div>
+ <h3 class="sub">Your funding choice at these quotes</h3>
+ <div class="choice-card-grid">
+  <button type="button" class="choice-card" data-game-choice id="fund-local" aria-pressed="false" onclick="choose('fundingChoice','local')"><strong>Local EUR loan</strong><span>3.75%</span></button>
+  <button type="button" class="choice-card" data-game-choice id="fund-swap" aria-pressed="false" onclick="choose('fundingChoice','swap')"><strong>USD loan + FX swap</strong><span>Your all-in cost</span></button>
+ </div>
+ <div class="game-actions"><button class="btn btn-secondary" onclick="gameSession.jump(2)">← Back</button><button class="btn btn-primary" onclick="gameSession.navigate(4)">Continue →</button></div>
+ <aside class="game-explanation"><h3>What this means</h3><p>EUR repayment = USD repayment / F. Hedge the full USD repayment, principal and interest. The swap route can be cheaper when the parent borrows on better terms than the subsidiary. The forward already prices the currency difference.</p></aside>
+</section>
+
+<section id="stage-4-panel" class="glass-panel" aria-labelledby="stage-4-title" style="display:none">
+ <h2 id="stage-4-title" class="section-title">4. Executable dealer quotes</h2>
+ <div class="shock-alert"><div class="shock-title">The dealer's executable quotes</div>
+ <p>To buy EUR today, the parent pays the spot ask: 1.1020 USD per 1 EUR. To buy USD with EUR in one year, it receives the forward bid: 1.1200 USD per 1 EUR. The loan rates and the EUR 0.05M fee are unchanged.</p></div>
+ <p class="description">The parent now borrows enough USD to buy EUR 10M at the spot ask. Recompute the all-in EUR cost of the swap route.</p>
+ <div class="answer-grid">
+  <label for="exec-cost-input">All-in EUR cost at executable quotes, % per year<input class="input-field" id="exec-cost-input" inputmode="decimal" placeholder="e.g. 3.21" autocomplete="off"></label>
+ </div>
+ <div class="game-actions"><button type="button" class="btn btn-secondary" data-game-choice onclick="checkStage(4)">Check my answer</button><button type="button" class="btn btn-secondary" data-game-choice onclick="showSolution(4)">Show solution</button></div>
+ <p id="check-4" class="check-result" aria-live="polite"></p>
+ <div id="solution-4" class="solution game-result"></div>
+ <h3 class="sub">Your final funding choice</h3>
+ <div class="choice-card-grid">
+  <button type="button" class="choice-card" data-game-choice id="final-local" aria-pressed="false" onclick="choose('finalFunding','local')"><strong>Local EUR loan</strong><span>3.75%</span></button>
+  <button type="button" class="choice-card" data-game-choice id="final-swap" aria-pressed="false" onclick="choose('finalFunding','swap')"><strong>USD loan + FX swap</strong><span>Your executable all-in cost</span></button>
+ </div>
+ <h3 class="sub">How does the funding choice enter the project valuation?</h3>
+ <div class="choice-card-grid">
+  <button type="button" class="choice-card" data-game-choice id="val-both" aria-pressed="false" onclick="choose('valuationChoice','both')"><strong>Twice</strong><span>Subtract the interest from project cash flows and also discount them at WACC.</span></button>
+  <button type="button" class="choice-card" data-game-choice id="val-once" aria-pressed="false" onclick="choose('valuationChoice','once')"><strong>Once</strong><span>Keep interest out of project cash flows and use the financing cost only in the discount rate. A funding saving is a separate financing gain.</span></button>
+  <button type="button" class="choice-card" data-game-choice id="val-loan" aria-pressed="false" onclick="choose('valuationChoice','loan')"><strong>Through the loan rate</strong><span>Discount the project cash flows at the cheapest loan rate.</span></button>
+ </div>
+ <p id="valuation-feedback" class="check-result" aria-live="polite"></p>
+ <div id="committee-summary" class="game-result"></div>
+ <div class="game-actions"><button class="btn btn-secondary" onclick="gameSession.jump(3)">← Back</button><button class="btn btn-primary" onclick="gameSession.navigate(5)">Continue →</button></div>
+ <aside class="game-explanation"><h3>What this means</h3><p>The spot ask raises the USD the parent must borrow. The forward bid raises the EUR needed to buy the USD repayment. Mid rates can show a saving that executable quotes remove.</p></aside>
+</section>
+
+<section id="stage-5-panel" class="glass-panel" aria-labelledby="stage-5-title" style="display:none">
+ <h2 id="stage-5-title" class="section-title">5. Committee reflection</h2>
+ <p class="description">Write two or three sentences in your own words. This counts for Week 8 participation.</p>
+ <label class="reflection-prompt" for="exit-reflection">How did the tax credit change the cost of the withholding tax, and why did the executable quotes change (or not change) your funding choice?</label>
+ <textarea class="input-field" id="exit-reflection" rows="5" placeholder="Explain each effect and its cause."></textarea>
+ <div class="game-actions"><button id="btn-submit-game" class="btn btn-primary" onclick="submitFinalResponse()">Submit reflection</button><button id="retry-game" class="btn btn-secondary" onclick="gameSession.retry()" hidden>Retry submission</button></div>
+ <p id="submission-feedback" role="status" aria-live="polite"></p>
+ <div class="game-actions"><button class="btn btn-secondary" onclick="gameSession.jump(4)">← Back</button></div>
+ <aside class="game-explanation"><h3>What this means</h3><p>Project value depends on the cash that reaches the parent. Funding cost depends on the full debt service at prices the firm can actually trade.</p></aside>
+</section>
+
+<aside class="game-reference"><h3>Keep in mind</h3><p>All exchange rates are USD per 1 EUR. A higher rate means a stronger euro. NPVs are in USD millions; funding costs are in EUR.</p><p class="game-small">Illustrative classroom numbers. The project matches the Week 5 examples; the funding quotes are instructor-created.</p></aside>
+</main></div>
+<script>
+const $=id=>document.getElementById(id);
+// ---- Project and funding inputs (USD per 1 EUR; EUR and USD in millions) ----
+const P={k:0.10,S0:1.10,cf0:10,cf:[5.2,6.4,12.6],ES:[1.12,1.14,1.16],F:[1.11,1.12,1.13],w:0.20,iLocal:0.03};
+const Q={need:10,localRate:0.0375,usdRate:0.05,Smid:1.10,Fmid:1.122,Sask:1.1020,Fbid:1.1200,fee:0.05};
+const TOL_NPV=0.01, TOL_RATE=0.01;
+let sel={fxPolicy:null,baseDecision:null,shockDecision:null,fundingChoice:null,finalFunding:null,valuationChoice:null};
+let checks={};
+
+function projectNpv(fx){const pvs=P.cf.map((c,t)=>c*fx[t]/Math.pow(1+P.k,t+1));return {pvs,npv:-P.cf0*P.S0+pvs.reduce((a,b)=>a+b,0)};}
+function shockNpv(policy,credit){
+ const fx=policy==='hedged'?P.F:P.ES, base=projectNpv(fx);
+ const eur=P.cf[1]*(credit?1:1-P.w)*(1+P.iLocal), usd=eur*fx[2], pv=usd/Math.pow(1+P.k,3);
+ return {eur,usd,pv,oldPv:base.pvs[1],npv:base.npv-base.pvs[1]+pv};
+}
+function swapCost(S,F){const usd=Q.need*S, usdRepay=usd*(1+Q.usdRate), eurRepay=usdRepay/F+Q.fee;return {usd,usdRepay,eurRepay,rate:100*(eurRepay/Q.need-1)};}
+const answers=()=>{const pol=sel.fxPolicy||'unhedged';return {
+ npvUnhedged:projectNpv(P.ES).npv, npvHedged:projectNpv(P.F).npv,
+ caseA:shockNpv(pol,false).npv, caseB:shockNpv(pol,true).npv,
+ swapMid:swapCost(Q.Smid,Q.Fmid).rate, swapExec:swapCost(Q.Sask,Q.Fbid).rate, local:100*Q.localRate};};
+const num=(v,d=3)=>Number(v).toFixed(d);
+const entered=id=>{const v=parseFloat(String($(id).value).replace(/[$,%\s]/g,''));return Number.isFinite(v)?v:null;};
+
+function paint(){
+ const map={fxPolicy:['fx-unhedged','fx-hedged'],baseDecision:['base-accept','base-reject'],shockDecision:['shock-accept','shock-reject'],fundingChoice:['fund-local','fund-swap'],finalFunding:['final-local','final-swap'],valuationChoice:['val-both','val-once','val-loan']};
+ for(const [key,ids] of Object.entries(map))for(const id of ids){const on=sel[key]===id.split('-')[1];$(id).classList.toggle('selected',on);$(id).setAttribute('aria-pressed',String(on));}
+ $('valuation-feedback').textContent=!sel.valuationChoice?'':sel.valuationChoice==='once'
+  ?'Correct. Financing costs enter the valuation once.':'Not quite. That route counts the financing cost twice or uses a rate that ignores project risk.';
+ $('valuation-feedback').className='check-result '+(sel.valuationChoice==='once'?'ok':sel.valuationChoice?'no':'');
+}
+function choose(key,value){if(gameSession.locked()||!(key in sel))return;sel[key]=value;if(key==='fxPolicy'){checks[2]=null;$('check-2').textContent='';}paint();renderShockNote();renderSummary();}
+
+function checkStage(n){
+ const a=answers(), items={1:[['Unhedged NPV','npv-unhedged-input',a.npvUnhedged,TOL_NPV],['Hedged NPV','npv-hedged-input',a.npvHedged,TOL_NPV]],
+  2:[['Case A NPV','npv-case-a-input',a.caseA,TOL_NPV],['Case B NPV','npv-case-b-input',a.caseB,TOL_NPV]],
+  3:[['Swap-route cost','swap-cost-input',a.swapMid,TOL_RATE]],4:[['Executable cost','exec-cost-input',a.swapExec,TOL_RATE]]}[n];
+ if(n===2&&!sel.fxPolicy){$('check-2').textContent='Choose your FX policy in Stage 1 first.';return;}
+ const res=items.map(([label,id,target,tol])=>{const v=entered(id);return {label,ok:v!==null&&Math.abs(v-target)<=tol,entered:v};});
+ checks[n]=res;
+ const ok=res.every(r=>r.ok);
+ $('check-'+n).className='check-result '+(ok?'ok':'no');
+ $('check-'+n).textContent=res.map(r=>r.label+': '+(r.entered===null?'enter a number':r.ok?'correct':'not yet')).join(' · ')+(ok?'':' — try again or open the solution.');
+}
+function showSolution(n){
+ const a=answers(), u=projectNpv(P.ES), h=projectNpv(P.F); let html='';
+ if(n===1) html=`<p><strong>Unhedged:</strong> −11.000 + ${u.pvs.map(v=>num(v)).join(' + ')} = <strong>${num(u.npv)}</strong>.</p><p><strong>Hedged:</strong> −11.000 + ${h.pvs.map(v=>num(v)).join(' + ')} = <strong>${num(h.npv)}</strong>.</p><p>Both are positive, so accept. Hedging lowers expected NPV by ${num(u.npv-h.npv)} and fixes the USD value of the expected cash flows.</p>`;
+ if(n===2){if(!sel.fxPolicy){html='<p>Choose your FX policy in Stage 1 first.</p>';}else{const pol=sel.fxPolicy,x=shockNpv(pol,false),y=shockNpv(pol,true),fx3=pol==='hedged'?'F<sub>0,3</sub> = 1.13':'E<sub>0</sub>[S<sub>3</sub>] = 1.16',base=pol==='hedged'?h:u;
+  html=`<p>Your policy: <strong>${pol==='hedged'?'sell forward':'unhedged'}</strong>. Year 3 conversion at ${fx3}. Old Year 2 PV = ${num(x.oldPv)}.</p><p><strong>Case A:</strong> 6.4 × 0.80 × 1.03 = EUR ${num(x.eur,4)}M → USD ${num(x.usd,4)}M → PV ${num(x.pv)}. NPV = ${num(base.npv)} − ${num(x.oldPv)} + ${num(x.pv)} = <strong>${num(x.npv)}</strong>.</p><p><strong>Case B:</strong> 6.4 × 1.03 = EUR ${num(y.eur,4)}M → USD ${num(y.usd,4)}M → PV ${num(y.pv)}. NPV = <strong>${num(y.npv)}</strong>.</p><p>The project stays positive in both cases, so it remains acceptable. The credit is worth USD ${num(y.npv-x.npv)}M.</p>`;}}
+ if(n===3){const m=swapCost(Q.Smid,Q.Fmid);html=`<p>Borrow USD ${num(m.usd,2)}M at 5%: repay USD ${num(m.usdRepay,4)}M.</p><p>EUR needed to buy that USD forward: ${num(m.usdRepay,4)} / 1.122 = EUR ${num(m.usdRepay/Q.Fmid,4)}M. Add the fee: EUR ${num(m.eurRepay,4)}M.</p><p>All-in cost = ${num(m.eurRepay,4)} / 10 − 1 = <strong>${num(m.rate,3)}%</strong>, against 3.750% locally. At mid rates the swap route saves EUR ${Math.round((10*(1+Q.localRate)-m.eurRepay)*1e6).toLocaleString('en-US')}.</p>`;}
+ if(n===4){const e=swapCost(Q.Sask,Q.Fbid);html=`<p>Borrow 10 × 1.1020 = USD ${num(e.usd,3)}M at 5%: repay USD ${num(e.usdRepay,5)}M.</p><p>EUR needed at the forward bid: ${num(e.usdRepay,5)} / 1.1200 = EUR ${num(e.usdRepay/Q.Fbid,5)}M. Add the fee: EUR ${num(e.eurRepay,5)}M.</p><p>All-in cost = <strong>${num(e.rate,4)}%</strong>, above the 3.750% local loan. The local loan is now cheaper by EUR ${Math.round((e.eurRepay-10*(1+Q.localRate))*1e6).toLocaleString('en-US')}.</p>`;}
+ $('solution-'+n).innerHTML=html;$('solution-'+n).classList.add('shown');
+ checks['solution'+n]=true;
+}
+function renderShockNote(){$('shock-policy-note').textContent=!sel.fxPolicy?'Choose your FX policy in Stage 1.':sel.fxPolicy==='hedged'
+ ?'You sell forward. The frozen cash arrives in Year 3, so hedge that amount at F0,3 = 1.13 instead of selling it forward for Year 2.'
+ :'You stay unhedged. Convert the frozen cash at the expected Year 3 spot rate, 1.16.';}
+function renderSummary(){
+ if(!sel.fxPolicy){$('committee-summary').textContent='';return;}
+ const a=answers();
+ $('committee-summary').textContent='Committee summary: '+(sel.fxPolicy==='hedged'?'hedged':'unhedged')+' project NPV '+num(sel.fxPolicy==='hedged'?a.npvHedged:a.npvUnhedged)+' before the shock, '+num(a.caseA)+' (Case A) and '+num(a.caseB)+' (Case B) after it. Funding at executable quotes: swap route '+num(a.swapExec,3)+'% versus local '+num(a.local,3)+'%.';
+}
+
+const FIELDS=['student-id-input','student-name-input','student-section-input','npv-unhedged-input','npv-hedged-input','npv-case-a-input','npv-case-b-input','swap-cost-input','exec-cost-input','exit-reflection'];
+const gameSession=FINA3020GameSession.create({tab:'Bank_Funding',identity:['student-id-input','student-name-input','student-section-input'],reflection:'exit-reflection',fields:FIELDS,
+ getChoices:()=>({...sel}),
+ setChoices:c=>{for(const k of Object.keys(sel))sel[k]=typeof c[k]==='string'?c[k]:null;},
+ validate:n=>{
+  if(n>=2&&(entered('npv-unhedged-input')===null||entered('npv-hedged-input')===null))return 'Enter both NPVs (use Show solution if you are stuck).';
+  if(n>=2&&!sel.fxPolicy)return 'Choose your FX policy.';
+  if(n>=2&&!sel.baseDecision)return 'Choose Accept or Reject.';
+  if(n>=3&&(entered('npv-case-a-input')===null||entered('npv-case-b-input')===null))return 'Enter the Case A and Case B NPVs.';
+  if(n>=3&&!sel.shockDecision)return 'Choose your decision for Case A.';
+  if(n>=4&&entered('swap-cost-input')===null)return 'Enter the all-in cost of the swap route.';
+  if(n>=4&&!sel.fundingChoice)return 'Choose a funding route.';
+  if(n>=5&&entered('exec-cost-input')===null)return 'Enter the all-in cost at executable quotes.';
+  if(n>=5&&!sel.finalFunding)return 'Choose your final funding route.';
+  if(n>=5&&!sel.valuationChoice)return 'Answer how funding enters the valuation.';
+  return '';},
+ onShow:()=>{paint();renderShockNote();renderSummary();}});
+
+function submitFinalResponse(){
+ const a=answers(), grade=(id,target,tol)=>{const v=entered(id);return {entered:v,correct:v!==null&&Math.abs(v-target)<=tol};};
+ return gameSession.submit({mode:'Project_Funding_Committee',activityName:'Project and Funding Committee (Week 8)',week:8,
+  question:'Value the euro project, test the remittance shock, and choose a funding route at mid and executable quotes.',
+  fxPolicy:sel.fxPolicy,baseDecision:sel.baseDecision,shockDecisionCaseA:sel.shockDecision,fundingChoiceMid:sel.fundingChoice,finalFundingChoice:sel.finalFunding,valuationChoice:sel.valuationChoice,valuationCorrect:sel.valuationChoice==='once',
+  npvUnhedged:grade('npv-unhedged-input',a.npvUnhedged,TOL_NPV),npvHedged:grade('npv-hedged-input',a.npvHedged,TOL_NPV),
+  npvCaseA:grade('npv-case-a-input',a.caseA,TOL_NPV),npvCaseB:grade('npv-case-b-input',a.caseB,TOL_NPV),
+  swapCostMid:grade('swap-cost-input',a.swapMid,TOL_RATE),swapCostExecutable:grade('exec-cost-input',a.swapExec,TOL_RATE),
+  solutionsOpened:[1,2,3,4].filter(n=>checks['solution'+n]),correctValues:a});
+}
+document.addEventListener("DOMContentLoaded",()=>gameSession.start());
+</script></body></html>
