@@ -550,7 +550,7 @@ const FINA3020Utils = {
     _deliver: function(payload) {
         if (this._inFlight.has(payload.submissionId)) return this._inFlight.get(payload.submissionId);
         // Spread classroom submissions before entering the shared receiver lock.
-        const start = ['Live_FX', 'CFO_Hedge'].includes(payload.targetTab)
+        const start = payload.targetTab === 'CFO_Hedge'
             ? new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 8000)))
             : Promise.resolve();
         const promise = start.then(() => this._attemptDelivery(payload)).finally(() => this._inFlight.delete(payload.submissionId));
@@ -559,7 +559,7 @@ const FINA3020Utils = {
     },
 
     _attemptDelivery: function(payload, attempt = 0) {
-        const delays = ['Live_FX', 'CFO_Hedge'].includes(payload.targetTab) ? [2000, 4000, 8000, 12000, 20000, 30000] : [2000, 6000];
+        const delays = payload.targetTab === 'CFO_Hedge' ? [2000, 4000, 8000, 12000, 20000, 30000] : [2000, 6000];
         this._emitDelivery('sending');
         return this._post(payload).then(ack => {
             this._markDelivered(payload.submissionId, ack.serverTimestamp, ack.receiptId);
@@ -567,7 +567,7 @@ const FINA3020Utils = {
             return true;
         }).catch(err => {
             if (attempt < delays.length) {
-                return new Promise(resolve => setTimeout(resolve, delays[attempt] + Math.floor(Math.random() * (['Live_FX', 'CFO_Hedge'].includes(payload.targetTab) ? 8000 : 1500))))
+                return new Promise(resolve => setTimeout(resolve, delays[attempt] + Math.floor(Math.random() * (payload.targetTab === 'CFO_Hedge' ? 8000 : 1500))))
                     .then(() => this._attemptDelivery(payload, attempt + 1));
             }
             console.warn('Submission not confirmed:', err);
@@ -621,7 +621,7 @@ const FINA3020Utils = {
         // Map mode to exact Google Sheet tab names
         let modeTab = data.targetTab || data.mode || data.game || 'Course_Survey';
         const modeLower = String(modeTab).toLowerCase();
-        const exactTabs = ['Course_Survey', 'Order_Book', 'Locational_Arb', 'Triangular_Arb', 'CIP', 'Forward_Curve', 'Carry_Trade', 'Live_FX', 'CFO_Hedge', 'Project_Committee', 'BOP_Ledger', 'Bank_Run', 'Bank_Funding', 'Payment_Route', 'Sudden_Stop', 'Blended_Finance'];
+        const exactTabs = ['Course_Survey', 'Order_Book', 'Locational_Arb', 'Triangular_Arb', 'CIP', 'Forward_Curve', 'Carry_Trade', 'CFO_Hedge', 'Project_Committee', 'BOP_Ledger', 'Bank_Run', 'Bank_Funding', 'Payment_Route', 'Sudden_Stop', 'Blended_Finance'];
         if (data.targetTab && !exactTabs.includes(data.targetTab)) throw new Error('Unknown submission tab.');
         if (data.targetTab) modeTab = data.targetTab;
         else if (modeLower.includes('survey') || modeLower.includes('icebreaker')) modeTab = 'Course_Survey';

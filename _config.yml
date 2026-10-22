@@ -9,6 +9,27 @@ include:
   - .htaccess
   - _pages
 
+# Development files and retired template tools are not website content.
+# In particular, local/ can contain private course source and test records.
+exclude:
+  - local
+  - tests
+  - markdown_generator
+  - talkmap
+  - talkmap.py
+  - talkmap.ipynb
+  - AGENTS.md
+  - CLAUDE.md
+  - CONTRIBUTING.md
+  - README.md
+  - Dockerfile
+  - Gemfile
+  - Gemfile.lock
+  - package.json
+  - package-lock.json
+  - node_modules
+  - vendor
+
 # Defaults
 defaults:
   # _pages
