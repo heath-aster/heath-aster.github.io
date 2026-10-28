@@ -2,6 +2,7 @@
    Calculations stay in each game; delivery uses the existing course receiver. */
 const FINA3020GameSession = {
     create(config) {
+        const stageCount=config.stageCount||5;
         const version='2026-10-04-later-games-v1', key='fina3020_game_'+config.tab+'_v1';
         const el=id=>document.getElementById(id);
         const state={stage:1,maxStage:1,submissionId:null};
@@ -45,16 +46,16 @@ const FINA3020GameSession = {
             });
         }
         function show() {
-            for(let i=1;i<=5;i++) {
+            for(let i=1;i<=stageCount;i++) {
                 el('stage-'+i+'-panel').style.display=i===state.stage?'block':'none';
                 const b=el('step-'+i); b.disabled=i>state.maxStage;
                 b.className='stepper-step'+(i===state.stage?' active':i<=state.maxStage?' completed':'');
                 if(i===state.stage)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current');
             }
-            config.onShow?.(state.stage); lock(); receipt();
+            config.onShow?.(state.stage); lock(); receipt(); config.onAfterShow?.(state.stage);
         }
         function navigate(n,backTab=false) {
-            if(!Number.isInteger(n)||n<1||n>5||n>(backTab?state.maxStage:state.maxStage+1)) return;
+            if(!Number.isInteger(n)||n<1||n>stageCount||n>(backTab?state.maxStage:state.maxStage+1)) return;
             if(n>state.stage&&!validate(n)) return;
             if(n===3 && state.maxStage<3) for(const [from,to] of config.copyToShock||[]) el(to).value=el(from).value;
             state.stage=n;state.maxStage=Math.max(state.maxStage,n);
@@ -68,7 +69,7 @@ const FINA3020GameSession = {
                 input.value=v;
             }
             config.setChoices?.(record.choices||{});
-            state.maxStage=Number.isInteger(record.maxStage)?Math.max(1,Math.min(5,record.maxStage)):1;
+            state.maxStage=Number.isInteger(record.maxStage)?Math.max(1,Math.min(stageCount,record.maxStage)):1;
             state.stage=Number.isInteger(record.stage)?Math.max(1,Math.min(state.maxStage,record.stage)):1;
             state.submissionId=typeof record.submissionId==='string'?record.submissionId:null;
         }
@@ -76,7 +77,7 @@ const FINA3020GameSession = {
             config.identity.forEach((id,i)=>{el(id).value=[FINA3020Utils.getStudentID(),FINA3020Utils.getFullName(),FINA3020Utils.getSection()][i];});
             try {restore(JSON.parse(FINA3020Storage.getItem(key)||'null'));} catch(_){message('The saved draft could not be read. You can start again.');}
             const latest=FINA3020Utils._readHistory().filter(r=>r.targetTab===config.tab&&r.activityVersion===version&&r.studentId===el(config.identity[0]).value).pop();
-            if(!state.submissionId && latest?.gameProgress) {restore(latest.gameProgress);state.submissionId=latest.submissionId;state.stage=state.maxStage=5;}
+            if(!state.submissionId && latest?.gameProgress) {restore(latest.gameProgress);state.submissionId=latest.submissionId;state.stage=state.maxStage=stageCount;}
             show();save();
             document.addEventListener('input',save);
             document.addEventListener('change',save);
@@ -85,8 +86,8 @@ const FINA3020GameSession = {
         }
         async function submit(data) {
             if(busy||state.submissionId)return;
-            if(state.maxStage<5){message('Complete the exercises before submitting.');return;}
-            if(!validate(5))return;
+            if(state.maxStage<stageCount){message('Complete the exercises before submitting.');return;}
+            if(!validate(stageCount))return;
             const text=el(config.reflection).value;
             if(!text.trim()){message('Write your reflection before submitting.');return;}
             busy=true;message('');receipt();
