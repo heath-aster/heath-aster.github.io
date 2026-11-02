@@ -54,5 +54,13 @@ const GuidedPortfolio = (() => {
     function comparison(c){const returns=comparisonMarkets.map(m=>outcome(c,m).ret).sort((a,b)=>a-b);
         return {mean:returns.reduce((a,b)=>a+b,0)/returns.length,worst5:returns.slice(0,50).reduce((a,b)=>a+b,0)/50,
             lossChance:returns.filter(r=>r<0).length/returns.length,practiceMean:practice.reduce((a,m)=>a+outcome(c,m).ret,0)/practice.length};}
-    return {size,pStress,assets,choices,weights,scenario,evaluate,market,practice,drawMarkets,allChoices,outcome,comparison};
+    // One common horizontal scale makes changes in dispersion visible across choices.
+    const allReturns=allChoices.flatMap(c=>comparisonMarkets.map(m=>100*outcome(c,m).ret));
+    const binWidth=5,binMin=binWidth*Math.floor(Math.min(...allReturns)/binWidth),binMax=binWidth*Math.ceil(Math.max(...allReturns)/binWidth);
+    function distribution(c){
+        const bins=Array.from({length:Math.round((binMax-binMin)/binWidth)},(_,i)=>({lo:binMin+i*binWidth,hi:binMin+(i+1)*binWidth,normal:0,stress:0}));
+        const returns=comparisonMarkets.map(m=>{const r=outcome(c,m).ret;const i=Math.min(bins.length-1,Math.max(0,Math.floor((100*r-binMin)/binWidth)));bins[i][m.stress?'stress':'normal']++;return r;}).sort((a,b)=>a-b);
+        return {...comparison(c),bins,min:binMin,max:binMax,q5:returns[49],count:returns.length,normalCount:comparisonMarkets.filter(m=>!m.stress).length,stressCount:comparisonMarkets.filter(m=>m.stress).length};
+    }
+    return {size,pStress,assets,choices,weights,scenario,evaluate,market,practice,drawMarkets,allChoices,outcome,comparison,distribution};
 })();
