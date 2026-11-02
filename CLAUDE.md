@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code when working with code in this repository.
 
+## Course repair and release rules
+
+Follow the current AGENTS.md and private teaching-source instructions. Preserve the existing site and game design system, current user edits, substantive topics, figures and optional tools. Explain inputs, units, formulas and decisions before repeated play; provide instructor routes that need no student identity.
+
+For Week 12, the authoritative game is in the 2026 teaching interactive_tools folder; the lecture TeX and guide source are in its Week 12 Slides folder. local/fina3020-games is an ignored staging mirror. teaching/fina3020/games and files/wk12.pdf are publication copies. Keep the guide, generated explanation, figures and slides numerically consistent. The external guarantee and internal junior-capital extension use different loan denominators.
+
+Before a course release, run the private participation, recovery, security and confirmation checks, verify a synthetic browser receipt and full payload readback, and inspect the actual Response column. Do not publish private test payloads or records. Preserve the current shared receiver and confirmation pipeline.
+
+Never push or publish commits without explicit approval for that specific push. State the repository, remote, branch and exact commits first. A local preview or commit is not live; verify the public URLs after deployment. Browser/email access is read-only by default; do not send email without explicit authorization. Concise teaching documents must preserve substantive content and figures at legible sizes.
+
 ## Project overview
 
 Jekyll-based personal academic website (Henry Zhang). Content lives in _pages, _publications, _portfolio, _data, and assets; layout/styling in _layouts, _includes, _sass. Preserve the existing Jekyll theme, front-matter conventions, and build setup (Gemfile, _config.yml) when editing. The writing, prose, and LaTeX preferences below apply to any site content.
