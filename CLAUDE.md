@@ -12,6 +12,8 @@ Before a course release, run the private participation, recovery, security and c
 
 Never push or publish commits without explicit approval for that specific push. State the repository, remote, branch and exact commits first. A local preview or commit is not live; verify the public URLs after deployment. Browser/email access is read-only by default; do not send email without explicit authorization. Concise teaching documents must preserve substantive content and figures at legible sizes.
 
+For Week 10, the authoritative payment-game files are in the same 2026 teaching interactive_tools folder. Use its week10_model.js and week10_game.js, and keep the six-step game, standalone explanation, separate instructor demo and optional treasury workshop consistent. The Week 10 Slides folder contains the Beamer source, liu_currency_use.tex and speaking-guide source. files/wk10.pdf is a generated publication copy. Preserve all three routes, costs, risk assumptions and figures; use only the economic mechanisms from the supplied Liu article. Direct demo views must not record participation.
+
 ## Project overview
 
 Jekyll-based personal academic website (Henry Zhang). Content lives in _pages, _publications, _portfolio, _data, and assets; layout/styling in _layouts, _includes, _sass. Preserve the existing Jekyll theme, front-matter conventions, and build setup (Gemfile, _config.yml) when editing. The writing, prose, and LaTeX preferences below apply to any site content.
