@@ -3,11 +3,15 @@
 const FINA3020GameSession = {
     create(config) {
         const stageCount=config.stageCount||5;
-        const version='2026-10-04-later-games-v1', key='fina3020_game_'+config.tab+'_v1';
+        const version=config.version||'2026-10-04-later-games-v1', key=config.storageKey||'fina3020_game_'+config.tab+'_v1';
         const el=id=>document.getElementById(id);
         const state={stage:1,maxStage:1,submissionId:null};
         let busy=false;
-        const message=text=>{ el('game-message').textContent=text; };
+        const message=text=>{
+            el('game-message').textContent=text;
+            if(!state.submissionId && state.stage===stageCount) el('submission-feedback').textContent=text;
+            config.onMessage?.(text);
+        };
         const getFields=()=>Object.fromEntries(config.fields.map(id=>[id,el(id).value]));
         const snapshot=()=>({...state,version,fields:getFields(),choices:config.getChoices?.()||{}});
         function save() {
@@ -34,8 +38,8 @@ const FINA3020GameSession = {
             el('retry-game').disabled=busy;
             if(record?.delivered) el('submission-feedback').textContent='Saved. Receipt: '+record.receiptId+'. You can now close this tab.';
             else if(state.submissionId) el('submission-feedback').textContent=busy
-                ? 'Sending your saved response. You can still review the game.'
-                : 'Your response is saved in this tab and queued. Keep the tab open, retry after reconnecting, or export a copy.';
+                ? 'Your response is saved in this tab. Sending and retrying automatically; a busy class may take a few minutes. Keep this tab open until a receipt appears.'
+                : 'Your response is saved in this tab and queued, but the server has not confirmed it. Keep the tab open, retry after reconnecting, or download a backup.';
         }
         function lock() {
             for(const id of config.fields) el(id).disabled=!!state.submissionId;
