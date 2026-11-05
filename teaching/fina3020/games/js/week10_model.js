@@ -1,93 +1,127 @@
-/* Week 10 payment-route cost model. Pure functions; no page code.
-   One payment of USD principal P must reach the supplier in full within 2 business days.
-   Every cost is in USD and is paid by the sender on top of P.
-   Rate card (deck slide "In-Class Game"): carry USD 100 per day per USD 1M committed;
-   settlement-risk charge 0.025% (2.5 bp) of principal per day of settlement gap.
-   At P = USD 1M: A 1,650, B 820, C 755; A delayed to 5 days 2,700. */
-const PaymentRoutes = (() => {
- const RATE = {carryPerDayPerMillion: 100, riskBpPerDay: 2.5, deadlineDays: 2};
- const ROUTES = [
-  {key: 'A', name: 'Correspondent banks', fee: 150,
-   legs: [{label: 'HKD to USD at the sending bank', bp: 8}],
-   committedShare: 1, days: 2, delayedDays: 5, gapDays: 2, delayedGapDays: 5,
-   riskRule: 'gap', arrival: '2 business days', arrivalDelayed: '5 business days (late)',
-   how: 'Your bank sends a SWIFT message. The money moves through prefunded nostro and vostro accounts at one or more correspondent banks.',
-   risk: 'No PvP. Your firm pays before the chain confirms delivery, so the full principal is exposed for 2 days.'},
-  {key: 'B', name: 'PvP settlement', fee: 400,
-   legs: [{label: 'HKD to USD in a PvP trade', bp: 4}],
-   committedShare: 0.2, days: 1, gapDays: 0,
-   riskRule: 'pvp', arrival: 'Same day, before the cut-off',
-   how: 'A settlement system pays the USD leg only if the HKD leg is also paid (payment versus payment). Netting means the desk prefunds only 20% of the payment.',
-   risk: 'PvP removes FX principal risk on the covered trade. Liquidity and operational risks remain.'},
-  {key: 'C', name: 'Stablecoin bridge', fee: 50,
-   legs: [{label: 'On-ramp: HKD to a USD stablecoin', bp: 3}, {label: 'Off-ramp: stablecoin to USD in the supplier’s bank', bp: 3}],
-   committedShare: 1, days: 0.05, gapDays: 0,
-   riskRule: 'redemption', redemptionBp: 1, arrival: 'About 1 hour',
-   how: 'Your firm buys a USD stablecoin, sends the token on a blockchain, and an off-ramp provider sells it for USD paid into the supplier’s bank.',
-   risk: 'Two conversion legs. The off-ramp price and the issuer’s redemption terms can change. The desk charges 1 bp of principal for this risk.'}
+/* Week 10 cash-ledger model. Pure functions; no page code.
+   Reference: design/week10-ledger-2026-11-04/week10_ledger_key.py (tests compare both).
+   One USD account. Monday opening balance 400,000. The supplier must receive 1,000,000
+   by the end of Wednesday. A customer pays 1,200,000 on Thursday (next Monday if held).
+   Payroll of 300,000 leaves on Friday. Interest is 0.02% a day on a negative end-of-day
+   balance, including Saturday and Sunday. The bank holds any payment that would take the
+   balance below minus the credit line and retries it on the next business day.
+   Receipts post before payments on the same day.
+   Two markets. The market sets the correspondent route's fee and timing, the probability
+   of each week and the probability that the customer never pays. The default market is
+   'em' (the week that students play). */
+const PaymentLedger = (() => {
+ const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun','Next Mon'];
+ const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','next Monday'];
+ const BUSINESS = [true,true,true,true,true,false,false,true];
+ const P = {opening:400000, supplier:1000000, customer:1200000, payroll:300000, deadline:2, customerDay:3, heldCustomerDay:7, payrollDay:4,
+  ratePerDay:0.0002, lateSupplierPerDay:1000, latePayroll:5000, urgentFee:1000, urgentLimit:1000000};
+ const ROUTES = {
+  corr:{key:'corr', name:'Correspondent banks', short:'Correspondent',
+   how:'Your bank sends a SWIFT message. The money moves through USD accounts that banks hold with each other in New York.'},
+  stable:{key:'stable', name:'Stablecoin bridge', short:'Stablecoin',
+   how:'Your firm buys USD stablecoins (on-ramp), sends them on a blockchain, and an off-ramp provider pays USD into the supplier’s bank account.'}
+ };
+ const LINES = {
+  small:{key:'small', name:'Small line', limit:600000, fee:300},
+  large:{key:'large', name:'Large line', limit:1000000, fee:500}
+ };
+ const MARKETS = {
+  dm:{key:'dm', name:'Developed-market partners', short:'Developed market', adj:'developed-market',
+   supplier:'a component maker in the United States', customer:'a retailer in Europe',
+   routes:{
+    corr:{fee:100, send:2, transit:0, timing:'Your bank and the supplier’s bank both hold USD accounts at New York banks. The payment leaves on Wednesday and arrives the same day.'},
+    stable:{fee:300, send:2, transit:0, timing:'The payment leaves on Wednesday morning and arrives within one hour.'}},
+   prob:{normal:.90, held:.05, pause:.05}, nonpay:.0005},
+  em:{key:'em', name:'Emerging-market partners', short:'Emerging market', adj:'emerging-market',
+   supplier:'a component maker in an emerging market', customer:'a retailer in an emerging market',
+   routes:{
+    corr:{fee:200, send:0, transit:2, timing:'The supplier’s small local bank has no USD account in New York, so one more bank joins the chain. The payment takes 2 business days: to arrive on Wednesday, it must leave on Monday.'},
+    stable:{fee:300, send:2, transit:0, timing:'The payment leaves on Wednesday morning and arrives within one hour.'}},
+   prob:{normal:.50, held:.20, corrdelay:.15, pause:.10, class:.05}, nonpay:.005}
+ };
+ const WEEKS = [
+  {key:'normal', name:'Normal week', held:false, corrDelay:false, rampPause:false,
+   text:'All payments arrive on time.'},
+  {key:'held', name:'Customer payment held', held:true, corrDelay:false, rampPause:false,
+   text:'The customer’s USD 1,200,000 arrives next Monday, not Thursday. A bank holds it for a compliance check, or the customer’s bank cannot buy enough USD this week.'},
+  {key:'corrdelay', name:'Correspondent delay', held:false, corrDelay:true, rampPause:false,
+   text:'An intermediary bank in the supplier payment chain closes on Tuesday for a local holiday. A correspondent payment sent on Monday arrives on Thursday.'},
+  {key:'pause', name:'Off-ramp pause', held:false, corrDelay:false, rampPause:true,
+   text:'The stablecoin off-ramp stops USD payouts on Wednesday. A stablecoin payment sent on Wednesday arrives on Thursday.'},
+  {key:'class', name:'Held payment and correspondent delay', held:true, corrDelay:true, rampPause:false,
+   text:'Both shocks: the customer’s payment arrives next Monday, and a correspondent payment sent on Monday arrives on Thursday. This is the week you play.'}
  ];
- const DEFAULTS = {principal: 1e6, delayProb: 0, lateLoss: 0, stablecoinAccepted: true, pvpEligible: true, offRampBp: 3};
- const PRINCIPALS = [20000, 100000, 250000, 1000000, 2000000, 5000000];
- const route = key => ROUTES.find(r => r.key === key);
+ const PLAN_KEYS = ['corr-small','corr-large','stable-small','stable-large'];
+ const RESPONSES = {
+  keep:{key:'keep', name:'Keep the current line'},
+  urgent:{key:'urgent', name:'Buy an urgent line increase to USD 1,000,000'},
+  delay:{key:'delay', name:'Pay the supplier next Monday, after the customer pays'}
+ };
  const clean = x => Math.round(x * 1e6) / 1e6;
- function inputs(raw = {}) {
-  const x = {...DEFAULTS, ...raw};
-  x.principal = Math.max(1, Number(x.principal) || DEFAULTS.principal);
-  x.delayProb = Math.min(1, Math.max(0, Number(x.delayProb) || 0));
-  x.lateLoss = Math.max(0, Number(x.lateLoss) || 0);
-  x.offRampBp = Math.max(0, Number(x.offRampBp) || 0);
-  x.stablecoinAccepted = x.stablecoinAccepted !== false;
-  x.pvpEligible = x.pvpEligible !== false;
-  return x;
+ const market = m => {if (!MARKETS[m]) throw Error('Unknown market'); return MARKETS[m];};
+ const week = key => WEEKS.find(w => w.key === key);
+ // The weeks that can happen with this market's partners, with their probabilities.
+ const weeks = (m = 'em') => WEEKS.filter(w => market(m).prob[w.key] > 0).map(w => ({...w, prob:market(m).prob[w.key]}));
+ const terms = (route, m = 'em') => ({...ROUTES[route], ...market(m).routes[route]});
+ const creditLoss = (m = 'em') => clean(market(m).nonpay * P.customer);
+ const split = plan => {const [route, line] = String(plan).split('-'); return ROUTES[route] && LINES[line] ? {route, line} : null;};
+ const planName = plan => {const p = split(plan); return p ? ROUTES[p.route].name + ' + ' + LINES[p.line].name.toLowerCase() : '';};
+ function addBusinessDays(day, n) {let d = day; while (n > 0) {d += 1; if (d >= BUSINESS.length || BUSINESS[d]) n -= 1;} return d;}
+ function lateBusinessDays(arrival) {let n = 0; for (let d = P.deadline + 1; d <= arrival; d++) if (d >= BUSINESS.length || BUSINESS[d]) n++; return n;}
+ const dayName = d => d < DAY_NAMES.length ? DAY_NAMES[d] : d === 8 ? 'next Tuesday' : 'later';
+ // Tuesday responses in a week with a held customer payment. Delaying the supplier is
+ // possible only if the payment has not left the account by Tuesday.
+ function responses(route, weekKey, m = 'em') {return week(weekKey)?.held ? ['keep','urgent'].concat(terms(route, m).send > 1 ? ['delay'] : []) : ['keep'];}
+ function simulate(plan, weekKey, response = 'keep', m = 'em') {
+  const p = split(plan), w = week(weekKey); if (!p || !w) throw Error('Unknown plan or week');
+  if (!(weekKey in market(m).prob)) throw Error('This week cannot happen in this market');
+  const r = terms(p.route, m), line = LINES[p.line];
+  if (!responses(p.route, weekKey, m).includes(response)) response = 'keep';
+  let limit = line.limit, balance = P.opening, interest = 0, pending = [], supplierSent = null, payrollPaid = null;
+  const supplierSend = response === 'delay' ? P.heldCustomerDay : r.send, customerDay = w.held ? P.heldCustomerDay : P.customerDay;
+  const rows = [];
+  for (let d = 0; d < DAYS.length; d++) {
+   const start = balance, flows = [], held = [], notes = [];
+   if (response === 'urgent' && d === 1) {limit = P.urgentLimit; notes.push('Urgent line increase to USD 1,000,000 (fee USD 1,000).');}
+   if (d === customerDay) {balance += P.customer; flows.push({label:'Customer payment arrives', amount:P.customer});}
+   if (d === supplierSend) pending.push({key:'supplier', label:'Supplier payment sent', amount:P.supplier});
+   if (d === P.payrollDay) pending.push({key:'payroll', label:'Payroll', amount:P.payroll});
+   if (BUSINESS[d]) {
+    const still = [];
+    for (const x of pending) {
+     if (balance - x.amount >= -limit - 1e-9) {
+      balance -= x.amount; flows.push({label:x.label + (x.key === 'payroll' && d > P.payrollDay ? ' (released late)' : x.key === 'supplier' && d > supplierSend ? ' (released late)' : ''), amount:-x.amount});
+      if (x.key === 'supplier') supplierSent = d; else payrollPaid = d;
+     } else {still.push(x); held.push({label:x.key === 'supplier' ? 'Supplier payment' : x.label, amount:x.amount});}
+    }
+    pending = still;
+   }
+   const dayInterest = clean(P.ratePerDay * Math.max(0, -balance));
+   interest += dayInterest;
+   rows.push({day:d, label:DAYS[d], name:DAY_NAMES[d], business:BUSINESS[d], start, flows, held, notes, end:balance, limit, interest:dayInterest});
+  }
+  if (pending.length) throw Error('Payment still held at the end of the horizon');
+  let arrival = addBusinessDays(supplierSent, r.transit);
+  if (p.route === 'corr' && w.corrDelay && supplierSent <= 1 && arrival > 1) arrival = addBusinessDays(arrival, 1);
+  if (p.route === 'stable' && w.rampPause && supplierSent === 2) arrival = addBusinessDays(arrival, 1);
+  const lateDays = lateBusinessDays(arrival);
+  const costs = {routeFee:r.fee, lineFee:line.fee, urgentFee:response === 'urgent' ? P.urgentFee : 0, interest:clean(interest),
+   lateSupplier:P.lateSupplierPerDay * lateDays, latePayroll:payrollPaid > P.payrollDay ? P.latePayroll : 0};
+  costs.total = clean(Object.values(costs).reduce((s, v) => s + v, 0));
+  return {plan, market:m, route:p.route, line:p.line, week:weekKey, response, rows, costs, supplierSent, supplierArrival:arrival, supplierArrivalName:dayName(arrival),
+   supplierLateDays:lateDays, payrollPaid, payrollLate:payrollPaid > P.payrollDay, peakCredit:Math.max(0, ...rows.map(x => -x.end)),
+   negativeDays:rows.filter(x => x.end < 0).length};
  }
- // Spread in basis points of principal, summed over conversion legs. 1 bp = 0.01% = 0.0001.
- function legBp(r, x) { return r.legs.map((leg, i) => r.key === 'C' && i === 1 ? x.offRampBp : leg.bp); }
- // Cost lines for one payment, either on time or delayed (Route A only can be delayed).
- function lines(key, raw, delayed = false) {
-  const r = route(key), x = inputs(raw), P = x.principal, late = delayed && r.key === 'A';
-  const bp = legBp(r, x), days = late ? r.delayedDays : r.days, gap = late ? r.delayedGapDays : r.gapDays;
-  const committed = r.committedShare * P;
-  const fee = r.fee;
-  const fx = clean(bp.reduce((s, b) => s + P * b / 10000, 0));
-  const carry = clean(committed * days * RATE.carryPerDayPerMillion / 1e6);
-  const risk = clean(r.riskRule === 'gap' ? P * RATE.riskBpPerDay * gap / 10000 : r.riskRule === 'redemption' ? P * r.redemptionBp / 10000 : 0);
-  const lateLoss = late ? x.lateLoss : 0;
-  return {key, fee, fx, carry, risk, late: lateLoss, total: clean(fee + fx + carry + risk + lateLoss),
-   committed, days, gapDays: gap, bp, arrival: late ? r.arrivalDelayed : r.arrival, onTime: !late};
+ function best(plan, weekKey, m = 'em') {
+  const p = split(plan);
+  return responses(p.route, weekKey, m).map(x => simulate(plan, weekKey, x, m)).reduce((b, x) => x.costs.total < b.costs.total - 1e-9 ? x : b);
  }
- // Expected cost before the payer knows whether Route A is delayed: (1 - p) x on time + p x delayed.
- function evaluate(key, raw) {
-  const x = inputs(raw), onTime = lines(key, x, false);
-  const delayed = key === 'A' ? lines(key, x, true) : onTime, p = key === 'A' ? x.delayProb : 0;
-  const mix = k => clean((1 - p) * onTime[k] + p * delayed[k]);
-  const expected = {fee: mix('fee'), fx: mix('fx'), carry: mix('carry'), risk: mix('risk'), late: mix('late')};
-  expected.total = clean(expected.fee + expected.fx + expected.carry + expected.risk + expected.late);
-  const available = key === 'C' ? x.stablecoinAccepted : key === 'B' ? x.pvpEligible : true;
-  const reason = available ? '' : key === 'C' ? 'The supplier’s bank does not accept a stablecoin off-ramp payout.' : 'This currency pair or payment size is not eligible for PvP settlement today.';
-  return {key, name: route(key).name, onTime, delayed, expected, delayProb: p, available, reason};
+ function expected(plan, m = 'em') {return clean(weeks(m).reduce((s, w) => s + w.prob * best(plan, w.key, m).costs.total, 0));}
+ function table(m = 'em') {
+  return PLAN_KEYS.map(plan => ({plan, name:planName(plan), weeks:Object.fromEntries(weeks(m).map(w => [w.key, best(plan, w.key, m)])), expected:expected(plan, m)}));
  }
- function compare(raw) {
-  const x = inputs(raw), rows = ROUTES.map(r => evaluate(r.key, x));
-  const feasible = rows.filter(r => r.available);
-  const best = feasible.reduce((m, r) => r.expected.total < m - 1e-9 ? r.expected.total : m, Infinity);
-  const cheapest = feasible.filter(r => Math.abs(r.expected.total - best) < 1e-6).map(r => r.key);
-  return {inputs: x, rows, cheapest, best};
- }
- // Delay probability at which Route A's expected cost equals another route's cost (null if none in [0, 1]).
- function breakEvenDelay(otherKey, raw) {
-  const x = inputs(raw), a0 = lines('A', x, false).total, a1 = lines('A', x, true).total, o = evaluate(otherKey, x).expected.total;
-  if (Math.abs(a1 - a0) < 1e-12) return null;
-  const p = (o - a0) / (a1 - a0);
-  return p >= 0 && p <= 1 ? p : null;
- }
- // Payment size at which two routes cost the same on time: fixed-fee gap / per-dollar cost gap.
- function breakEvenPrincipal(k1, k2, raw) {
-  const x = inputs(raw), unit = k => {const a = lines(k, {...x, principal: 1e6}, false); return {fixed: a.fee, perDollar: (a.total - a.fee) / 1e6};};
-  const a = unit(k1), b = unit(k2), slope = a.perDollar - b.perDollar;
-  if (Math.abs(slope) < 1e-15) return null;
-  const P = (b.fixed - a.fixed) / slope;
-  return P > 0 ? P : null;
- }
- return {RATE, ROUTES, DEFAULTS, PRINCIPALS, route, inputs, lines, evaluate, compare, breakEvenDelay, breakEvenPrincipal};
+ // A Tuesday decision is necessary only when keeping the line would leave a payment held.
+ function tuesdayDecisionNeeded(plan, weekKey, m = 'em') {const s = simulate(plan, weekKey, 'keep', m); return week(weekKey).held && (s.payrollLate || s.rows.some(r => r.held.length));}
+ return {DAYS, DAY_NAMES, BUSINESS, P, ROUTES, LINES, MARKETS, WEEKS, PLAN_KEYS, RESPONSES, split, planName, week, weeks, terms, creditLoss, responses, simulate, best, expected, table, tuesdayDecisionNeeded, addBusinessDays, lateBusinessDays};
 })();
-if (typeof module !== 'undefined') module.exports = PaymentRoutes;
+if (typeof module !== 'undefined') module.exports = PaymentLedger;
