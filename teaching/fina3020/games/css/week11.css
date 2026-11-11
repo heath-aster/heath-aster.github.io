@@ -1,0 +1,39 @@
+/* Week 11 adapter to the current Week 9 / Week 10 light teaching style.
+   Base tokens, typography, tables, forms, details and buttons come from
+   week10_payment.css. Keep this adapter limited to Week 11 structures. */
+.app-header{max-width:1100px;margin:auto;padding:2.4rem 2rem .8rem}
+.header-inner{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}
+.app-header .eyebrow{display:block}.main-content{max-width:1100px;margin:auto;padding:0 2rem 3rem}
+.glass-panel{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:2rem;margin:1.2rem 0;min-width:0}
+.glass-panel[hidden],[hidden]{display:none!important}.glass-panel>h2:first-child{margin-top:0}
+.view-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem;margin:1.2rem 0}
+.view-nav button{text-align:left;min-height:56px;font-size:.95rem}
+.view-nav button[aria-current]{background:var(--ink);border-color:var(--ink);color:white}
+.scenario-tabs,.practice-tabs,.game-actions{display:flex;flex-wrap:wrap;gap:.7rem;margin:1rem 0;align-items:center}
+.scenario-tabs [aria-pressed=true],.practice-tabs [aria-current]{background:var(--teal-pale);border:2px solid var(--teal);color:var(--ink)}
+.btn-primary{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:650}
+.btn-primary:hover:not(:disabled){background:#105752;color:#fff}.btn-secondary{background:#fff;color:var(--ink)}
+.cards,.controls-grid,.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin:1rem 0}
+.cards>*,.controls-grid>*,.form-grid>*{min-width:0}
+.cards article,.game-control,.comparison-card{border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.2rem;background:#f7f9f8}
+.cards h3{margin-top:0}.game-control label{display:block;font-weight:650}.game-control .range-label{font-size:.9rem;font-weight:400;margin:.7rem 0 .2rem}
+.game-control p{font-size:.95rem;color:var(--muted);margin-bottom:0}.input-field{font-variant-numeric:tabular-nums}
+#practice-card{border:1px solid #9bbdb3;border-left:5px solid var(--teal);border-radius:10px;padding:1.3rem;margin:1.5rem 0;background:#f8fbf9}
+#practice-card input{max-width:22rem}#practice-card h3{margin-top:0}#practice-card .feedback{background:var(--teal-pale)}
+.calculation-list{padding-left:1.5rem}.calculation-list li{padding-left:.3rem;margin:1rem 0}
+.metric{display:block;font-size:1.4rem;font-weight:750;font-variant-numeric:tabular-nums}
+#policy-results .cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+.notice{border-left:4px solid var(--teal);background:var(--teal-pale);padding:.95rem 1.2rem;margin:1rem 0}
+.chart-container{position:relative;height:460px;min-width:0;margin:1.4rem 0}.chart-container.radar{max-width:760px;margin:1.4rem auto}
+.comparison-card{margin:1.2rem 0;background:white}.comparison-card h3{margin-top:0}
+.comparison-card th:not(:first-child),.comparison-card td{text-align:right;font-variant-numeric:tabular-nums}
+.comparison-card th:first-child{width:45%;color:var(--ink)}.comparison-card caption{font-size:.95rem}
+dt{font-weight:700;margin-top:1rem}dd{margin:.4rem 0 1rem}.demo-link{display:inline-block;min-height:44px;padding:.5rem .7rem}
+#draft-status{font-size:.92rem;color:var(--muted)}#game-message,#policy-error{color:var(--bad);font-weight:600}
+#game-message:empty,#policy-error:empty{display:none}.sr-only{position:absolute!important;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+.skip-link{position:absolute;top:-10rem}.skip-link:focus{position:relative;top:0}
+:focus-visible{outline:3px solid #325e9b;outline-offset:3px}
+.projector-mode{font-size:1.25rem}.projector-mode .main-content,.projector-mode .app-header{max-width:1320px}
+@media(max-width:760px){.app-header{padding:1.4rem 1rem .5rem}.main-content{padding:0 1rem 2rem}.glass-panel{padding:1.2rem}.view-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.cards,.controls-grid,.form-grid{grid-template-columns:1fr}#policy-results .cards{grid-template-columns:repeat(2,minmax(0,1fr))}.game-actions>button{width:100%}.chart-container{height:600px}.chart-container.radar{height:350px}.comparison-card{padding:.75rem}.comparison-card th,.comparison-card td{padding:.45rem .25rem;font-size:.92rem}}
+@media(max-width:380px){.main-content{padding:0 .65rem 2rem}.glass-panel{padding:.85rem}#policy-results .cards{grid-template-columns:1fr}}
+@media print{.view-nav,.course-navigation,.game-actions,.app-header button,#draft-status,.game-reference{display:none}.glass-panel{border:0;padding:0;break-before:page}body{background:white;color:#111}}

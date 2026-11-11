@@ -1,0 +1,7 @@
+/* Course reading preferences, 6 November 2026. Keep emphasis sparse. */
+body h1,body h2,body h3,body h4{font-weight:600}
+body p strong,body li strong,body td strong,body dd strong,body p b,body li b,body td b,body .formula{font-weight:400}
+body button,body button.primary,body .btn,body label,body summary,body caption,body th,body dt,body .option strong,body .route-card dt,body .lab-controls label,body .choices legend{font-weight:500}
+body .eyebrow,body .practice-type,body .route-card .tag,body .day-count,body .note-line,body .week-end,body .result,body .verdict,body .message,body .feedback,body .formula{font-weight:400}
+body .plans td.lowest{font-weight:600}
+body .course-navigation a{color:var(--teal,#146b66)}
