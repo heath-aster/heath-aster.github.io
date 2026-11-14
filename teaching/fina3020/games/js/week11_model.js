@@ -1,56 +1,46 @@
-/* Week 11: the October policy equations, unchanged. USD billions throughout.
-   Two independent illustrative scenarios; no draws, probabilities or welfare score. */
-(function(root) {
-  'use strict';
-  function outcome(res, rate, cap, imf, shock=false) {
-    const outflow=shock?20:10, h=rate/100, c=cap/100;
-    const afterPolicy=Math.max(0,outflow*(1-.6*c)-.8*h);
-    const excess=Math.max(0,res+imf-afterPolicy), net=Math.max(0,afterPolicy-res-imf);
-    const reserves=20-res+excess, debt=40+imf, fx=-net*(shock?1.6:1.5);
-    const npl=shock?4.5+1.2*h+.3*Math.abs(fx):4+.9*h+(fx < -10?3:0);
-    const consumption=-(shock?2+.8*h+.25*Math.abs(fx):1.5+.6*h+.2*Math.abs(fx));
-    return {outflow,afterPolicy,excess,net,reserves,debt,fx,npl,consumption};
-  }
-  const example=[4,200,30,2];
-  const alternatives=[
-    {name:'No intervention',values:[0,0,0,0]},
-    {name:'Reserve emphasis',values:[10,0,0,0]},
-    {name:'Rate emphasis',values:[0,600,0,0]},
-    {name:'Controls emphasis',values:[0,0,100,0]},
-    {name:'IMF emphasis',values:[0,0,0,5]},
-    {name:'Example mix',values:example}
-  ];
-  // Preserve the old demonstration, including its possible value of 110.
-  // These are ad hoc indexes, NOT estimated sector losses or the model's NPLs.
-  function sector([res,rate,cap,imf]) {
-    return [res/10*90+(10-imf)*2,rate/600*95,rate/600*50+cap/100*45,rate/600*40+(100-cap)*.3+30];
-  }
-  const questions=[
-    {id:'rate',title:'Convert basis points',question:'The example raises the policy rate by 200 basis points. How many percentage points is that?',unit:'percentage points',answer:2,tolerance:.005,
-      hint:'100 basis points (bps) equals one percentage point (pp).',formula:'h = rate increase in bps ÷ 100 = 200 ÷ 100.',solution:'200 ÷ 100 = 2 percentage points. Starting at 5%, the rate becomes 7%. This is a 2 pp rise, not a 2% proportional increase. Use h = 2 in the flow and bank-cost formulas.',mistake:'Enter the change in percentage points: 2, rather than 0.02 or 200.'},
-    {id:'flow',title:'Find the outflow after controls and rates',question:'Use outflow O = USD 10B, controls c = 30% = 0.30, and rate rise h = 2 pp. What outflow remains after these two policies?',unit:'USD billions',answer:6.6,tolerance:.01,
-      hint:'Controls stop 60% of the covered outflow. Rates reduce outflow by USD 0.8B per percentage point.',formula:'A = max(0, O × (1 − 0.6c) − 0.8h) = max(0, 10 × (1 − 0.6 × 0.30) − 0.8 × 2).',solution:'Controls stop 10 × 0.6 × 0.30 = USD 1.8B. Rates stop 0.8 × 2 = USD 1.6B. A = 10 − 1.8 − 1.6 = USD 6.6B. The 30% covers one part of the original outflow. It does not stop 30% of all outflows. Reserve sales and IMF funding must meet the remaining 6.6B.',mistake:'Use 0.30 for the control share, and multiply it by 0.6. Do not subtract reserve sales yet.'},
-    {id:'gap',title:'Find the financing gap',question:'The remaining outflow A is USD 6.6B. Reserve sales R = USD 4B and IMF borrowing M = USD 2B. How much pressure remains?',unit:'USD billions',answer:.6,tolerance:.01,
-      hint:'Use foreign currency from both sources once. The gap cannot be negative.',formula:'G = max(0, A − R − M) = max(0, 6.6 − 4 − 2).',solution:'G = USD 0.6B. The supplied USD 6B is spent once meeting outflows. The residual gap drives currency depreciation in the next calculation.',mistake:'Subtract both sources from 6.6, not from the original 10. A negative result would be floored at zero.'},
-    {id:'fx',title:'Translate the gap into a currency change',question:'In the USD 10B scenario, each USD 1B gap reduces the currency value by 1.5%. With G = USD 0.6B, what is the signed currency change?',unit:'% change',answer:-.9,tolerance:.01,
-      hint:'A depreciation is a negative change in the USD value of one unit of domestic currency.',formula:'f = −1.5 × G = −1.5 × 0.6.',solution:'f = −0.90%. One unit of domestic currency buys 0.9% fewer dollars. The absolute depreciation d = 0.90 is used in the NPL and consumption formulas. A domestic-currency-per-USD quote would rise by about 0.91%, not exactly 0.90%.',mistake:'Keep the minus sign and enter percentage units (−0.90), not the decimal return −0.009.'},
-    {id:'reserves',title:'Account for unused foreign currency',question:'A small variation: raise reserve sales to R = USD 5B, keep M = USD 2B and A = USD 6.6B. Starting reserves are USD 20B. What are ending reserves?',unit:'USD billions',answer:15.4,tolerance:.01,
-      hint:'Any excess of available funds over the remaining outflow returns to reserves.',formula:'U = max(0, R + M − A). Reserves = 20 − R + U. Here U = max(0, 5 + 2 − 6.6).',solution:'U = USD 0.4B, so reserves = 20 − 5 + 0.4 = USD 15.4B. IMF funds used for outflows cannot also be counted in reserves. Extra financing after the gap reaches zero builds reserves rather than appreciating the currency in this model.',mistake:'Include unused funds, but do not add the whole IMF loan again. Only USD 0.4B is unspent.'},
-    {id:'debt',title:'Update external debt',question:'Return to the example. Initial external debt is USD 40B and new IMF borrowing is USD 2B. What is ending external debt?',unit:'USD billions',answer:42,tolerance:.01,
-      hint:'Borrowing supplies cash now and creates a liability.',formula:'D = initial debt + new IMF borrowing = 40 + 2.',solution:'D = USD 42B. This is a dollar-denominated stock, not an immediate payment or a measured welfare loss. The model does not revalue it when the domestic currency falls. The domestic-currency burden would rise.',mistake:'Add the loan to debt even when its cash has already been used to meet outflows.'},
-    {id:'npl',title:'Apply the baseline bank-stress threshold',question:'A threshold check: in the USD 10B scenario, suppose h = 2 pp and depreciation d = 12%. What is the NPL share? Use the baseline formula below.',unit:'% of loans',answer:8.8,tolerance:.01,
-      hint:'The baseline adds 3 percentage points only when depreciation exceeds 10%.',formula:'NPL = 4 + 0.9h + 3 if d > 10. Otherwise NPL = 4 + 0.9h. With h = 2 and d = 12, use the extra 3.',solution:'NPL = 4 + 0.9 × 2 + 3 = 8.80% of loans. The increments are percentage points, not percentage changes. At exactly 10% depreciation there is no extra 3. In the original example d = 0.90%, so NPL = 5.80%. This threshold is an illustrative teaching rule.',mistake:'Add 3 percentage points to the share. Do not multiply the share by 1.03.'},
-    {id:'stress-npl',title:'Use the stress-case bank equation',question:'With the same example policy in the separate USD 20B scenario, A = 14.8B, G = 8.8B and depreciation d = 14.08%. With h = 2 pp, what is the NPL share?',unit:'% of loans',answer:11.124,tolerance:.011,
-      hint:'The stress scenario uses a continuous depreciation term and different coefficients.',formula:'NPL = 4.5 + 1.2h + 0.3d = 4.5 + 1.2 × 2 + 0.3 × 14.08.',solution:'NPL = 4.5 + 2.4 + 4.224 = 11.124%, or 11.12% of loans. Do not also add the baseline threshold term. Both the larger outflow and different sensitivity assumptions distinguish these two scenarios.',mistake:'Use the positive depreciation magnitude 14.08 in this formula. Use 2 for h. Do not reuse the baseline 3 pp threshold.'},
-    {id:'consumption',title:'Translate stress into consumption',question:'In that same USD 20B scenario, h = 2 pp and depreciation d = 14.08%. What is the signed consumption change?',unit:'% change',answer:-7.12,tolerance:.011,
-      hint:'Rates and depreciation add to the consumption decline. Put a minus sign on the total.',formula:'k = −(2 + 0.8h + 0.25d) = −(2 + 0.8 × 2 + 0.25 × 14.08).',solution:'k = −(2 + 1.6 + 3.52) = −7.12%. Consumption is 7.12% below the pre-shock level in this scenario. The baseline uses the same calculation with coefficients 1.5, 0.6 and 0.2: −(1.5 + 1.2 + 0.18) = −2.88%. Compare this cost with reserves, debt and currency stability.',mistake:'The output is a signed percentage change. Add the terms first, then apply the negative sign.'}
-  ];
-  function parseNumber(value) {
-    const s=String(value).trim().replace(/−/g,'-').replace(/%\s*$/,'').trim();
-    if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(s) && !/^[+-]?\d{1,3}(?:,\d{3})+(?:\.\d*)?$/.test(s)) return NaN;
-    return Number(s.replace(/,/g,''));
-  }
-  const api={outcome,example,alternatives,sector,questions,parseNumber};
-  if(typeof module!=='undefined')module.exports=api;
-  root.Week11Model=api;
+/* Week 11 hedge fund: transparent quarterly classroom scenarios.
+   All positions, cash, payoffs and NAV are USD millions. Returns are decimals.
+   Bonds enter at par. Repricing is complete by the redemption checkpoint, with
+   unchanged subsequent bond marks. Original derivative notionals settle later.
+   investmentNav is ending NAV plus paid withdrawals, an adjusted performance measure. */
+(function(root){
+'use strict';
+const scenarios=[
+ {id:'stabilization',name:'Stabilization',local:.03,fx:.03,dollar:.05,recovery:null,redemption:10,haircut:0,policy:'Credible official financing and bank support restore confidence. Local rates ease and the currency strengthens.'},
+ {id:'sudden',name:'Sudden stop',local:-.08,fx:-.15,dollar:-.12,recovery:null,redemption:20,haircut:.05,policy:'Dollar funding dries up. The central bank raises rates and sells reserves. Borrower stress and sovereign spreads rise.'},
+ {id:'restructuring',name:'Restructuring',local:-.15,fx:-.25,dollar:-.40,recovery:.60,redemption:30,haircut:.15,policy:'Official talks delay repayment. The USD sovereign bond recovers 60% of its initial value and a covered CDS credit event settles.'}
+];
+const example=[40,40,0,20,20];
+function validate(v){
+ if(!Array.isArray(v)||v.length!==5||!v.every(Number.isFinite))return 'Enter all five amounts in USD millions.';
+ const [a,b,l,h,p]=v;
+ if(v.some(x=>x<0)||a>150||b>150||l>50||h>a||p>b)return 'Use nonnegative amounts. Borrowing is at most USD 50m. FX hedge cannot exceed the initial local bond position. CDS cannot exceed the initial USD bond position.';
+ if(v.some(x=>Math.abs(x-Math.round(x))>1e-8))return 'Use whole USD millions for each position.';
+ const cash=100+l-a-b,cost=.01*h+.0075*p+.015*l,collateral=.10*h+.05*p;
+ if(cash+1e-9<cost+collateral)return 'Keep enough cash for segregated collateral and all prefunded quarterly costs. Reduce positions or hedges, or add borrowing within its limit.';
+ return '';
+}
+function outcome(a,b,l,h,p,scenario='sudden'){
+ const s=typeof scenario==='string'?scenarios.find(x=>x.id===scenario):scenario;
+ if(!s)throw Error('Unknown scenario');
+ const error=validate([a,b,l,h,p]);if(error)throw Error(error);
+ const cash=100+l-a-b,fxCost=.01*h,cdsCost=.0075*p,financeCost=.015*l,cost=fxCost+cdsCost+financeCost,collateral=.10*h+.05*p,liquid=cash-cost-collateral;
+ const localReturn=(1+s.local)*(1+s.fx)-1,localMark=a*(1+localReturn),dollarMark=b*(1+s.dollar),markedBonds=localMark+dollarMark;
+ const shortfall=Math.max(0,s.redemption-liquid),soldMark=Math.min(markedBonds,shortfall/(1-s.haircut)),saleProceeds=soldMark*(1-s.haircut),saleLoss=soldMark*s.haircut,unmet=Math.max(0,shortfall-saleProceeds),paid=s.redemption-unmet;
+ const fxPayoff=-h*s.fx,cdsPayoff=s.recovery===null?0:p*(1-s.recovery);
+ const investmentNav=cash-cost+markedBonds-l+fxPayoff+cdsPayoff-saleLoss;
+ return {scenario:s.id,cash,fxCost,cdsCost,financeCost,cost,collateral,liquid,localReturn,localMark,dollarMark,markedBonds,shortfall,soldMark,saleProceeds,saleLoss,unmet,paid,fxPayoff,cdsPayoff,investmentNav,investmentReturn:investmentNav-100,remainingNav:investmentNav-paid,checkpointCash:Math.max(0,liquid+saleProceeds-paid)};
+}
+const alternatives=[{name:'Example book',values:example},{name:'Cash reserve',values:[30,30,0,20,20]},{name:'Unhedged bonds',values:[50,40,0,0,0]},{name:'Borrowed, with protection',values:[60,50,30,50,40]}];
+function parseNumber(value){const s=String(value).trim().replace(/−/g,'-').replace(/%\s*$/,'').trim();if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)$/.test(s)&&!/^[+-]?\d{1,3}(?:,\d{3})+(?:\.\d*)?$/.test(s))return NaN;return Number(s.replace(/,/g,''));}
+const questions=[
+ {id:'local-return',title:'Convert the local bond return to USD',question:'In the sudden stop, the local bond loses 8% in local currency and the USD value of one local-currency unit falls 15%. What is the total USD return?',unit:'% return',answer:-21.8,tolerance:.011,hint:'Apply both changes to the same initial value. The second change applies to the value after the first.',formula:'USD return = (1 − 0.08) × (1 − 0.15) − 1.',solution:'0.92 × 0.85 − 1 = −0.218 = −21.80%. The example’s USD 40m local bond position becomes USD 31.28m. The local return includes local-currency income and price change.',mistake:'Multiply the two value factors, then subtract one. Adding −8% and −15% misses their interaction.'},
+ {id:'fx-payoff',title:'Find the FX hedge payoff',question:'The fund sells USD 20m of initial local-currency principal forward. With an FX return of −15%, what is its gross hedge payoff at quarter end?',unit:'USD millions',answer:3,tolerance:.011,hint:'Selling local currency forward gains when the local currency loses USD value. Use the initial principal hedge amount.',formula:'Gross FX payoff = −H × f = −20 × (−0.15).',solution:'The gross hedge payoff is USD 3.00m. The quarter’s hedge cost is separately 1% × 20 = USD 0.20m. The hedge covers half of the initial USD 40m local bond principal. Changes in bond value leave additional FX exposure.',mistake:'Use a positive payoff for a short local-currency hedge when the currency falls. Keep the separately charged hedge cost out of the gross payoff.'},
+ {id:'cds-premium',title:'Convert the annual CDS premium',question:'CDS means credit default swap. The fund buys USD 20m of sovereign default protection at a 300 basis point annual premium. Under simple quarterly accrual, what premium does it prefund for this quarter?',unit:'USD millions',answer:.15,tolerance:.0051,hint:'100 basis points is 1 percentage point. One quarter is one fourth of the stated annual premium.',formula:'Quarterly premium = 20 × (300 / 10000) / 4.',solution:'The quarter’s premium is USD 0.15m. It is 0.75% of the protected notional. The premium is paid in every scenario, including when no credit event occurs.',mistake:'Convert basis points to a decimal annual rate, then divide by four. Use the CDS notional, not total fund NAV.'},
+ {id:'liquid-cash',title:'Separate available cash from collateral',question:'The example invests 40m in local bonds and 40m in USD bonds, has no borrowing, hedges 20m of FX and buys 20m of CDS protection. Starting NAV is 100m. What cash is available at the redemption checkpoint after costs and collateral?',unit:'USD millions',answer:16.65,tolerance:.011,hint:'Collateral stays in the fund but cannot meet this checkpoint’s redemptions.',formula:'C = 100 − 40 − 40 = 20. Costs = .01×20 + .0075×20 = .35. Collateral = .10×20 + .05×20 = 3. Available = C − costs − collateral.',solution:'Available cash = 20 − 0.35 − 3 = USD 16.65m. Collateral remains an asset. Future FX and CDS payoffs cannot fund an earlier redemption.',mistake:'Deduct all prefunded costs and blocked collateral from residual cash. Do not count later derivative settlements as cash available now.'},
+ {id:'cds-payout',title:'Calculate the credit protection payout',question:'In the restructuring scenario, a covered CDS credit event settles with 60% recovery. What is the gross payout on USD 20m of protection?',unit:'USD millions',answer:8,tolerance:.011,hint:'The protection pays the loss fraction of the protected notional under the stated settlement assumption.',formula:'CDS payout = P × (1 − recovery) = 20 × (1 − 0.60).',solution:'The gross payout is USD 8.00m. The USD sovereign bond separately loses 40% of its initial value. This scenario’s −40% bond return already represents that recovery. Do not add another default loss to the bond.',mistake:'Use the 40% loss fraction, not the 60% recovery fraction. Keep the premium separate from the gross payout.'},
+ {id:'forced-sale',title:'Find the forced-sale loss',question:'The restructuring checkpoint requires USD 30m of redemptions. Available cash is USD 16.65m. A sale raises 85% of a bond’s marked value. What extra loss does selling enough bonds create?',unit:'USD millions',answer:2.3558823529411765,tolerance:.011,hint:'The cash deficit is 13.35m. A sale of marked value V raises 0.85V, so solve for V before finding the loss.',formula:'V = (30 − 16.65) / .85 = 15.705882353. Extra loss = .15 × V.',solution:'Sell USD 15.705882353m of marked bonds. The sale raises USD 13.35m and loses USD 2.355882353m, displayed as USD 2.36m. The example has enough marked bonds to meet the deficit. Mark-to-market losses and the extra sale discount are separate.',mistake:'Divide the cash deficit by 0.85. Taking 15% of the cash deficit understates the marked value that must be sold.'},
+ {id:'investment-nav',title:'Find adjusted investment NAV',question:'In restructuring the example has residual cash 20m, prefunded costs 0.35m, marked bonds 49.5m, no borrowing, FX payoff 5m, CDS payout 8m and forced-sale loss 2.355882353m. What is adjusted investment NAV, equal to final remaining NAV plus withdrawals paid?',unit:'USD millions',answer:79.79411764705883,tolerance:.011,hint:'Add assets and derivative payoffs. Deduct costs and the extra sale loss. Collateral is already inside residual cash.',formula:'Investment NAV = 20 − .35 + 49.5 + 5 + 8 − 2.355882353.',solution:'Investment NAV is USD 79.79411765m, displayed as USD 79.79m. Relative to initial USD 100m, the investment return is −20.21%. After paying USD 30m of redemptions, remaining NAV is USD 49.79m. Investor withdrawals are distinct from investment losses.',mistake:'Do not add collateral again or count the redemption itself as an investment loss. In a borrowed book, subtract borrowing once.'}
+];
+const api={scenarios,example,alternatives,outcome,validate,questions,parseNumber};if(typeof module!=='undefined')module.exports=api;root.Week11Model=api;
 })(typeof window==='undefined'?globalThis:window);
